@@ -1330,13 +1330,16 @@ function submitForm(){
   document.getElementById('dash-sub').textContent=st.name+' — '+(document.getElementById('f-date')?.value||new Date().toLocaleDateString('ar-EG'));
   // KPI CARDS
   document.getElementById('d-sales').textContent=fmtEn(sales,0);
-  // Cost card: two lines
+    // Electricity cost display
   const costEl=document.getElementById('d-cost');
-  if(kwhCost){
-    costEl.innerHTML=`<div style="font-size:20px;font-weight:800;direction:ltr">${fmtEn(kwhCost,3)} KWH/م³</div><div style="font-size:13px;color:var(--amber);font-weight:700;direction:ltr;margin-top:4px">${totalElecLE?fmtEn(totalElecLE,0)+' ج.م':''}</div><div style="font-size:11px;color:var(--gray-mid);margin-top:2px">${costPerM3LE?fmtEn(costPerM3LE,3)+' ج.م/م³ غاز':''}</div>`;
-    costEl.className='kpi-val';
-  } else {costEl.textContent='—';costEl.className='kpi-val';}
+  costEl.textContent=kwhCost?fmtEn(kwhCost,costDecimals):'—';
+  costEl.className='kpi-val '+(kwhCost?(kwhCost<0.3?'ok':kwhCost<0.5?'warn':'bad'):'');
+  const totalElecEl=document.getElementById('d-total-elec');
+  if(totalElecEl)totalElecEl.textContent=(totalElecLE&&totalElecLE>0)?fmtEn(totalElecLE,2):'—';
   document.getElementById('d-cost-unit').textContent=kwhInd>0?'KWH/م³ (صناعى)':'KWH/م³ (تجارى)';
+  const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
+  const costLEEl=document.getElementById('d-cost-le');
+  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';
   const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
   const costLEEl=document.getElementById('d-cost-le');
   if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';
