@@ -367,7 +367,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
     <div class="section-body">
       <div class="form-group" style="margin-bottom:12px">
         <label><span class="req">*</span> سعر المتر المكعب الحالى (ج.م)</label>
-        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13.00" oninput="checkSalesTotal()" style="direction:ltr">
+        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="" oninput="checkSalesTotal()" style="direction:ltr">
         <div class="validation-msg">إلزامى</div>
       </div>
       <div class="form-grid">
@@ -483,6 +483,10 @@ input:checked+.slider:before{transform:translateX(-20px)}
           <div class="kpi-label">تكلفة KWH / م³ غاز</div>
           <div class="kpi-val" id="d-cost" style="direction:ltr">—</div>
           <div class="kpi-unit" id="d-cost-unit"></div>
+          <div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border)">
+            <div class="kpi-label">تكلفة م³ الغاز المباع من الكهرباء</div>
+            <div style="font-size:14px;font-weight:800;direction:ltr;color:var(--amber)" id="d-cost-le">—</div>
+          </div>
         </div>
       </div>
     </div>
@@ -965,24 +969,23 @@ function getH(idx,prefix){
   if(mode==='hm'){const h=parseInt(document.getElementById(`${prefix}-h-${idx}`)?.value)||0;const m=parseInt(document.getElementById(`${prefix}-m-${idx}`)?.value)||0;return h+m/60;}
   const i=parseInt(document.getElementById(`${prefix}-i-${idx}`)?.value)||0;const f=parseInt(document.getElementById(`${prefix}-f-${idx}`)?.value)||0;return parseFloat(`${i}.${f}`)||i;
 }
-function calcMDiff(idx){const a=parseFloat(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
+function calcMDiff(idx){const a=parseFloat(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el&&(a>0||c>0))el.value=Math.max(0,c-a);}
 function calcGMDiff(idx){const a=parseFloat(document.getElementById('gm-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('gm-cur-'+idx)?.value)||0;const el=document.getElementById('gm-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
 function calcLubeDiff(idx){
   const a=parseFloat(document.getElementById('lube-hrs-'+idx)?.value)||0;
   const c=parseFloat(document.getElementById('lube-cur-'+idx)?.value)||0;
-  const diff=document.getElementById('lube-diff-'+idx);
-  if(diff&&a>0&&c>0){
+  const diffEl=document.getElementById('lube-diff-'+idx);
+  if(diffEl&&(a>0||c>0)){
     const elapsed=Math.max(0,c-a);
-    diff.value=elapsed;
-    // Auto-calc remaining
+    diffEl.value=elapsed;
+    // Auto-calc remaining based on model lube interval
     const st=currentStation;
-    if(st){
+    if(st&&st.comps&&st.comps[idx]){
       const comp=st.comps[idx];
-      const lubeInterval=comp?LUBE_HOURS[comp.model]:null;
+      const lubeInterval=LUBE_HOURS[comp.model]||null;
       const remEl=document.getElementById('lube-rem-'+idx);
       if(remEl&&lubeInterval>0){
-        const rem=Math.max(0,lubeInterval-elapsed);
-        remEl.value=rem;
+        remEl.value=Math.max(0,lubeInterval-elapsed);
       }
     }
   }
@@ -1300,7 +1303,7 @@ function submitForm(){
   if(!mi&&kwhForPF>0){
     pf=kwhForPF/Math.sqrt(kwhForPF*kwhForPF+kvarh*kvarh);
     kwhCost=sales>0?kwhForPF/sales:null; // KWH/m³
-    totalElecLE=(kwhInd*2.74)+(kwhCom*2.79); // إجمالى تكلفة الكهرباء بالجنيه
+    totalElecLE=((kwhInd||0)*2.74)+((kwhCom||0)*2.79); // إجمالى تكلفة الكهرباء بالجنيه
     costPerM3LE=sales>0?(kwhInd>0?kwhInd*2.74:kwhCom*2.79)/sales:null; // ج.م/م³
     const indCost=kwhInd*2.74;
     if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${(indCost*(0.92-pf)*1).toFixed(2)} ج.م`;}
@@ -1323,6 +1326,7 @@ function submitForm(){
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
   document.getElementById('form-screen').style.display='none';
   document.getElementById('dashboard-screen').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
   document.getElementById('dash-sub').textContent=st.name+' — '+(document.getElementById('f-date')?.value||new Date().toLocaleDateString('ar-EG'));
   // KPI CARDS
   document.getElementById('d-sales').textContent=fmtEn(sales,0);
@@ -1332,7 +1336,10 @@ function submitForm(){
     costEl.innerHTML=`<div style="font-size:20px;font-weight:800;direction:ltr">${fmtEn(kwhCost,3)} KWH/م³</div><div style="font-size:13px;color:var(--amber);font-weight:700;direction:ltr;margin-top:4px">${totalElecLE?fmtEn(totalElecLE,0)+' ج.م':''}</div><div style="font-size:11px;color:var(--gray-mid);margin-top:2px">${costPerM3LE?fmtEn(costPerM3LE,3)+' ج.م/م³ غاز':''}</div>`;
     costEl.className='kpi-val';
   } else {costEl.textContent='—';costEl.className='kpi-val';}
-  document.getElementById('d-cost-unit').textContent='';
+  document.getElementById('d-cost-unit').textContent=kwhInd>0?'KWH/م³ (صناعى)':'KWH/م³ (تجارى)';
+  const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
+  const costLEEl=document.getElementById('d-cost-le');
+  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';
   // Flow rate with actual inlet pressure correction
   const pressPlcInt=parseFloat(document.getElementById('f-pp-int')?.value)||0;
   const pressPlcFrac=parseFloat(document.getElementById('f-pp-frac')?.value)||0;
