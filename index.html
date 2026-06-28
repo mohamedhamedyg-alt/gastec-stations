@@ -459,27 +459,92 @@ input:checked+.slider:before{transform:translateX(-20px)}
 <!-- DASHBOARD -->
 <div id="dashboard-screen">
 <div class="container">
-  <div class="dash-header">
-    <div class="ok-icon">✓</div>
-    <h2>تم الإرسال بنجاح</h2>
-    <p id="dash-sub"></p>
+  <div style="background:var(--green);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;text-align:center;color:white">
+    <div style="font-size:24px;margin-bottom:4px">✓</div>
+    <div style="font-size:15px;font-weight:800">تم إرسال البيانات بنجاح</div>
+    <div style="font-size:11px;opacity:0.85;margin-top:3px" id="dash-sub"></div>
   </div>
-  <div class="perf-title">لوحة متابعة أداء المحطة</div>
-  <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">المبيعات اليومية (م³)</div><div class="kpi-val blue" id="d-sales">—</div></div>
-    <div class="kpi-card"><div class="kpi-label">تكلفة KWH / م³</div><div class="kpi-val" id="d-cost">—</div><div class="kpi-unit" id="d-cost-unit"></div></div>
-    <div class="kpi-card"><div class="kpi-label">انحراف Flow Rate عن المعيارى</div><div class="kpi-val" id="d-flow-dev-val">—</div><div class="kpi-unit" id="d-flow-ref"></div></div>
-    <div class="kpi-card"><div class="kpi-label">Power Factor</div><div class="kpi-val" id="d-pf">—</div><div class="kpi-dev" id="d-pf-dev"></div></div>
-    <div class="kpi-card"><div class="kpi-label">كفاءة استغلال الضاغط (Efficiency)</div><div class="kpi-val" id="d-util">—</div><div class="kpi-dev" id="d-util-dev"></div></div>
-    <div class="kpi-card"><div class="kpi-label">إجمالى ساعات التوقف</div><div class="kpi-val" id="d-down">—</div><div class="kpi-unit">ساعة</div></div>
+  <div style="font-size:20px;font-weight:800;color:var(--blue-dark);text-align:center;padding:14px;background:var(--blue-pale);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border)">إعرف وتابع محطتك</div>
+  <div class="kpi-card" style="margin-bottom:10px;padding:16px;text-align:center">
+    <div class="kpi-label">المبيعات اليومية</div>
+    <div class="kpi-val blue" id="d-sales" style="font-size:32px;direction:ltr">—</div>
+    <div class="kpi-unit">م³</div>
   </div>
-  <div class="pf-card" id="pf-card-dash" style="display:none">
-    <div style="font-size:12px;font-weight:800;color:var(--gray-mid);margin-bottom:8px">معامل القدرة — Power Factor</div>
-    <div class="pf-bar-wrap"><div class="pf-bar-fill" id="pf-bar" style="width:0%"></div></div>
-    <div class="pf-markers"><span>0%</span><span>70%</span><span>92%</span><span>95%</span><span>100%</span></div>
-    <div class="pf-result" id="pf-result-card">
-      <span id="pf-status-text">—</span><span id="pf-amount">—</span>
+  <div class="section-card" style="margin-bottom:10px">
+    <div class="section-head" style="background:#F0EBF8;color:#4A235B;font-size:12px;font-weight:800"><div class="dot" style="background:#7B3FA0"></div>تكلفة الكهرباء</div>
+    <div class="section-body">
+      <div class="form-grid">
+        <div style="text-align:center;padding:8px">
+          <div class="kpi-label">إجمالى تكلفة الكهرباء</div>
+          <div class="kpi-val blue" id="d-total-elec" style="direction:ltr">—</div>
+          <div class="kpi-unit">ج.م</div>
+        </div>
+        <div style="text-align:center;padding:8px">
+          <div class="kpi-label">تكلفة KWH / م³ غاز</div>
+          <div class="kpi-val" id="d-cost" style="direction:ltr">—</div>
+          <div class="kpi-unit" id="d-cost-unit"></div>
+        </div>
+      </div>
     </div>
+  </div>
+  <div class="section-card" style="margin-bottom:10px">
+    <div class="section-head" style="background:#EDF7EE;color:#1A4A2A;font-size:12px;font-weight:800"><div class="dot" style="background:var(--green)"></div>معدل التدفق — Flow Rate</div>
+    <div class="section-body">
+      <div class="form-grid">
+        <div style="text-align:center;padding:8px">
+          <div class="kpi-label" id="d-flow-ref-label">عند ضغط الدخول المعيارى</div>
+          <div class="kpi-val blue" id="d-flow-ref-val" style="direction:ltr">—</div>
+          <div class="kpi-unit">م³/س</div>
+        </div>
+        <div style="text-align:center;padding:8px">
+          <div class="kpi-label" id="d-flow-actual-label">عند ضغط الدخول الفعلى</div>
+          <div class="kpi-val" id="d-flow-actual" style="direction:ltr">—</div>
+          <div class="kpi-unit">م³/س</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;padding:8px;border-radius:8px" id="d-flow-dev-wrap">
+        <span style="font-size:11px;font-weight:700;color:var(--gray-mid)">الانحراف: </span>
+        <span style="font-size:16px;font-weight:800;direction:ltr" id="d-flow-dev-val">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="section-card" style="margin-bottom:10px" id="pf-card-dash">
+    <div class="section-head" style="background:#F0EBF8;color:#4A235B;font-size:12px;font-weight:800"><div class="dot" style="background:#7B3FA0"></div>معامل القدرة — Power Factor</div>
+    <div class="section-body">
+      <div class="form-grid" style="margin-bottom:10px">
+        <div style="text-align:center;padding:8px">
+          <div class="kpi-label">Power Factor</div>
+          <div class="kpi-val" id="d-pf" style="direction:ltr">—</div>
+        </div>
+        <div style="text-align:center;padding:8px">
+          <div class="kpi-label">حافز / غرامة</div>
+          <div class="kpi-val" id="d-pf-amount" style="direction:ltr;font-size:14px">—</div>
+          <div class="kpi-unit">ج.م</div>
+        </div>
+      </div>
+      <div class="pf-bar-wrap"><div class="pf-bar-fill" id="pf-bar" style="width:0%"></div></div>
+      <div class="pf-markers"><span>0%</span><span>70%</span><span>92%</span><span>95%</span><span>100%</span></div>
+      <div class="pf-result" id="pf-result-card" style="margin-top:8px"><span id="pf-status-text">—</span><span id="pf-amount">—</span></div>
+    </div>
+  </div>
+  <div class="form-grid" style="margin-bottom:10px;gap:10px">
+    <div class="kpi-card">
+      <div class="kpi-label">كفاءة استغلال الضاغط (Efficiency)</div>
+      <div class="kpi-val" id="d-util" style="direction:ltr">—</div>
+      <div class="kpi-dev" id="d-util-dev"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">إجمالى ساعات التوقف</div>
+      <div class="kpi-val" id="d-down" style="direction:ltr">—</div>
+      <div class="kpi-unit">ساعة</div>
+    </div>
+  </div>
+  <div id="d-maint-section" style="margin-bottom:10px"></div>
+  <div id="d-lube-section" style="margin-bottom:10px"></div>
+  <div class="kpi-card" style="margin-bottom:10px">
+    <div class="kpi-label">الأيام المتبقية لفحص معدات الأمان</div>
+    <div class="kpi-val" id="d-safety" style="direction:ltr">—</div>
+    <div class="kpi-unit">يوم</div>
   </div>
   <div class="week-section">
     <h3>مبيعات الأسبوع (م³)</h3>
@@ -542,6 +607,52 @@ document.addEventListener('DOMContentLoaded',function(){
 const ADMIN_CODE='ADMIN2024';
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
+// Maintenance schedules per compressor brand
+const MAINT_SCHEDULES={
+  'ASPRO':  [2500,5000,7500,10000,12500,17500,20000,40000],
+  'IMW':    [1000,2000,5000,10000,20000,40000],
+  'KwangShin': [4000,8000,16000,32000],
+  'Safe':   [4000,8000,12000,16000],
+  'Clean Energy': [1000,2000,5000,10000,20000],
+  'GRAF':   [4000,8000,12000,16000],
+  'CUBO':   [1000,2000,4000,8000,16000],
+  'FORNOVO':[2000,4000,8000,12000,16000],
+  'W.F':    [2000,4000,8000,12000,16000],
+  'J.W':    [2000,4000,8000,12000,16000],
+  'Hyosung':[2000,4000,8000,12000,16000],
+  'Hyosung-GasEngine':[750,12000,24000,48000],
+  'default':[1000,2000,4000,8000,12000,16000,20000,30000,40000],
+};
+// Gas engine maintenance schedules
+const GAS_ENGINE_SCHEDULES={
+  'CAT':  [250,500,1000,2000,4000,8000,12000,16000,20000],
+  'Ariel':[750,12000,24000,48000],
+  'default':[500,1000,2000,4000,8000,12000,16000],
+};
+function getMaintOpts(brand, isGasEngine=false){
+  let list;
+  if(isGasEngine){
+    list=GAS_ENGINE_SCHEDULES[brand]||GAS_ENGINE_SCHEDULES['default'];
+  } else {
+    list=MAINT_SCHEDULES[brand]||MAINT_SCHEDULES['default'];
+  }
+  return list.map(h=>`<option>${h.toLocaleString('en-US')} ساعة</option>`).join('');
+}
+// Lubrication hours per model
+const LUBE_HOURS={
+  'M302': 8000, 'H304': 2750,
+  'SHG 315': 5500, 'SHG355-F4-EM': 1800, 'SWSE200 F5,5 IEC': 5500,
+  'SWSE160FS,5-EM': 3800,
+  'ST 75T26-EM': 8000, 'ST 65T26-1M90-EM': 8000,
+  'GRF 115-6-4-132-2B': 6092, 'GRF 115-3-4-160-2B': 3000, 'GRF 115-3-4-200-2B': 6000,
+  'IMW50-6250DA': 2750, 'IMW50 5750DA': 2750, 'IMW50-5125DA': 2750,
+  'GEO-BII-200': 4000,
+  'P95B DB': 6000,
+  'IODM 115-4R': 4300,
+  'S975-F1.7-EM': 1700, 'CLEANCNG5750DA': 2750,
+  '4DA388': 2750,
+  'JGJ/4': 2750,
+};
 const MAINT_LIST=['1000 ساعة','2000 ساعة','4000 ساعة','8000 ساعة','12000 ساعة','16000 ساعة','18000 ساعة','22000 ساعة','26000 ساعة','30000 ساعة'];
 const ALL_OILS=['Eni Dicrea 150','Eni I-Sigma Monograde SAE 50','Eni I-Sigma Performance E7 15W-40','Eni Dicrea 100','Mobil Delvac 1340','Eni Dicrea SX 68','Mobil Rarus 427','Eni Dicrea ESX 100','Mobil Pegasus 805','Eni Geum NG 40'];
 // motor_type per compressor: 'gas'=gas engine, 'elec'=electric motor, null=no motor needed
@@ -675,7 +786,8 @@ function buildCompSections(indices){
     const isGraf=GRAF_MODELS.includes(c.model);
     const compLabel=`${c.name} — ${c.model}`;
     const oilOptions=ALL_OILS.map(o=>`<option>${o}</option>`).join('');
-    const maintOpts=MAINT_LIST.map(m=>`<option>${m}</option>`).join('');
+    const maintOpts=getMaintOpts(c.name);
+    const gmOpts=getMaintOpts(c.motor_name||'CAT',true);
     const secEl=document.createElement('div');
     secEl.id=`comp-section-${idx}`;
     secEl.innerHTML=`
@@ -796,12 +908,12 @@ function buildCompSections(indices){
         </div>
         <div class="divider"></div>
         <div class="form-grid">
-          <div class="form-group"><label>نوع صيانة المحرك الأخيرة</label><select class="form-control" id="gm-last-${idx}"><option value="">— اختر —</option>${maintOpts}</select><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>نوع صيانة المحرك الأخيرة</label><select class="form-control" id="gm-last-${idx}"><option value="">— اختر —</option>${gmOpts}</select><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>تاريخ صيانة المحرك الأخيرة</label><input type="date" class="form-control" id="gm-date-${idx}"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات المحرك عند آخر صيانة</label><input type="number" class="form-control" id="gm-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية للمحرك</label><input type="number" class="form-control" id="gm-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات منذ آخر صيانة (أوتوماتيك)</label><input type="number" class="form-control" id="gm-diff-${idx}" readonly style="direction:ltr;background:var(--blue-pale);font-weight:800"></div>
-          <div class="form-group"><label>نوع صيانة المحرك القادمة</label><select class="form-control" id="gm-next-${idx}"><option value="">— اختر —</option>${maintOpts}</select><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>نوع صيانة المحرك القادمة</label><select class="form-control" id="gm-next-${idx}"><option value="">— اختر —</option>${gmOpts}</select><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات المتبقية لصيانة المحرك</label><input type="number" class="form-control" id="gm-rem-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
         </div>
       </div>
@@ -811,12 +923,15 @@ function buildCompSections(indices){
     <div class="section-card sec-lube">
       <div class="section-head"><div class="dot"></div>تشحيم الموتور الكهربائى — ${compLabel}</div>
       <div class="section-body">
+        <div style="background:var(--green-pale);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;font-weight:700;color:var(--green)">
+          الساعات البينية المعتمدة للتشحيم: <span style="font-size:14px;direction:ltr">${(LUBE_HOURS[c.model]||'—').toLocaleString?.('en-US')||LUBE_HOURS[c.model]||'—'}</span> ساعة
+        </div>
         <div class="form-grid">
           <div class="form-group"><label>تاريخ آخر تشحيم للموتور الرئيسى</label><input type="date" class="form-control" id="lube-date-${idx}"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية عند آخر تشحيم</label><input type="number" class="form-control" id="lube-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcLubeDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية</label><input type="number" class="form-control" id="lube-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcLubeDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>فرق الساعات (أوتوماتيك)</label><input type="number" class="form-control" id="lube-diff-${idx}" readonly style="direction:ltr;background:var(--green-pale);font-weight:800"></div>
-          <div class="form-group"><label>الساعات الباقية للتشحيم القادم</label><input type="number" class="form-control" id="lube-rem-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>الساعات الباقية للتشحيم القادم</label><input type="number" class="form-control" id="lube-rem-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" placeholder="${LUBE_HOURS[c.model]||''}"><div class="validation-msg">إلزامى</div></div>
         </div>
       </div>
     </div>`:''}`;
@@ -852,7 +967,26 @@ function getH(idx,prefix){
 }
 function calcMDiff(idx){const a=parseFloat(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
 function calcGMDiff(idx){const a=parseFloat(document.getElementById('gm-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('gm-cur-'+idx)?.value)||0;const el=document.getElementById('gm-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
-function calcLubeDiff(idx){const a=parseFloat(document.getElementById('lube-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('lube-cur-'+idx)?.value)||0;const el=document.getElementById('lube-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
+function calcLubeDiff(idx){
+  const a=parseFloat(document.getElementById('lube-hrs-'+idx)?.value)||0;
+  const c=parseFloat(document.getElementById('lube-cur-'+idx)?.value)||0;
+  const diff=document.getElementById('lube-diff-'+idx);
+  if(diff&&a>0&&c>0){
+    const elapsed=Math.max(0,c-a);
+    diff.value=elapsed;
+    // Auto-calc remaining
+    const st=currentStation;
+    if(st){
+      const comp=st.comps[idx];
+      const lubeInterval=comp?LUBE_HOURS[comp.model]:null;
+      const remEl=document.getElementById('lube-rem-'+idx);
+      if(remEl&&lubeInterval>0){
+        const rem=Math.max(0,lubeInterval-elapsed);
+        remEl.value=rem;
+      }
+    }
+  }
+}
 
 // TARIFF
 function setTariff(t){
@@ -1184,10 +1318,12 @@ function submitForm(){
   const downDT=document.getElementById('f-total-downtime')?.value||'0';
   weekData[6]=sales;
   submittedData[st.code]={sent:true,name:st.name,region:st.region,sales,pf,kwh_cost:kwhCost,util};
+  const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
+  const costDecimals=hasGasMotor?5:2;
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
   document.getElementById('form-screen').style.display='none';
   document.getElementById('dashboard-screen').style.display='block';
-  document.getElementById('dash-sub').textContent=st.name+' — '+new Date().toLocaleDateString('ar-EG');
+  document.getElementById('dash-sub').textContent=st.name+' — '+(document.getElementById('f-date')?.value||new Date().toLocaleDateString('ar-EG'));
   // KPI CARDS
   document.getElementById('d-sales').textContent=fmtEn(sales,0);
   // Cost card: two lines
@@ -1217,30 +1353,114 @@ function submitForm(){
     adjRefFlow=refFlow*(pressPlc/stRefPress);
   }
   const flowAdj=flow&&adjRefFlow?((flow-adjRefFlow)/adjRefFlow*100):null;
+  // Flow rate display
+  document.getElementById('d-flow-ref-label').textContent='عند ضغط الدخول المعيارى';
+  const actualLbl=document.getElementById('d-flow-actual-label');if(actualLbl)actualLbl.textContent=pressPlc>0?`عند ضغط الدخول الفعلى (${pressPlc} bar)`:'عند ضغط الدخول الفعلى';
+  document.getElementById('d-flow-ref-val').textContent=adjRefFlow?fmtEn(adjRefFlow,0):'—';
+  document.getElementById('d-flow-actual').textContent=flow?fmtEn(flow,0):'—';
   const flowDevEl=document.getElementById('d-flow-dev-val');
+  const flowWrap=document.getElementById('d-flow-dev-wrap');
   if(flowAdj!==null){
     const sign=flowAdj>=0?'+':'';
     flowDevEl.textContent=sign+fmtEn(flowAdj,1)+'%';
-    flowDevEl.className='kpi-val '+(Math.abs(flowAdj)<=5?'ok':Math.abs(flowAdj)<=15?'warn':'bad');
-  } else{flowDevEl.textContent='لا ينطبق';flowDevEl.className='kpi-val';}
-  document.getElementById('d-flow-ref').textContent=adjRefFlow?`معيارى عند ${pressPlc}bar: ${fmtEn(adjRefFlow,0)} م³/س`:refFlow?`المعيارى: ${fmtEn(refFlow,0)} م³/س`:'';
+    const cls=Math.abs(flowAdj)<=5?'ok':Math.abs(flowAdj)<=15?'warn':'bad';
+    flowDevEl.style.color=cls==='ok'?'var(--green)':cls==='warn'?'var(--amber)':'var(--red)';
+    flowWrap.style.background=cls==='ok'?'var(--green-pale)':cls==='warn'?'var(--amber-pale)':'var(--red-pale)';
+  } else {flowDevEl.textContent='لا ينطبق';flowDevEl.style.color='var(--gray-mid)';}
   const pfEl=document.getElementById('d-pf');
-  if(pf!==null){pfEl.textContent=fmtEn(pf*100,1)+'%';pfEl.className='kpi-val '+(pf>=0.92?'ok':pf>=0.70?'warn':'bad');document.getElementById('d-pf-dev').textContent=pfAmount;}
-  else{pfEl.textContent='—';pfEl.className='kpi-val';}
-  const utilEl=document.getElementById('d-util');
-  if(util!==null){utilEl.textContent=fmtEn(util,1)+'%';utilEl.className='kpi-val '+(util>=85?'ok':util>=70?'warn':'bad');document.getElementById('d-util-dev').textContent=util>=85?'ممتاز':util>=70?'مقبول':'منخفض';}
-  else{utilEl.textContent='—';utilEl.className='kpi-val';}
-  document.getElementById('d-down').textContent=downDT||'0';
-  // PF BAR
   if(pf!==null){
+    pfEl.textContent=fmtEn(pf*100,1)+'%';
+    pfEl.className='kpi-val '+(pf>=0.92?'ok':pf>=0.70?'warn':'bad');
+    document.getElementById('d-pf-amount').textContent=pfAmount||'—';
+    document.getElementById('d-pf-amount').className='kpi-val '+(pfResult==='good'?'ok':pfResult==='fine'?'warn':'bad');
     document.getElementById('pf-card-dash').style.display='block';
     const bar=document.getElementById('pf-bar');
-    bar.style.width=(pf*100).toFixed(1)+'%';
+    bar.style.width=fmtEn(pf*100,1)+'%';
     bar.style.background=pfResult==='good'?'#1A7A45':pfResult==='fine'?'#C47F00':'#B91C1C';
     document.getElementById('pf-result-card').className='pf-result '+(pfResult==='bad'?'bad':pfResult==='fine'?'fine':'good');
-    document.getElementById('pf-status-text').textContent='PF = '+(pf*100).toFixed(1)+'%';
+    document.getElementById('pf-status-text').textContent='PF = '+fmtEn(pf*100,1)+'%';
     document.getElementById('pf-amount').textContent=pfAmount;
+  } else {
+    pfEl.textContent='—';pfEl.className='kpi-val';
+    document.getElementById('pf-card-dash').style.display='none';
   }
+  const utilEl=document.getElementById('d-util');
+  if(util!==null){utilEl.textContent=fmtEn(util,1)+'%';utilEl.className='kpi-val '+(util>=85?'ok':util>=70?'warn':'bad');document.getElementById('d-util-dev').textContent=util>=85?'Efficiency ممتازة':util>=70?'Efficiency مقبولة':'Efficiency منخفضة';}
+  else{utilEl.textContent='—';utilEl.className='kpi-val';}
+  document.getElementById('d-down').textContent=downDT||'0';
+
+  // ⑥ Maintenance per active comp
+  const maintSection=document.getElementById('d-maint-section');
+  maintSection.innerHTML='';
+  activeComps.forEach(idx=>{
+    const c=st.comps[idx];
+    const lastMaint=document.getElementById('maint-last-'+idx)?.value||'—';
+    const elapsed=document.getElementById('maint-diff-'+idx)?.value||'—';
+    const rem=document.getElementById('maint-rem-'+idx)?.value||'—';
+    const card=document.createElement('div');
+    card.className='section-card';
+    card.style.marginBottom='10px';
+    card.innerHTML=`
+      <div class="section-head" style="background:#F0F9FF;color:#0C343D;font-size:12px;font-weight:800">
+        <div class="dot" style="background:#0891B2"></div>الصيانة الدورية — ${c.name} ${c.model}
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="kpi-card" style="border:none;padding:8px;text-align:center">
+            <div class="kpi-label">نوع آخر صيانة</div>
+            <div style="font-size:13px;font-weight:800;color:var(--blue-dark)">${lastMaint}</div>
+          </div>
+          <div class="kpi-card" style="border:none;padding:8px;text-align:center">
+            <div class="kpi-label">ساعات منذ آخر صيانة</div>
+            <div style="font-size:16px;font-weight:800;direction:ltr;color:var(--amber)">${fmtEn(parseFloat(elapsed)||0,0)}</div>
+          </div>
+          
+            <div class="kpi-unit">ساعة</div>
+          </div>
+        </div>
+      </div>`;
+    maintSection.appendChild(card);
+  });
+
+  // ⑦ Lubrication per active comp (elec motors only)
+  const lubeSection=document.getElementById('d-lube-section');
+  lubeSection.innerHTML='';
+  activeComps.forEach(idx=>{
+    const c=st.comps[idx];
+    if(c.motor!=='elec')return;
+    const lubeInterval=LUBE_HOURS[c.model]||null;
+    const lubeDiff=parseFloat(document.getElementById('lube-diff-'+idx)?.value)||0;
+    const lubeRem=parseFloat(document.getElementById('lube-rem-'+idx)?.value)||0;
+    const card=document.createElement('div');
+    card.className='section-card';
+    card.style.marginBottom='10px';
+    card.innerHTML=`
+      <div class="section-head" style="background:#F0FDF4;color:#14532D;font-size:12px;font-weight:800">
+        <div class="dot" style="background:#16A34A"></div>تشحيم الموتور الرئيسى — ${c.name} ${c.model}
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="kpi-card" style="border:none;padding:8px;text-align:center">
+            <div class="kpi-label">الساعات البينية للتشحيم</div>
+            <div style="font-size:16px;font-weight:800;direction:ltr;color:var(--blue-dark)">${lubeInterval?fmtEn(lubeInterval,0):'—'}</div>
+            <div class="kpi-unit">ساعة</div>
+          </div>
+          <div class="kpi-card" style="border:none;padding:8px;text-align:center">
+            <div class="kpi-label">متبقى للتشحيم القادم</div>
+            <div style="font-size:16px;font-weight:800;direction:ltr;color:${lubeRem<500?'var(--red)':lubeRem<1000?'var(--amber)':'var(--green)'}">${fmtEn(lubeRem,0)}</div>
+            <div class="kpi-unit">ساعة</div>
+          </div>
+        </div>
+      </div>`;
+    lubeSection.appendChild(card);
+  });
+
+  // ⑧ Safety
+  const safetyRem=parseFloat(document.getElementById('f-safety-remain')?.value)||0;
+  const safetyEl=document.getElementById('d-safety');
+  safetyEl.textContent=safetyRem>0?fmtEn(safetyRem,0):'—';
+  safetyEl.className='kpi-val '+(safetyRem>15?'ok':safetyRem>0?'warn':'bad');
+  // PF bar handled above
   // WEEK
   const wc=document.getElementById('week-bars');wc.innerHTML='';
   const days=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
