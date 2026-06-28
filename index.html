@@ -1339,11 +1339,7 @@ function submitForm(){
   document.getElementById('d-cost-unit').textContent=kwhInd>0?'KWH/م³ (صناعى)':'KWH/م³ (تجارى)';
   const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
   const costLEEl=document.getElementById('d-cost-le');
-  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';
-  const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
-  const costLEEl=document.getElementById('d-cost-le');
-  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';
-  // Flow rate with actual inlet pressure correction
+  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';  // Flow rate with actual inlet pressure correction
   const pressPlcInt=parseFloat(document.getElementById('f-pp-int')?.value)||0;
   const pressPlcFrac=parseFloat(document.getElementById('f-pp-frac')?.value)||0;
   const pressPlc=parseFloat(`${pressPlcInt}.${pressPlcFrac}`)||pressPlcInt;
