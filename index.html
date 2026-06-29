@@ -1453,16 +1453,17 @@ function submitForm(){
     }
   });
 
-  // إرسال للـ Apps Script عبر GET (يتجنب CORS)
-  try {
-    const params=new URLSearchParams({data:JSON.stringify(payload)});
-    const img=new Image();
-    img.src=APPS_SCRIPT_URL+'?action=save&'+params.toString();
-    img.onload=()=>console.log('تم الإرسال للشيت');
-    img.onerror=()=>console.log('تم الإرسال (CORS طبيعى)');
-  } catch(err){
-    console.error('خطأ:',err);
-  }
+  // إرسال للـ Apps Script
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify(payload)
+  }).then(()=>{
+    console.log('تم الإرسال للشيت');
+  }).catch(err=>{
+    console.warn('تحذير إرسال:', err);
+  });
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
