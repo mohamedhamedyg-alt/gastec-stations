@@ -239,7 +239,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
     <div class="section-body">
       <div class="form-group" style="margin-bottom:12px">
         <label><span class="req">*</span> تاريخ المبيعات</label>
-        <input type="date" class="form-control" id="f-date" style="font-size:14px;font-weight:700;direction:ltr;letter-spacing:2px;padding:10px 14px">
+        <input type="text" class="form-control" id="f-date" placeholder="YYYY-MM-DD مثال: 2026-06-29" style="font-size:13px;font-weight:700;direction:ltr;letter-spacing:1px;padding:10px 14px">
         <div class="validation-msg">هذا الحقل إلزامى</div>
       </div>
       <div class="form-group">
@@ -443,7 +443,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
       <div class="form-grid">
         <div class="form-group">
           <label>تاريخ آخر فحص معدات الأمان</label>
-          <input type="date" class="form-control" id="f-safety-date" onchange="calcSafety(this.value)">
+          <input type="text" class="form-control" id="f-safety-date" placeholder="YYYY-MM-DD" oninput="calcSafety(this.value)" style="direction:ltr;letter-spacing:1px">
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
@@ -903,7 +903,7 @@ function buildCompSections(indices){
       <div class="section-body">
         <div class="form-grid">
           <div class="form-group"><label>نوع الصيانة الأخيرة</label><select class="form-control" id="maint-last-${idx}"><option value="">— اختر —</option>${maintOpts}</select><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>تاريخ الصيانة الأخيرة</label><input type="date" class="form-control" id="maint-date-${idx}"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>تاريخ الصيانة الأخيرة</label><input type="date" class="form-control" id="maint-date-${idx}" placeholder="YYYY-MM-DD" style="direction:ltr;letter-spacing:1px"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية عند آخر صيانة</label><input type="number" class="form-control" id="maint-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية</label><input type="number" class="form-control" id="maint-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات منذ آخر صيانة (أوتوماتيك)</label><input type="number" class="form-control" id="maint-diff-${idx}" readonly style="direction:ltr;background:var(--blue-pale);font-weight:800"></div>
@@ -1314,13 +1314,13 @@ function validateAll(){
   }
   if(iVal('f-w-drink')){errors.push('مياه الشرب');markErr('f-w-drink','إلزامى');}
   if(iVal('f-w-fire')){errors.push('مياه الحريق');markErr('f-w-fire','إلزامى');}
-  if(iVal('f-pm-int')){errors.push('ضغط الموديول');}
-  if(iVal('f-pp-int')){errors.push('ضغط PLC');}
-  if(iVal('f-gas-price')){errors.push('سعر المتر');}
-  if(iVal('f-cash')){errors.push('الإيداع النقدى');markErr('f-cash','إلزامى');}
-  if(iVal('f-bonds')){errors.push('البونات');markErr('f-bonds','إلزامى');}
-  if(iVal('f-smart-g')){errors.push('سمارت غازتك');markErr('f-smart-g','إلزامى');}
-  if(iVal('f-smart-k')){errors.push('سمارت كارجاس');markErr('f-smart-k','إلزامى');}
+  // ضغط الغاز - إلزامى
+  if(document.getElementById('f-pm-int')?.value===''){errors.push('ضغط الموديول (الجزء الصحيح)');}
+  if(document.getElementById('f-pp-int')?.value===''){errors.push('ضغط PLC (الجزء الصحيح)');}
+  if(!document.getElementById('f-gas-price')?.value||parseFloat(document.getElementById('f-gas-price')?.value)<=0){errors.push('سعر المتر المكعب');}
+  const cashIntCheck=parseInt(document.getElementById('f-cash-int')?.value);
+  if(isNaN(cashIntCheck)||document.getElementById('f-cash-int')?.value===''){errors.push('الإيداع النقدى');markErr('f-cash','إلزامى');}
+  // البونات والسمارت تقبل صفر
   if(iVal('f-safety-date')){errors.push('تاريخ فحص الأمان');markErr('f-safety-date','إلزامى');}
   return errors;
 }
