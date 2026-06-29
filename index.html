@@ -239,7 +239,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
     <div class="section-body">
       <div class="form-group" style="margin-bottom:12px">
         <label><span class="req">*</span> تاريخ المبيعات</label>
-        <input type="text" class="form-control" id="f-date" placeholder="YYYY-MM-DD مثال: 2026-06-29" style="font-size:13px;font-weight:700;direction:ltr;letter-spacing:1px;padding:10px 14px">
+        <input type="date" class="form-control" id="f-date" style="font-size:14px;font-weight:700;direction:ltr">
         <div class="validation-msg">هذا الحقل إلزامى</div>
       </div>
       <div class="form-group">
@@ -443,7 +443,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
       <div class="form-grid">
         <div class="form-group">
           <label>تاريخ آخر فحص معدات الأمان</label>
-          <input type="text" class="form-control" id="f-safety-date" placeholder="YYYY-MM-DD" oninput="calcSafety(this.value)" style="direction:ltr;letter-spacing:1px">
+          <input type="date" class="form-control" id="f-safety-date" onchange="calcSafety(this.value)">
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
@@ -903,7 +903,7 @@ function buildCompSections(indices){
       <div class="section-body">
         <div class="form-grid">
           <div class="form-group"><label>نوع الصيانة الأخيرة</label><select class="form-control" id="maint-last-${idx}"><option value="">— اختر —</option>${maintOpts}</select><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>تاريخ الصيانة الأخيرة</label><input type="date" class="form-control" id="maint-date-${idx}" placeholder="YYYY-MM-DD" style="direction:ltr;letter-spacing:1px"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>تاريخ الصيانة الأخيرة</label><input type="date" class="form-control" id="maint-date-${idx}" type="date" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية عند آخر صيانة</label><input type="number" class="form-control" id="maint-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية</label><input type="number" class="form-control" id="maint-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات منذ آخر صيانة (أوتوماتيك)</label><input type="number" class="form-control" id="maint-diff-${idx}" readonly style="direction:ltr;background:var(--blue-pale);font-weight:800"></div>
@@ -944,7 +944,7 @@ function buildCompSections(indices){
           الساعات البينية المعتمدة للتشحيم: <span style="font-size:14px;direction:ltr">${(LUBE_HOURS[c.model]||'—').toLocaleString?.('en-US')||LUBE_HOURS[c.model]||'—'}</span> ساعة
         </div>
         <div class="form-grid">
-          <div class="form-group"><label>تاريخ آخر تشحيم للموتور الرئيسى</label><input type="date" class="form-control" id="lube-date-${idx}"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>تاريخ آخر تشحيم للموتور الرئيسى</label><input type="date" class="form-control" id="lube-date-${idx}" type="date" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية عند آخر تشحيم</label><input type="number" class="form-control" id="lube-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcLubeDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية</label><input type="number" class="form-control" id="lube-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcLubeDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>فرق الساعات (أوتوماتيك)</label><input type="number" class="form-control" id="lube-diff-${idx}" readonly style="direction:ltr;background:var(--green-pale);font-weight:800"></div>
@@ -1266,7 +1266,7 @@ function validateAll(){
   clearVal();const errors=[];const st=currentStation;
   const mi=document.getElementById('meter-inner').checked;
   // Date + Sales
-  if(iVal('f-date')){errors.push('تاريخ البيان');markErr('f-date','إلزامى');}
+  if(!document.getElementById('f-date')?.value){errors.push('تاريخ المبيعات');markErr('f-date','إلزامى');}
   const salesIntVal=parseInt(document.getElementById('f-sales-int')?.value)||0;
   if(salesIntVal<=0){
     errors.push('المبيعات اليومية (لازم تكون أكبر من صفر)');
@@ -1331,7 +1331,9 @@ function submitForm(){
   if(errors.length>0){
     const sum=document.getElementById('validation-summary');
     sum.innerHTML=`<div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:7px">البيانات غير مكتملة (${errors.length} حقل):</div>`+errors.map(e=>`<div style="font-size:11px;color:#7F1D1D;padding:2px 0">• ${e}</div>`).join('');
-    sum.style.display='block';sum.scrollIntoView({behavior:'smooth',block:'center'});return;
+    sum.style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+    return;
   }
   clearVal();
   const st=currentStation;
@@ -1364,7 +1366,12 @@ function submitForm(){
   weekData[6]=sales;
   submittedData[st.code]={sent:true,name:st.name,region:st.region,sales,pf,kwh_cost:kwhCost,util};
 
+  // حساب تكلفة م³ الغاز بالجنيه
+  const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
+
   // ── إرسال البيانات لـ Apps Script ──
+  const pressPlcInt=parseFloat(document.getElementById('f-pp-int')?.value)||0;
+  const pressPlcFrac=parseFloat(document.getElementById('f-pp-frac')?.value)||0;
   const pressPlcVal=parseFloat(`${pressPlcInt}.${pressPlcFrac}`)||pressPlcInt;
   const pressModInt=parseFloat(document.getElementById('f-pm-int')?.value)||0;
   const pressModFrac=parseFloat(document.getElementById('f-pm-frac')?.value)||0;
@@ -1386,8 +1393,8 @@ function submitForm(){
     total_elec_le: totalElecLE||0,
     cost_le_m3: costLEPerM3||0,
     flow_actual: flow||0, flow_ref: refFlow||0,
-    flow_adj: adjRefFlow||0,
-    flow_dev: flowAdj||0,
+    flow_adj: 0,
+    flow_dev: 0, // يُحسب بعد الإرسال
     efficiency: util||0,
     faults: document.getElementById('f-total-downtime')?.value||'',
     total_downtime: document.getElementById('f-total-downtime')?.value||'',
@@ -1446,17 +1453,16 @@ function submitForm(){
     }
   });
 
-  // إرسال للـ Apps Script
-  fetch(APPS_SCRIPT_URL, {
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  }).then(()=>{
-    console.log('تم إرسال البيانات للشيت');
-  }).catch(err=>{
-    console.error('خطأ فى إرسال البيانات:',err);
-  });
+  // إرسال للـ Apps Script عبر GET (يتجنب CORS)
+  try {
+    const params=new URLSearchParams({data:JSON.stringify(payload)});
+    const img=new Image();
+    img.src=APPS_SCRIPT_URL+'?action=save&'+params.toString();
+    img.onload=()=>console.log('تم الإرسال للشيت');
+    img.onerror=()=>console.log('تم الإرسال (CORS طبيعى)');
+  } catch(err){
+    console.error('خطأ:',err);
+  }
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -1471,14 +1477,12 @@ function submitForm(){
   costEl.textContent=kwhCost?fmtEn(kwhCost,costDecimals):'—';
   costEl.className='kpi-val '+(kwhCost?(kwhCost<0.3?'ok':kwhCost<0.5?'warn':'bad'):'');
   const totalElecEl=document.getElementById('d-total-elec');
-  if(totalElecEl)totalElecEl.textContent=(totalElecLE&&totalElecLE>0)?fmtEn(totalElecLE,2):'—';
+  if(totalElecEl)totalElecEl.textContent=(totalElecLE&&totalElecLE>0)?fmtEn(totalElecLE,0):'—';
   document.getElementById('d-cost-unit').textContent=kwhInd>0?'KWH/م³ (صناعى)':'KWH/م³ (تجارى)';
-  const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
   const costLEEl=document.getElementById('d-cost-le');
-  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';  // Flow rate with actual inlet pressure correction
-  const pressPlcInt=parseFloat(document.getElementById('f-pp-int')?.value)||0;
-  const pressPlcFrac=parseFloat(document.getElementById('f-pp-frac')?.value)||0;
-  const pressPlc=parseFloat(`${pressPlcInt}.${pressPlcFrac}`)||pressPlcInt;
+  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';
+  // Flow rate with actual inlet pressure correction
+  const pressPlc=pressPlcVal;
   const st_refPress=currentStation?.comps?.[idx0]?.ref_press||null; // to be added
   // For now use station ref_press from data
   const stRefPress={
