@@ -244,8 +244,14 @@ input:checked+.slider:before{transform:translateX(-20px)}
       </div>
       <div class="form-group">
         <label><span class="req">*</span> إجمالى المبيعات (م³)</label>
-        <input type="number" class="form-control" id="f-sales" min="0" step="1" inputmode="numeric" oninput="validatePositive(this);calcLive()" style="font-size:18px;font-weight:800;text-align:center;direction:ltr">
-        <div class="validation-msg">هذا الحقل إلزامى</div>
+        <div class="dual-input" style="direction:ltr">
+          <input type="number" class="form-control" id="f-sales-int" min="0" max="99999" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center;font-size:16px;font-weight:800" oninput="if(this.value<0)this.value=0;calcSalesTotal()">
+          <div class="sep">.</div>
+          <input type="number" class="form-control" id="f-sales-frac" min="0" max="999" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center;font-size:16px;font-weight:800;max-width:90px" oninput="if(this.value>999)this.value=999;if(this.value<0)this.value=0;calcSalesTotal()">
+        </div>
+        <div class="dual-label" style="direction:ltr"><span style="text-align:right">الجزء الصحيح</span><span>الكسر (3 أرقام)</span></div>
+        <input type="hidden" id="f-sales" value="0">
+        <div class="validation-msg" id="sales-err">هذا الحقل إلزامى</div>
       </div>
     </div>
   </div>
@@ -373,7 +379,13 @@ input:checked+.slider:before{transform:translateX(-20px)}
       <div class="form-grid">
         <div class="form-group">
           <label>الإيداع النقدى (ج.م)</label>
-          <input type="number" class="form-control" id="f-cash" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
+          <div class="dual-input" style="direction:ltr">
+            <input type="number" class="form-control" id="f-cash-int" min="0" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="if(this.value<0)this.value=0;calcCashTotal()">
+            <div class="sep">.</div>
+            <input type="number" class="form-control" id="f-cash-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center;max-width:70px" oninput="if(this.value>99)this.value=99;if(this.value<0)this.value=0;calcCashTotal()">
+          </div>
+          <div class="dual-label" style="direction:ltr"><span style="text-align:right">جنيه</span><span>قرش</span></div>
+          <input type="hidden" id="f-cash" value="0">
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
@@ -609,6 +621,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ── CONSTANTS ──
 const ADMIN_CODE='ADMIN2024';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzQiB6yFAI3fxoYRvtCH40LOFuZexyq6OxqI5SymN83KOwW0cgVmYl7OTSM8PJfZcWuBA/exec';
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
 // Maintenance schedules per compressor brand
@@ -673,7 +686,7 @@ const STATIONS={
   "180":{name:"السويس التحرير",region:"السويس",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:750.7},
   "32":{name:"الإسماعيلية التجارى",region:"الإسماعيلية",comps:[{name:"GRAF",model:"GRF 115-3-4-160-2B",motor:'elec'}],ref_flow:720},
   "91":{name:"الإسماعيلية الإذاعة والتليفزيون",region:"الإسماعيلية",comps:[{name:"ASPRO",model:"IODM 115-4R",motor:'elec'}],ref_flow:765,meter_inner:true},
-  "50":{name:"الإسماعيلية بحرى",region:"الإسماعيلية",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'gas',motor_name:'CAT'},{name:"GRAF",model:"GRF 115-3-4-160-2B",motor:'elec'}],ref_flow:831.3},
+  "50":{name:"الإسماعيلية بحرى",region:"الإسماعيلية",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'elec'},{name:"GRAF",model:"GRF 115-3-4-160-2B",motor:'elec'}],ref_flow:831.3},
   "117":{name:"الإسماعيلية شل آوت",region:"الإسماعيلية",comps:[{name:"IMW",model:"IMW50 5750DA",motor:'gas',motor_name:'CAT'}],ref_flow:921.5},
   "258":{name:"الإسماعيلية أبو عطوة",region:"الإسماعيلية",comps:[{name:"Safe",model:"SWSE160FS,5-EM",motor:'elec'}],ref_flow:740},
   "200":{name:"الإسماعيلية الزاهى",region:"الإسماعيلية",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:765.1},
@@ -684,19 +697,19 @@ const STATIONS={
   "78":{name:"بورسعيد المواقف",region:"بورسعيد",comps:[{name:"GRAF",model:"GRF 115-3-4-160-2B",motor:'elec'},{name:"CUBO",model:"P95B DB",motor:'elec'}],ref_flow:746.7},
   "92":{name:"بورسعيد عادل الشربينى",region:"بورسعيد",comps:[{name:"ASPRO",model:"IODM 115-4R",motor:'elec'}],ref_flow:720},
   "178":{name:"بورسعيد شارع 100",region:"بورسعيد",comps:[{name:"GRAF",model:"GRF 115-3-4-160-2B",motor:'elec'},{name:"GRAF",model:"GRF 115-3-4-200-2B",motor:'elec'}],ref_flow:746.7},
-  "67":{name:"بورفؤاد الباشا",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'gas',motor_name:'CAT'}],ref_flow:880.2},
-  "208":{name:"بورفؤاد لهيطة",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'gas',motor_name:'CAT'}],ref_flow:904.7},
-  "206":{name:"بورسعيد النصر",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'gas',motor_name:'CAT'}],ref_flow:929.1},
-  "207":{name:"بورسعيد المنشية",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'gas',motor_name:'CAT'}],ref_flow:855.8},
-  "218":{name:"بورسعيد السلام",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'gas',motor_name:'CAT'}],ref_flow:855.8},
-  "213":{name:"بورسعيد الزهور",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'gas',motor_name:'CAT'}],ref_flow:855.8},
+  "67":{name:"بورفؤاد الباشا",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'elec'}],ref_flow:880.2},
+  "208":{name:"بورفؤاد لهيطة",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'elec'}],ref_flow:904.7},
+  "206":{name:"بورسعيد النصر",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'elec'}],ref_flow:929.1},
+  "207":{name:"بورسعيد المنشية",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'elec'}],ref_flow:855.8},
+  "218":{name:"بورسعيد السلام",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'elec'}],ref_flow:855.8},
+  "213":{name:"بورسعيد الزهور",region:"بورسعيد",comps:[{name:"IMW",model:"IMW50-6250DA",motor:'elec'}],ref_flow:855.8},
   "242":{name:"بورسعيد الإيمان",region:"بورسعيد",comps:[{name:"CUBO",model:"P95B DB",motor:'elec'}],ref_flow:523.6},
   "212":{name:"بورسعيد الجمهورية",region:"بورسعيد",comps:[{name:"Clean Energy",model:"S975-F1.7-EM",motor:'elec'}],ref_flow:401},
   "27":{name:"دمياط شطا",region:"دمياط",comps:[{name:"Safe",model:"ST 75T26-EM",motor:'elec'},{name:"Safe",model:"ST 65T26-1M90-EM",motor:'elec'}],ref_flow:580.4},
   "105":{name:"دمياط الجديدة الجامع",region:"دمياط",comps:[{name:"GRAF",model:"GRF 115-6-4-132-2B",motor:'elec'}],ref_flow:830},
   "124":{name:"دمياط فارسكور",region:"دمياط",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:721.8},
   "294":{name:"دمياط عزبة البرج",region:"دمياط",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:721.8},
-  "68":{name:"العريش زعرب",region:"العريش",comps:[{name:"IMW",model:"IMW50-5125DA",motor:'gas',motor_name:'CAT'},{name:"IMW",model:"IMW50-5125DA",motor:'gas',motor_name:'CAT'}],ref_flow:903.9},
+  "68":{name:"العريش زعرب",region:"العريش",comps:[{name:"IMW",model:"IMW50-5125DA",motor:'elec'},{name:"IMW",model:"IMW50-5125DA",motor:'elec'}],ref_flow:903.9},
   "173":{name:"العريش 23 يوليو",region:"العريش",comps:[{name:"Clean Energy",model:"CLEANCNG5750DA",motor:'elec'}],ref_flow:1036.7},
   "87":{name:"شرم الرويسات",region:"شرم الشيخ",comps:[{name:"GRAF",model:"GRF 115-6-4-132-2B",motor:'elec'},{name:"CUBO",model:"P95B DB",motor:'elec'}],ref_flow:654.5},
   "209":{name:"شرم السوق القديم",region:"شرم الشيخ",comps:[{name:"GRAF",model:"GRF 115-6-4-132-2B",motor:'elec'}],ref_flow:694.2},
@@ -975,18 +988,16 @@ function calcLubeDiff(idx){
   const a=parseFloat(document.getElementById('lube-hrs-'+idx)?.value)||0;
   const c=parseFloat(document.getElementById('lube-cur-'+idx)?.value)||0;
   const diffEl=document.getElementById('lube-diff-'+idx);
-  if(diffEl&&(a>0||c>0)){
-    const elapsed=Math.max(0,c-a);
-    diffEl.value=elapsed;
-    // Auto-calc remaining based on model lube interval
-    const st=currentStation;
-    if(st&&st.comps&&st.comps[idx]){
-      const comp=st.comps[idx];
-      const lubeInterval=LUBE_HOURS[comp.model]||null;
-      const remEl=document.getElementById('lube-rem-'+idx);
-      if(remEl&&lubeInterval>0){
-        remEl.value=Math.max(0,lubeInterval-elapsed);
-      }
+  const elapsed=Math.max(0,c-a);
+  if(diffEl) diffEl.value=(a>0||c>0)?elapsed:'';
+  // Auto-calc remaining regardless of whether both are filled
+  const st=currentStation;
+  if(st&&st.comps&&st.comps[idx]){
+    const comp=st.comps[idx];
+    const lubeInterval=LUBE_HOURS[comp.model]||null;
+    const remEl=document.getElementById('lube-rem-'+idx);
+    if(remEl&&lubeInterval>0&&(a>0||c>0)){
+      remEl.value=Math.max(0,lubeInterval-elapsed);
     }
   }
 }
@@ -1219,6 +1230,23 @@ function updateTotalDT(){
   if(el)el.value=total>0?(Math.floor(total/60)>0?Math.floor(total/60)+' س ':'')+total%60+' د':'';
 }
 function validatePositive(el){if(el.value<0)el.value=0;}
+function calcSalesTotal(){
+  const i=parseInt(document.getElementById('f-sales-int')?.value)||0;
+  const f=parseInt(document.getElementById('f-sales-frac')?.value)||0;
+  const total=parseFloat(i+'.'+String(f).padStart(f>0?String(f).length:1,'0'))||i;
+  const hidden=document.getElementById('f-sales');
+  if(hidden)hidden.value=total;
+  calcLive();
+  checkSalesTotal();
+}
+function calcCashTotal(){
+  const i=parseInt(document.getElementById('f-cash-int')?.value)||0;
+  const f=parseInt(document.getElementById('f-cash-frac')?.value)||0;
+  const total=f>0?parseFloat(i+'.'+String(f).padStart(2,'0')):i;
+  const hidden=document.getElementById('f-cash');
+  if(hidden)hidden.value=total;
+  checkSalesTotal();
+}
 
 // VALIDATION
 function clearVal(){document.querySelectorAll('.form-group.error').forEach(el=>el.classList.remove('error'));const s=document.getElementById('validation-summary');s.style.display='none';s.innerHTML='';}
@@ -1230,7 +1258,12 @@ function validateAll(){
   const mi=document.getElementById('meter-inner').checked;
   // Date + Sales
   if(iVal('f-date')){errors.push('تاريخ البيان');markErr('f-date','إلزامى');}
-  if(iVal('f-sales')){errors.push('المبيعات اليومية');markErr('f-sales','إلزامى');}
+  const salesInt=document.getElementById('f-sales-int')?.value;
+  if(!salesInt||salesInt===''){
+    errors.push('المبيعات اليومية');
+    const errEl=document.getElementById('sales-err');
+    if(errEl)errEl.style.display='block';
+  }
   // Per comp validation
   activeComps.forEach(idx=>{
     const c=st.comps[idx];const label=`${c.name} — ${c.model}`;
@@ -1321,6 +1354,100 @@ function submitForm(){
   const downDT=document.getElementById('f-total-downtime')?.value||'0';
   weekData[6]=sales;
   submittedData[st.code]={sent:true,name:st.name,region:st.region,sales,pf,kwh_cost:kwhCost,util};
+
+  // ── إرسال البيانات لـ Apps Script ──
+  const pressPlcVal=parseFloat(`${pressPlcInt}.${pressPlcFrac}`)||pressPlcInt;
+  const pressModInt=parseFloat(document.getElementById('f-pm-int')?.value)||0;
+  const pressModFrac=parseFloat(document.getElementById('f-pm-frac')?.value)||0;
+
+  const payload={
+    date: document.getElementById('f-date')?.value||'',
+    code: st.code, name: st.name, region: st.region,
+    sales, gas_price: parseFloat(document.getElementById('f-gas-price')?.value)||0,
+    cash: parseFloat(document.getElementById('f-cash')?.value)||0,
+    bonds: parseFloat(document.getElementById('f-bonds')?.value)||0,
+    smart_g: parseFloat(document.getElementById('f-smart-g')?.value)||0,
+    smart_k: parseFloat(document.getElementById('f-smart-k')?.value)||0,
+    press_mod: parseFloat(`${pressModInt}.${pressModFrac}`)||pressModInt,
+    press_plc: pressPlcVal,
+    meter_inner: document.getElementById('meter-inner')?.checked||false,
+    tariff, kwh_ind: kwhInd, kwh_com: kwhCom, kvarh,
+    pf: pf||0, pf_status: pfResult||'', pf_amount: pfAmount||'',
+    kwh_cost: kwhCost||0,
+    total_elec_le: totalElecLE||0,
+    cost_le_m3: costLEPerM3||0,
+    flow_actual: flow||0, flow_ref: refFlow||0,
+    flow_adj: adjRefFlow||0,
+    flow_dev: flowAdj||0,
+    efficiency: util||0,
+    faults: document.getElementById('f-total-downtime')?.value||'',
+    total_downtime: document.getElementById('f-total-downtime')?.value||'',
+    loss: parseFloat(document.getElementById('f-loss')?.value)||0,
+    low_reason: document.getElementById('f-low-reason')?.value||'',
+    high_reason: document.getElementById('f-high-reason')?.value||'',
+    safety_date: document.getElementById('f-safety-date')?.value||'',
+    safety_rem: parseFloat(document.getElementById('f-safety-remain')?.value)||0,
+    notes: document.getElementById('f-notes')?.value||'',
+    w_drink: parseFloat(document.getElementById('f-w-drink')?.value)||0,
+    w_fire: parseFloat(document.getElementById('f-w-fire')?.value)||0,
+  };
+
+  // بيانات كل ضاغط
+  activeComps.forEach(idx=>{
+    const c=st.comps[idx];
+    const pre=idx===0?'c1':'c2';
+    const mode=hmMode[idx]||'hm';
+    payload[pre+'_name']=c.name;
+    payload[pre+'_model']=c.model;
+    payload[pre+'_th']=getH(idx,'th');
+    payload[pre+'_tf']=getH(idx,'tf');
+    payload[pre+'_starts']=parseFloat(document.getElementById('starts-'+idx)?.value)||0;
+    payload[pre+'_oil_type']=document.getElementById('oil-type-'+idx)?.value||'';
+    payload[pre+'_oil_cons']=parseFloat(document.getElementById('oil-cons-'+idx)?.value)||0;
+    payload[pre+'_oil_bal']=parseFloat(document.getElementById('oil-bal-'+idx)?.value)||0;
+    payload[pre+'_oil2_type']=document.getElementById('oil2-type-'+idx)?.value||'';
+    payload[pre+'_oil2_cons']=parseFloat(document.getElementById('oil2-cons-'+idx)?.value)||0;
+    payload[pre+'_oil2_bal']=parseFloat(document.getElementById('oil2-bal-'+idx)?.value)||0;
+    payload[pre+'_maint_last']=document.getElementById('maint-last-'+idx)?.value||'';
+    payload[pre+'_maint_date']=document.getElementById('maint-date-'+idx)?.value||'';
+    payload[pre+'_maint_hrs']=parseFloat(document.getElementById('maint-hrs-'+idx)?.value)||0;
+    payload[pre+'_maint_cur']=parseFloat(document.getElementById('maint-cur-'+idx)?.value)||0;
+    payload[pre+'_maint_diff']=parseFloat(document.getElementById('maint-diff-'+idx)?.value)||0;
+    payload[pre+'_maint_next']=document.getElementById('maint-next-'+idx)?.value||'';
+    payload[pre+'_maint_rem']=parseFloat(document.getElementById('maint-rem-'+idx)?.value)||0;
+    payload[pre+'_motor_type']=c.motor||'';
+    if(c.motor==='gas'){
+      payload[pre+'_goil_type']=document.getElementById('goil-type-'+idx)?.value||'';
+      payload[pre+'_goil_cons']=parseFloat(document.getElementById('goil-cons-'+idx)?.value)||0;
+      payload[pre+'_goil_bal']=parseFloat(document.getElementById('goil-bal-'+idx)?.value)||0;
+      payload[pre+'_gm_last']=document.getElementById('gm-last-'+idx)?.value||'';
+      payload[pre+'_gm_date']=document.getElementById('gm-date-'+idx)?.value||'';
+      payload[pre+'_gm_hrs']=parseFloat(document.getElementById('gm-hrs-'+idx)?.value)||0;
+      payload[pre+'_gm_cur']=parseFloat(document.getElementById('gm-cur-'+idx)?.value)||0;
+      payload[pre+'_gm_diff']=parseFloat(document.getElementById('gm-diff-'+idx)?.value)||0;
+      payload[pre+'_gm_next']=document.getElementById('gm-next-'+idx)?.value||'';
+      payload[pre+'_gm_rem']=parseFloat(document.getElementById('gm-rem-'+idx)?.value)||0;
+    }
+    if(c.motor==='elec'){
+      payload[pre+'_lube_date']=document.getElementById('lube-date-'+idx)?.value||'';
+      payload[pre+'_lube_hrs']=parseFloat(document.getElementById('lube-hrs-'+idx)?.value)||0;
+      payload[pre+'_lube_cur']=parseFloat(document.getElementById('lube-cur-'+idx)?.value)||0;
+      payload[pre+'_lube_diff']=parseFloat(document.getElementById('lube-diff-'+idx)?.value)||0;
+      payload[pre+'_lube_rem']=parseFloat(document.getElementById('lube-rem-'+idx)?.value)||0;
+    }
+  });
+
+  // إرسال للـ Apps Script
+  fetch(APPS_SCRIPT_URL, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(()=>{
+    console.log('تم إرسال البيانات للشيت');
+  }).catch(err=>{
+    console.error('خطأ فى إرسال البيانات:',err);
+  });
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
