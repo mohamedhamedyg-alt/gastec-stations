@@ -403,6 +403,17 @@ input:checked+.slider:before{transform:translateX(-20px)}
           <input type="number" class="form-control" id="f-smart-k" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
           <div class="validation-msg">إلزامى</div>
         </div>
+        <div class="form-group">
+          <label>شاحنة نقل الغاز (ج.م)</label>
+          <input type="number" class="form-control" id="f-truck" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
+          <div class="validation-msg">إلزامى</div>
+        </div>
+      </div>
+      <!-- استحقاق الصندوق -->
+      <div style="background:var(--amber-pale);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;font-weight:800;color:var(--amber)">استحقاق الصندوق (100 ج.م / 1000 م³)</span>
+        <span style="font-size:18px;font-weight:800;color:var(--amber);direction:ltr" id="f-sandoq-display">—</span>
+        <input type="hidden" id="f-sandoq" value="0">
       </div>
       <div class="sales-check" id="sales-check"></div>
     </div>
@@ -624,27 +635,26 @@ const ADMIN_CODE='ADMIN2024';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzy3Hi2cJuNyRgwg9rUDAKwMeMV5o7o1IyubFrP_wDAXK1kmw_s4ZV2VMtaxckMbKNkzQ/exec';
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
-// Maintenance schedules per compressor brand
+// Maintenance schedules per compressor brand — من جدول الصيانات الرسمى
 const MAINT_SCHEDULES={
-  'ASPRO':  [2500,5000,7500,10000,12500,17500,20000,40000],
-  'IMW':    [2500,5000,7500,10000,12500,15000,17500,20000,22500,25000,27500,30000,32500,35000,37500,40000],
-  'KwangShin': [4000,8000,16000,32000],
-  'Safe':   [4000,8000,12000,16000],
-  'Clean Energy': [1000,2000,5000,10000,20000],
-  'GRAF':   [4000,8000,12000,16000],
-  'CUBO':   [1000,2000,4000,8000,16000],
-  'FORNOVO':[2000,4000,8000,12000,16000],
-  'W.F':    [2000,4000,8000,12000,16000],
-  'J.W':    [2000,4000,8000,12000,16000],
-  'Hyosung':[2000,4000,8000,12000,16000],
-  'Hyosung-GasEngine':[750,12000,24000,48000],
-  'default':[1000,2000,4000,8000,12000,16000,20000,30000,40000],
+  'IMW':        [1000,5000,15000,20000],
+  'J.W':        [2000,4000,8000,12000,16000],
+  'W.F':        [2000,4000,8000,12000,16000],
+  'Safe':       [2000,4000,8000,12000,16000,20000],  // SHG315/SHG355/SW/ST
+  'ASPRO':      [2500,5000,10000,15000,20000],
+  'GRAF':       [4000,8000,12000,16000],
+  'FORNOVO':    [4000,8000,16000,32000],
+  'KwangShin':  [4000,8000,16000],
+  'Clean Energy':[1000,2000,5000,10000,20000],
+  'Hyosung':    [2000,4000,8000,16000,32000,64000],
+  'CUBO':       [2000,4000,8000],
+  'default':    [2000,4000,8000,12000,16000,20000],
 };
-// Gas engine maintenance schedules
+// Gas engine maintenance schedules — من جدول الصيانات الرسمى
 const GAS_ENGINE_SCHEDULES={
-  'CAT':  [250,500,1000,2000,4000,8000,12000,16000,20000],
-  'Ariel':[750,12000,24000,48000],
-  'default':[500,1000,2000,4000,8000,12000,16000],
+  'CAT':    [700,16000,32000],
+  'Ariel':  [700,16000,32000],
+  'default':[700,16000,32000],
 };
 function getMaintOpts(brand, isGasEngine=false){
   let list;
@@ -1053,24 +1063,33 @@ function calcLive(){
   lc.className='live-calc show';
 }
 
-// SALES TOTAL CHECK
+// SALES TOTAL CHECK + استحقاق الصندوق
 function checkSalesTotal(){
   const sales=parseFloat(document.getElementById('f-sales')?.value)||0;
   const price=parseFloat(document.getElementById('f-gas-price')?.value)||0;
-  // قراءة الإيداع النقدى من الخانتين
   const cashI=parseInt(document.getElementById('f-cash-int')?.value)||0;
   const cashF=parseInt(document.getElementById('f-cash-frac')?.value)||0;
   const cash=cashF>0?parseFloat(cashI+'.'+String(cashF).padStart(2,'0')):cashI;
   const bonds=parseFloat(document.getElementById('f-bonds')?.value)||0;
   const sg=parseFloat(document.getElementById('f-smart-g')?.value)||0;
   const sk=parseFloat(document.getElementById('f-smart-k')?.value)||0;
+  const truck=parseFloat(document.getElementById('f-truck')?.value)||0;
+  // استحقاق الصندوق = المبيعات / 1000 * 100
+  const sandoq=sales>0?(sales/1000*100):0;
+  const sandoqEl=document.getElementById('f-sandoq-display');
+  const sandoqHidden=document.getElementById('f-sandoq');
+  if(sandoqEl)sandoqEl.textContent=sandoq>0?sandoq.toFixed(2)+' ج.م':'—';
+  if(sandoqHidden)sandoqHidden.value=sandoq;
   const el=document.getElementById('sales-check');
-  if(sales>0&&price>0&&(cash+bonds+sg+sk)>0){
-    const exp=sales*price,act=cash+bonds+sg+sk,diff=Math.abs(exp-act);
-    if(diff<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} ج.م`;}
-    else{el.className='sales-check err';el.textContent=`⚠ فرق: ${diff.toFixed(2)} ج.م — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
+  if(sales>0&&price>0&&(cash+bonds+sg+sk+truck)>0){
+    const exp=sales*price,act=cash+bonds+sg+sk+truck,diff=Math.abs(exp-act);
+    if(diff<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} ج.م | صندوق: ${sandoq.toFixed(2)} ج.م`;}
+    else{el.className='sales-check err';el.textContent=`⚠ فرق: ${diff.toFixed(2)} ج.م — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)} | صندوق: ${sandoq.toFixed(2)} ج.م`;}
     el.style.display='block';
-  } else el.style.display='none';
+  } else {
+    if(sandoq>0){el.className='sales-check ok';el.textContent=`استحقاق الصندوق: ${sandoq.toFixed(2)} ج.م`;el.style.display='block';}
+    else el.style.display='none';
+  }
 }
 
 // SAFETY
@@ -1145,7 +1164,21 @@ function addFault(){
       <input type="text" class="form-control" id="ft-dur-${id}" readonly style="background:var(--amber-pale);color:var(--amber);font-weight:800;text-align:center" placeholder="—">
     </div>
     <div class="form-grid cols1" style="margin-top:8px">
-      <div class="form-group"><label>العطل / سبب التوقف</label><textarea class="form-control" id="ft-reason-${id}" style="min-height:55px"></textarea></div>
+      <div class="form-group">
+        <label>سبب التوقف</label>
+        <select class="form-control" id="ft-stop-reason-${id}" onchange="updateStopReason(${id})">
+          <option value="">— اختر —</option>
+          <option value="عطل">عطل</option>
+          <option value="صيانة دورية">صيانة دورية</option>
+          <option value="تفريغ بنزين">تفريغ بنزين</option>
+          <option value="أخرى">أخرى</option>
+        </select>
+      </div>
+      <div class="form-group"><label>تفاصيل العطل / سبب التوقف — عربى</label><textarea class="form-control" id="ft-reason-${id}" style="min-height:55px" oninput="autoTranslate(${id})"></textarea></div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px">Fault Details — English <span id="ft-translating-${id}" style="font-size:10px;color:var(--blue-light);display:none">⟳ جارى الترجمة...</span></label>
+        <textarea class="form-control" id="ft-reason-en-${id}" style="min-height:55px;direction:ltr;text-align:left" placeholder="Auto-translated..."></textarea>
+      </div>
       <div class="form-group"><label>الإجراء المتخذ من المشرف</label><textarea class="form-control" id="ft-action-${id}" style="min-height:55px"></textarea></div>
       <div class="form-group"><label>إجراء إدارة الصيانة</label><textarea class="form-control" id="ft-maint-${id}" style="min-height:55px"></textarea></div>
     </div>
@@ -1197,6 +1230,66 @@ function addFault(){
   document.getElementById('total-downtime-wrap').style.display='flex';
 }
 function updateFT(id){document.getElementById('ft-hose-'+id).style.display=document.getElementById('ft-type-'+id).value==='hose'?'block':'none';}
+function updateStopReason(id){
+  const reason=document.getElementById('ft-stop-reason-'+id)?.value||'';
+  const translations={'عطل':'Fault','صيانة دورية':'Scheduled Maintenance','تفريغ بنزين':'Fuel Discharge','أخرى':'Other'};
+  if(translations[reason]&&!document.getElementById('ft-reason-'+id)?.value){
+    document.getElementById('ft-reason-en-'+id).value=translations[reason];
+  }
+}
+// ترجمة تلقائية عربى → إنجليزى — قاموس محلى + API احتياطى
+const FAULT_TRANSLATIONS={
+  'عطل كهربائى':'Electrical fault',
+  'عطل ميكانيكى':'Mechanical fault',
+  'عطل في لوحة التحكم':'Control panel fault',
+  'عطل في الكمبروسر':'Compressor fault',
+  'عطل في المحرك':'Engine fault',
+  'عطل في الهوز':'Hose fault',
+  'انقطاع الكهرباء':'Power outage',
+  'انقطاع الغاز':'Gas supply interruption',
+  'تغيير فلتر زيت':'Oil filter replacement',
+  'تغيير زيت':'Oil change',
+  'تفريغ بنزين':'Fuel discharge',
+  'صيانة دورية':'Scheduled maintenance',
+  'صيانة وقائية':'Preventive maintenance',
+  'ارتفاع درجة حرارة':'High temperature',
+  'انخفاض ضغط الغاز':'Low gas pressure',
+  'تسرب زيت':'Oil leak',
+  'تسرب غاز':'Gas leak',
+  'عطل في الصمام':'Valve fault',
+  'كسر في الهوز':'Hose rupture',
+  'عطل':'Fault',
+  'توقف مفاجئ':'Sudden shutdown',
+};
+let translateTimers={};
+function autoTranslate(id){
+  const text=(document.getElementById('ft-reason-'+id)?.value||'').trim();
+  if(!text){document.getElementById('ft-reason-en-'+id).value='';return;}
+  clearTimeout(translateTimers[id]);
+  translateTimers[id]=setTimeout(async()=>{
+    const indicator=document.getElementById('ft-translating-'+id);
+    const enEl=document.getElementById('ft-reason-en-'+id);
+    if(indicator)indicator.style.display='inline';
+    // أولاً: ابحث في القاموس المحلى
+    const localMatch=Object.entries(FAULT_TRANSLATIONS).find(([ar])=>text.includes(ar));
+    if(localMatch){if(enEl)enEl.value=localMatch[1];if(indicator)indicator.style.display='none';return;}
+    // ثانياً: جرب MyMemory API
+    try{
+      const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ar|en&de=gastec@gmail.com`;
+      const res=await fetch(url,{signal:AbortSignal.timeout(5000)});
+      const data=await res.json();
+      const translated=data?.responseData?.translatedText||'';
+      if(translated&&data?.responseStatus===200){
+        if(enEl)enEl.value=translated;
+        if(indicator)indicator.style.display='none';
+        return;
+      }
+    }catch(e){}
+    // ثالثاً: fallback — اكتب النص الأصلى
+    if(enEl)enEl.value='['+text+']';
+    if(indicator)indicator.style.display='none';
+  },800);
+}
 function setRepairStatus(id,status){
   document.getElementById('ft-repstatus-fixed-'+id).classList.toggle('active',status==='fixed');
   document.getElementById('ft-repstatus-ongoing-'+id).classList.toggle('active',status==='ongoing');
@@ -1384,6 +1477,8 @@ function submitForm(){
     bonds: parseFloat(document.getElementById('f-bonds')?.value)||0,
     smart_g: parseFloat(document.getElementById('f-smart-g')?.value)||0,
     smart_k: parseFloat(document.getElementById('f-smart-k')?.value)||0,
+    truck: parseFloat(document.getElementById('f-truck')?.value)||0,
+    sandoq: parseFloat(document.getElementById('f-sandoq')?.value)||0,
     press_mod: parseFloat(`${pressModInt}.${pressModFrac}`)||pressModInt,
     press_plc: pressPlcVal,
     meter_inner: document.getElementById('meter-inner')?.checked||false,
