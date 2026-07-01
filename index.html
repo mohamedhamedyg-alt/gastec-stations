@@ -591,14 +591,15 @@ input:checked+.slider:before{transform:translateX(-20px)}
     <h2>لوحة متابعة المسئول — منطقة القناة وسيناء</h2>
     <p id="mgr-date"></p>
   </div>
-  <div class="mgr-sum">
+  <div class="mgr-sum" style="grid-template-columns:repeat(4,1fr)">
     <div class="mgr-sum-card"><div class="mgr-sum-label">أرسلت</div><div class="mgr-sum-val" id="mgr-sent" style="color:var(--green)">0</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">لم ترسل</div><div class="mgr-sum-val" id="mgr-pending" style="color:var(--red)">41</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">مبيعات م³</div><div class="mgr-sum-val" id="mgr-total-sales" style="color:var(--blue-dark)">0</div></div>
+    <div class="mgr-sum-card"><div class="mgr-sum-label">استحقاق الصندوق</div><div class="mgr-sum-val" id="mgr-total-sandoq" style="color:var(--amber)">0</div></div>
   </div>
-  <div class="mgr-table-wrap" style="max-height:calc(100vh - 320px);overflow-y:auto">
-    <div class="mgr-table-head" style="position:sticky;top:0;z-index:10">
-      <div>الكود</div><div>المحطة</div><div>الحالة</div><div>مبيعات م³</div><div>KWH/م³</div><div>PF %</div>
+  <div class="mgr-table-wrap" style="max-height:calc(100vh - 340px);overflow-y:auto;overflow-x:auto">
+    <div class="mgr-table-head" style="position:sticky;top:0;z-index:10;grid-template-columns:48px 1fr 70px 80px 75px 75px 75px 80px 80px 80px 80px;min-width:900px">
+      <div>الكود</div><div>المحطة</div><div>الحالة</div><div>مبيعات م³</div><div>KWH/م³</div><div>FR فعلى</div><div>حيود FR%</div><div>PF%</div><div>حافز/غرامة</div><div>فقد م³</div><div>فحص الأمان</div>
     </div>
     <div id="mgr-table"></div>
   </div>
@@ -1866,21 +1867,110 @@ function renderMgr(){
   const all=Object.entries(STATIONS);
   const sent=all.filter(([c])=>submittedData[c]?.sent);
   const total=sent.reduce((a,[c])=>a+(submittedData[c]?.sales||0),0);
+  const totalSandoq=(total/1000*100).toFixed(2);
   document.getElementById('mgr-sent').textContent=sent.length;
   document.getElementById('mgr-pending').textContent=all.length-sent.length;
   document.getElementById('mgr-total-sales').textContent=total.toLocaleString('en-US');
+  document.getElementById('mgr-total-sandoq').textContent=totalSandoq+' ج.م';
   const tbl=document.getElementById('mgr-table');tbl.innerHTML='';
   all.forEach(([code,st])=>{
     const d=submittedData[code];const s=d?.sent;
-    const row=document.createElement('div');row.className='mgr-table-row'+(s?' sent':'');
-    const pfColor=s&&d.pf?(d.pf>=0.92?'var(--green)':d.pf>=0.70?'var(--amber)':'var(--red)'):'var(--gray-light)';
+    const row=document.createElement('div');
+    row.className='mgr-table-row'+(s?' sent':'');
+    row.style.cssText='display:grid;grid-template-columns:48px 1fr 70px 80px 75px 75px 75px 80px 80px 80px 80px;padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:11px;gap:4px;align-items:center;min-width:900px';
+
+    // حساب المؤشرات
+    const sales = s ? (d.sales||0) : 0;
+    const kwhInd = s ? (d.kwh_ind||0) : 0;
+    const kvarh  = s ? (d.kvarh||0) : 0;
+    const c1tf   = s ? (d.c1_tf||0) : 0;
+    const c2tf   = s ? (d.c2_tf||0) : 0;
+    const plc    = s ? (d.press_plc||0) : 0;
+    const loss   = s ? (d.loss||0) : 0;
+    const safetyRem = s ? (d.safety_rem||0) : null;
+    const stopDur = s ? (d.total_downtime||'') : '';
+
+    // KWH/م³
+    const kwhM3 = (sales>0&&kwhInd>0) ? (kwhInd/sales).toFixed(3) : '—';
+
+    // PF
+    const kva = (kwhInd>0&&kvarh>0) ? Math.sqrt(kwhInd*kwhInd+kvarh*kvarh) : kwhInd;
+    const pf = kva>0 ? kwhInd/kva : 0;
+    const pfPct = pf>0 ? (pf*100).toFixed(1)+'%' : '—';
+    const pfColor = pf>=0.95?'var(--green)': pf>=0.92?'var(--green)': pf>=0.70?'var(--amber)':'var(--red)';
+
+    // حافز/غرامة
+    const indCost = kwhInd*2.74;
+    let pfAmountStr='—', pfAmountColor='#000';
+    if(pf>0&&indCost>0){
+      let amt=0;
+      if(pf>=0.95){ pfAmountStr='تخفيض'; pfAmountColor='var(--green)'; }
+      else if(pf>=0.92){ amt=(pf-0.92)*(1/5)*indCost; pfAmountStr='حافز '+amt.toFixed(0)+' ج'; pfAmountColor='var(--green)'; }
+      else if(pf>=0.70){ amt=(0.92-pf)*(1/5)*indCost; pfAmountStr='غرامة '+amt.toFixed(0)+' ج'; pfAmountColor='var(--amber)'; }
+      else { amt=(0.92-pf)*1*indCost; pfAmountStr='غرامة* '+amt.toFixed(0)+' ج'; pfAmountColor='var(--red)'; }
+    }
+
+    // FR والحيود
+    let frActual='—', frDev='—', frDevColor='#000';
+    const c1Active=c1tf>0, c2Active=c2tf>0;
+    if(s){
+      const specs=COMP_SPECS?.[code];
+      if(c1Active&&!c2Active){
+        const fr=sales>0?sales/c1tf:0;
+        frActual=fr.toFixed(1);
+        if(specs&&specs[0]&&plc>0){
+          const frStd=specs[0].flow*(plc/specs[0].suction);
+          const dev=frStd>0?(fr-frStd)/frStd*100:0;
+          frDev=dev.toFixed(1)+'%';
+          frDevColor=dev>=0?'var(--green)':dev>=-10?'var(--amber)':'var(--red)';
+        }
+      } else if(!c1Active&&c2Active){
+        const fr=sales>0?sales/c2tf:0;
+        frActual=fr.toFixed(1);
+      } else if(c1Active&&c2Active){
+        frActual='N/A'; frDev='N/A';
+      }
+    }
+
+    // فحص الأمان
+    let safetyStr='—', safetyColor='#000';
+    if(safetyRem!==null){
+      safetyStr=safetyRem+' يوم';
+      safetyColor=safetyRem<=0?'var(--red)':safetyRem<=15?'var(--amber)':'var(--green)';
+    }
+
+    // تشحيم ضاغط 1
+    const lubeRem = s ? (d.c1_lube_rem||null) : null;
+    let lubeStr='—', lubeColor='#000';
+    if(lubeRem!==null){
+      lubeStr=Math.round(lubeRem)+' س';
+      lubeColor=lubeRem<=0?'var(--red)':lubeRem<=200?'var(--amber)':'var(--green)';
+    }
+
+    // صيانة ض1
+    const maintRem = s ? (d.c1_maint_rem||null) : null;
+    let maintStr='—', maintColor='#000';
+    if(maintRem!==null){
+      maintStr=Math.round(maintRem)+' س';
+      maintColor=maintRem<=0?'var(--red)':maintRem<=500?'var(--amber)':'var(--green)';
+    }
+
     row.innerHTML=`
       <div style="font-weight:800;color:var(--blue-dark);font-size:12px;direction:ltr">${code}</div>
-      <div style="font-size:11px"><div style="font-weight:700">${st.name}</div><div style="font-size:9px;color:var(--gray-light)">${st.comps[0].name}</div></div>
+      <div>
+        <div style="font-weight:700;font-size:11px">${st.name}</div>
+        <div style="font-size:9px;color:var(--gray-light)">${st.comps[0].name}</div>
+        ${stopDur?`<div style="font-size:9px;color:var(--red)">⏱ ${stopDur}</div>`:''}
+      </div>
       <div><span class="${s?'badge-sent':'badge-pending'}">${s?'أرسل':'لم يُرسَل'}</span></div>
-      <div style="font-size:11px;font-weight:700;direction:ltr">${s?d.sales.toLocaleString('en-US'):'—'}</div>
-      <div style="font-size:11px;font-weight:700;direction:ltr">${s&&d.kwh_cost?d.kwh_cost.toFixed(3):'—'}</div>
-      <div style="font-size:11px;font-weight:700;color:${pfColor};direction:ltr">${s&&d.pf?(d.pf*100).toFixed(1)+'%':'—'}</div>`;
+      <div style="font-weight:700;direction:ltr">${s?sales.toLocaleString('en-US'):'—'}</div>
+      <div style="direction:ltr;color:${kwhM3!=='—'?'var(--blue-dark)':'#ccc'}">${kwhM3}</div>
+      <div style="direction:ltr">${frActual}</div>
+      <div style="direction:ltr;font-weight:700;color:${frDevColor}">${frDev}</div>
+      <div style="font-weight:700;color:${pfColor};direction:ltr">${pfPct}</div>
+      <div style="font-size:10px;font-weight:700;color:${pfAmountColor}">${pfAmountStr}</div>
+      <div style="font-weight:700;color:${loss>0?'var(--red)':'#ccc'}">${s?(loss||'—'):'—'}</div>
+      <div style="font-weight:700;color:${safetyColor}">${safetyStr}</div>`;
     tbl.appendChild(row);
   });
 }
