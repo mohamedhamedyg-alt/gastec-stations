@@ -305,16 +305,20 @@ input:checked+.slider:before{transform:translateX(-20px)}
         <!-- LIVE CALC -->
         <div class="live-calc" id="live-calc">
           <div class="live-calc-item">
-            <div class="live-calc-label">Power Factor</div>
+            <div class="live-calc-label">Power Factor (صناعى)</div>
             <div class="live-calc-val blue" id="lc-pf">—</div>
           </div>
           <div class="live-calc-item">
-            <div class="live-calc-label">KWH / م³</div>
+            <div class="live-calc-label">KWH / م³ (صناعى فقط)</div>
             <div class="live-calc-val blue" id="lc-cost">—</div>
           </div>
           <div class="live-calc-item">
-            <div class="live-calc-label">حافز / غرامة</div>
+            <div class="live-calc-label">حافز / غرامة PF</div>
             <div class="live-calc-val" id="lc-pf-status">—</div>
+          </div>
+          <div class="live-calc-item" style="grid-column:1/-1">
+            <div class="live-calc-label">Flow Rate الفعلى والحيود</div>
+            <div class="live-calc-val" id="lc-fr" style="font-size:12px;text-align:right">أدخل ساعات التشغيل وضغط PLC لحساب الـ FR</div>
           </div>
         </div>
       </div>
@@ -357,9 +361,9 @@ input:checked+.slider:before{transform:translateX(-20px)}
         <div class="form-group">
           <label><span class="req">*</span> من شاشة PLC (bar)</label>
           <div class="dual-input" style="direction:ltr">
-            <input type="number" class="form-control" id="f-pp-int" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center">
+            <input type="number" class="form-control" id="f-pp-int" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="calcLive()">
             <div class="sep">.</div>
-            <input type="number" class="form-control" id="f-pp-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center">
+            <input type="number" class="form-control" id="f-pp-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center" oninput="calcLive()">
           </div>
           <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
         </div>
@@ -632,7 +636,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ── CONSTANTS ──
 const ADMIN_CODE='ADMIN2024';
-const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbycTrKmCorHbxJ9zAYtBHxAB8L1XvEwPiMxiDhs9Wbn8F1xNzyiB16i2uPnEKZFYeKM/exec';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzCVuGYC84m4XdZ9l-wS7exl9FHK4O5F9efVLBWMhjaGg2_tQw70mGkgilj5nrZelpXmA/exec';
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
 // Maintenance schedules per compressor brand — من جدول الصيانات الرسمى
@@ -682,6 +686,53 @@ const LUBE_HOURS={
 };
 const MAINT_LIST=['1000 ساعة','2000 ساعة','4000 ساعة','8000 ساعة','12000 ساعة','16000 ساعة','18000 ساعة','22000 ساعة','26000 ساعة','30000 ساعة'];
 const ALL_OILS=['Eni Dicrea 150','Eni I-Sigma Monograde SAE 50','Eni I-Sigma Performance E7 15W-40','Eni Dicrea 100','Mobil Delvac 1340','Eni Dicrea SX 68','Mobil Rarus 427','Eni Dicrea ESX 100','Mobil Pegasus 805','Eni Geum NG 40'];
+
+// بيانات الضواغط المعيارية — ضغط الشفط الأقصى وال Flow Rate الأقصى
+const COMP_SPECS={
+  '28': [{suction:30,  flow:600}],
+  '29': [{suction:6,   flow:1200}],
+  '62': [{suction:5.5, flow:800}],
+  '104':[{suction:5.5, flow:800}],
+  '231':[{suction:5.5, flow:830}],
+  '250':[{suction:6,   flow:1650}],
+  '202':[{suction:5.5, flow:794}],
+  '174':[{suction:5.5, flow:794}],
+  '197':[{suction:5.5, flow:794},{suction:5.5,flow:794}],
+  '180':[{suction:5.5, flow:794}],
+  '32': [{suction:3,   flow:800}],
+  '91': [{suction:4,   flow:900}],
+  '50': [{suction:4,   flow:978},{suction:3,flow:800}],
+  '117':[{suction:4,   flow:1117}],
+  '258':[{suction:4,   flow:800}],
+  '200':[{suction:5.5, flow:794}],
+  '460':[{suction:5.5, flow:794}],
+  '469':[{suction:3,   flow:830},{suction:3,flow:830}],
+  '33': [{suction:2,   flow:2000},{suction:4,flow:1850}],
+  '60': [{suction:4,   flow:1850},{suction:3,flow:800}],
+  '78': [{suction:3,   flow:800},{suction:3,flow:950}],
+  '92': [{suction:4,   flow:900}],
+  '178':[{suction:3,   flow:800},{suction:3,flow:950}],
+  '67': [{suction:4,   flow:978}],
+  '208':[{suction:4,   flow:978}],
+  '206':[{suction:4,   flow:978}],
+  '207':[{suction:4,   flow:978}],
+  '218':[{suction:4,   flow:978}],
+  '213':[{suction:4,   flow:978}],
+  '242':[{suction:5.5, flow:800}],
+  '212':[{suction:4,   flow:401}],
+  '27': [{suction:28,  flow:600},{suction:28,flow:600}],
+  '105':[{suction:5.5, flow:830}],
+  '124':[{suction:5.5, flow:794}],
+  '294':[{suction:5.5, flow:794}],
+  '68': [{suction:6,   flow:778},{suction:6,flow:778}],
+  '173':[{suction:5.5, flow:1118}],
+  '87': [{suction:5.5, flow:830},{suction:5.5,flow:800}],
+  '209':[{suction:5.5, flow:830}],
+  '278':[{suction:5.5, flow:800}],
+  '283':[{suction:5.5, flow:830}],
+  '156':[{suction:3,   flow:800}],
+};
+
 // motor_type per compressor: 'gas'=gas engine, 'elec'=electric motor, null=no motor needed
 const STATIONS={
   "28":{name:"السويس عتاقة",region:"السويس",comps:[{name:"W.F",model:"M302",motor:null}],ref_flow:460},
@@ -1024,43 +1075,129 @@ function setTariff(t){
 // METER
 function toggleMeter(inner){document.getElementById('elec-fields').style.display=inner?'none':'block';document.getElementById('meter-note').style.display=inner?'block':'none';if(inner)document.getElementById('live-calc').className='live-calc';}
 
-// LIVE CALC — corrected formulas from billing sheet
+// LIVE CALC — المعادلات الرسمية للكهرباء والـ Flow Rate
 function calcLive(){
-  const kwhInd=parseFloat(document.getElementById('f-kwh-ind')?.value)||0;
-  const kwhCom=parseFloat(document.getElementById('f-kwh-com')?.value)||0;
-  const kvarh=parseFloat(document.getElementById('f-kvarh')?.value)||0;
-  // قراءة المبيعات من الخانتين
-  const salesI=parseInt(document.getElementById('f-sales-int')?.value)||0;
-  const salesF=parseInt(document.getElementById('f-sales-frac')?.value)||0;
-  const sales=salesF>0?parseFloat(salesI+'.'+String(salesF).padStart(String(salesF).length,'0')):salesI;
+  const kwhInd = parseFloat(document.getElementById('f-kwh-ind')?.value)||0;
+  const kwhCom = parseFloat(document.getElementById('f-kwh-com')?.value)||0;
+  const kvarh  = parseFloat(document.getElementById('f-kvarh')?.value)||0;
+  const salesI = parseInt(document.getElementById('f-sales-int')?.value)||0;
+  const salesF = parseInt(document.getElementById('f-sales-frac')?.value)||0;
+  const sales  = salesF>0 ? parseFloat(salesI+'.'+String(salesF).padStart(String(salesF).length,'0')) : salesI;
+
   // تحديث الحقل المخفى
-  const salesHidden=document.getElementById('f-sales');
-  if(salesHidden)salesHidden.value=sales;
-  const lc=document.getElementById('live-calc');
-  // PF always on industrial KWH only
-  const kwhForPF=kwhInd>0?kwhInd:(kwhCom>0?kwhCom:0);
-  if(kwhForPF<=0){lc.className='live-calc';return;}
-  const pf=kwhForPF/Math.sqrt(kwhForPF*kwhForPF+kvarh*kvarh);
-  // Cost = KWH_ind / sales (KWH/m³)
-  const costKwh=sales>0?kwhForPF/sales:0;
-  // Total electricity cost in LE
-  const totalElecLE=(kwhInd*2.74)+(kwhCom*2.79);
-  // Cost per m³ in LE (industrial KWH billing only)
-  const costPerM3=sales>0?(kwhInd>0?kwhInd*2.74:kwhCom*2.79)/sales:0;
-  document.getElementById('lc-pf').textContent=(pf*100).toFixed(1)+'%';
-  document.getElementById('lc-cost').textContent=costKwh>0?costKwh.toFixed(3)+' KWH/م³':'—';
-  // PF penalty/bonus on industrial cost only
-  const indCost=kwhInd*2.74;
-  const pfEl=document.getElementById('lc-pf-status');
-  let statusTxt,statusCls;
-  if(pf<0.70){const g=indCost*(0.92-pf)*1;statusTxt='غرامة '+g.toFixed(0)+' ج.م';statusCls='bad';}
-  else if(pf<0.92){const g=indCost*(0.92-pf)*0.5;statusTxt='غرامة '+g.toFixed(0)+' ج.م';statusCls='warn';}
-  else if(pf<=0.95){const b=indCost*(pf-0.92)*0.5;statusTxt='حافز '+b.toFixed(0)+' ج.م';statusCls='ok';}
-  else{const b=indCost*(0.95-0.92)*0.5;statusTxt='حافز '+b.toFixed(0)+' ج.م (أقصى)';statusCls='ok';}
-  pfEl.textContent=statusTxt;pfEl.className='live-calc-val '+statusCls;
-  // Store for submit
-  window._liveCalc={pf,kwhForPF,kwhInd,kwhCom,kvarh,totalElecLE,costPerM3,costKwh,indCost};
-  lc.className='live-calc show';
+  const salesHidden = document.getElementById('f-sales');
+  if(salesHidden) salesHidden.value = sales;
+
+  const lc = document.getElementById('live-calc');
+  if(kwhInd<=0 && kwhCom<=0){ lc.className='live-calc'; return; }
+
+  // ── Power Factor — KWH صناعى فقط + KVARH ──
+  const kwhForPF = kwhInd > 0 ? kwhInd : 0;
+  const kva = (kwhForPF>0 && kvarh>0) ? Math.sqrt(kwhForPF*kwhForPF + kvarh*kvarh) : kwhForPF;
+  const pf  = kva > 0 ? kwhForPF/kva : 0;
+  document.getElementById('lc-pf').textContent = pf>0 ? (pf*100).toFixed(1)+'%' : '—';
+
+  // ── KWH/م³ — صناعى فقط ──
+  const kwhPerM3 = (sales>0 && kwhInd>0) ? kwhInd/sales : 0;
+  document.getElementById('lc-cost').textContent = kwhPerM3>0 ? kwhPerM3.toFixed(3)+' KWH/م³' : '—';
+
+  // ── حافز/غرامة PF — المعادلات الرسمية ──
+  const indCost  = kwhInd * 2.74; // تكلفة الكهرباء الصناعية
+  const pfEl = document.getElementById('lc-pf-status');
+  let statusTxt, statusCls;
+
+  if(pf <= 0){
+    statusTxt = '—'; statusCls = '';
+  } else if(pf >= 0.95) {
+    // حالة ④ — PF من 95% لـ 99% أو أعلى → تخفيض الفاتورة بقيمة 0.95
+    statusTxt = '✨ تخفيض الفاتورة (PF ≥ 95%)'; statusCls = 'ok';
+  } else if(pf >= 0.92) {
+    // حالة ③ — حافز = (PF - 0.92) × 1/5 × القيمة الكلية
+    const bonus = (pf - 0.92) * (1/5) * indCost;
+    statusTxt = '✅ حافز '+bonus.toFixed(0)+' ج.م'; statusCls = 'ok';
+  } else if(pf >= 0.70) {
+    // حالة ① — غرامة = (0.92 - PF) × 1/5 × القيمة الكلية
+    const fine = (0.92 - pf) * (1/5) * indCost;
+    statusTxt = '⚠ غرامة '+fine.toFixed(0)+' ج.م'; statusCls = 'warn';
+  } else {
+    // حالة ② — PF أقل من 70% — غرامة مضاعفة = (0.92 - PF) × 1 × القيمة الكلية
+    const fine = (0.92 - pf) * 1 * indCost;
+    statusTxt = '❌ غرامة مضاعفة '+fine.toFixed(0)+' ج.م'; statusCls = 'bad';
+  }
+  pfEl.textContent = statusTxt;
+  pfEl.className = 'live-calc-val '+(statusCls||'');
+
+  // ── Flow Rate الفعلى والمعيارى والحيود ──
+  calcFlowRate(sales);
+
+  // حفظ للإرسال
+  const totalElecLE = (kwhInd*2.74) + (kwhCom*2.79);
+  const costPerM3   = (sales>0 && kwhInd>0) ? (kwhInd*2.74)/sales : 0;
+  window._liveCalc  = {pf, kwhForPF, kwhInd, kwhCom, kvarh, totalElecLE, costPerM3, kwhPerM3, indCost};
+  lc.className = 'live-calc show';
+}
+
+// حساب Flow Rate الفعلى والمعيارى والحيود
+function calcFlowRate(sales){
+  if(!currentStation) return;
+  const code = currentStation.code;
+  const specs = COMP_SPECS[code];
+  if(!specs) return;
+
+  // قراءة ساعات كل ضاغط
+  let c1tf = 0, c2tf = 0;
+  if(activeComps && activeComps.length > 0){
+    const tfEl0 = document.getElementById('c-tf-int-0');
+    const tfFr0 = document.getElementById('c-tf-frac-0');
+    if(tfEl0) c1tf = parseFloat(tfEl0.value||0) + (tfFr0?parseFloat('0.'+tfFr0.value):0);
+    if(activeComps.length > 1){
+      const tfEl1 = document.getElementById('c-tf-int-1');
+      const tfFr1 = document.getElementById('c-tf-frac-1');
+      if(tfEl1) c2tf = parseFloat(tfEl1.value||0) + (tfFr1?parseFloat('0.'+tfFr1.value):0);
+    }
+  }
+
+  // ضغط الدخول الفعلى
+  const plcInt  = parseInt(document.getElementById('f-pp-int')?.value)||0;
+  const plcFrac = parseInt(document.getElementById('f-pp-frac')?.value)||0;
+  const plc     = plcFrac>0 ? parseFloat(plcInt+'.'+plcFrac) : plcInt;
+
+  const frEl = document.getElementById('lc-fr');
+  if(!frEl) return;
+
+  const c1Active = c1tf > 0;
+  const c2Active = c2tf > 0;
+
+  if(c1Active && c2Active){
+    frEl.innerHTML = '<span style="color:#666">Flow Rate: N/A — ضاغطان يعملان معاً</span>';
+    return;
+  }
+
+  let frActual = 0, frStd = 0, specIdx = 0;
+  if(c1Active){
+    frActual = sales > 0 ? sales/c1tf : 0;
+    specIdx = 0;
+  } else if(c2Active){
+    frActual = sales > 0 ? sales/c2tf : 0;
+    specIdx = 1;
+  } else {
+    frEl.innerHTML = '<span style="color:#888">FR: — (الضاغط واقف)</span>';
+    return;
+  }
+
+  const spec = specs[specIdx];
+  if(spec && plc > 0){
+    frStd = spec.flow * (plc / spec.suction);
+    const dev = frStd > 0 ? ((frActual - frStd)/frStd*100) : 0;
+    const devColor = dev >= 0 ? '#276221' : dev >= -10 ? '#9C6500' : '#9C0006';
+    const devIcon  = dev >= 0 ? '✅' : dev >= -10 ? '⚠' : '❌';
+    frEl.innerHTML =
+      `FR فعلى: <b>${frActual.toFixed(1)}</b> م³/س | ` +
+      `FR معيارى: <b>${frStd.toFixed(1)}</b> م³/س | ` +
+      `<span style="color:${devColor};font-weight:bold">${devIcon} حيود: ${dev.toFixed(1)}%</span>`;
+  } else {
+    frEl.innerHTML = `FR فعلى: <b>${frActual.toFixed(1)}</b> م³/س | أدخل ضغط PLC لحساب الحيود`;
+  }
 }
 
 // SALES TOTAL CHECK + استحقاق الصندوق
@@ -1358,11 +1495,15 @@ function iVal(id){const el=document.getElementById(id);return !el||el.value===''
 function validateAll(){
   clearVal();const errors=[];const st=currentStation;
   const mi=document.getElementById('meter-inner').checked;
-  // Date + Sales
+  // Date
   if(!document.getElementById('f-date')?.value){errors.push('تاريخ المبيعات');markErr('f-date','إلزامى');}
+  // المبيعات — مسموح بالصفر لو المحطة واقفة
   const salesIntVal=parseInt(document.getElementById('f-sales-int')?.value)||0;
-  if(salesIntVal<=0){
-    errors.push('المبيعات اليومية (لازم تكون أكبر من صفر)');
+  const salesFracVal=parseInt(document.getElementById('f-sales-frac')?.value)||0;
+  const totalSales=salesFracVal>0?parseFloat(salesIntVal+'.'+String(salesFracVal)):salesIntVal;
+  // لو المبيعات فارغة (مش مدخلة خالص) → error
+  if(document.getElementById('f-sales-int')?.value===''&&document.getElementById('f-sales-frac')?.value===''){
+    errors.push('المبيعات اليومية (أدخل 0 لو المحطة واقفة)');
     const errEl=document.getElementById('sales-err');
     if(errEl)errEl.style.display='block';
   }
@@ -1370,8 +1511,12 @@ function validateAll(){
   activeComps.forEach(idx=>{
     const c=st.comps[idx];const label=`${c.name} — ${c.model}`;
     const th=getH(idx,'th'),tf=getH(idx,'tf');
-    if(th<=0){errors.push(`ساعات الضاغط ${label} الكلية`);}
-    if(tf<=0){errors.push(`ساعات الضاغط ${label} الفعلية`);}
+    // الساعات مسموح بالصفر لو المحطة واقفة (المبيعات = 0)
+    const stationStopped = totalSales === 0;
+    if(!stationStopped){
+      if(th<=0){errors.push(`ساعات الضاغط ${label} الكلية`);}
+      if(tf<=0){errors.push(`ساعات الضاغط ${label} الفعلية`);}
+    }
     if(th>0&&tf>0&&th<tf){errors.push(`ساعات الضاغط ${label}: الكلية أقل من الفعلية`);}
     if(iVal('starts-'+idx)){errors.push(`عدد تشغيلات ${label}`);markErr('starts-'+idx,'إلزامى');}
     if(!document.getElementById('oil-type-'+idx)?.value){errors.push(`نوع زيت ${label}`);markErr('oil-type-'+idx,'اختر');}
