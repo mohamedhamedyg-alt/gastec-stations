@@ -197,6 +197,9 @@ input:checked+.slider:before{transform:translateX(-20px)}
 td.mg-fz1{position:sticky;right:0;background:#F4F8FC;font-weight:800;z-index:3}
 td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-align:right;z-index:3}
 .mgr-table-wrap{-webkit-overflow-scrolling:touch}
+@media(orientation:landscape) and (max-height:520px){
+  .mgr-table-wrap{max-height:none!important;min-height:200px}
+}
 @media(max-width:700px){
   .mgr-sum{grid-template-columns:repeat(2,1fr)!important;gap:8px}
   .mgr-sum-card{padding:10px 6px}
@@ -633,7 +636,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
   </div>
-  <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);overflow:auto;position:relative">
+  <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);min-height:340px;overflow:auto;position:relative">
     <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:940px;width:100%;font-size:12px">
       <thead>
         <tr>
@@ -652,8 +655,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <tbody id="mgr-table"></tbody>
     </table>
   </div>
-  <button class="btn-mgr export" onclick="alert('التصدير متاح بعد الربط بـ Apps Script')">تصدير Excel</button>
-  <button class="btn-mgr send" onclick="alert('الإرسال متاح بعد الربط بـ Apps Script')">إرسال التقرير للإيميلات</button>
+  <button class="btn-mgr export" onclick="exportDayCSV()">تصدير Excel (بيانات اليوم)</button>
+  <button class="btn-mgr send" onclick="emailDayReport()">إرسال التقرير للإيميلات</button>
   <button class="btn-mgr back" onclick="resetToLogin()">خروج</button>
 </div>
 </div>
@@ -968,6 +971,7 @@ function buildCompSections(indices){
                 <input type="number" class="form-control" id="th-f-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center" oninput="if(this.value>99)this.value=99;valH(${idx})">
               </div>
               <div class="dual-label" style="direction:ltr"><span style="text-align:right">ساعة</span><span>كسر</span></div>
+              <div class="validation-msg" id="err-hd-${idx}">الكلية لا تقل عن الفعلية</div>
             </div>
             <div class="form-group">
               <label><span class="req">*</span> الساعات الفعلية</label>
@@ -1092,14 +1096,13 @@ function clampH(el,idx,field){
 }
 function valH(idx){
   const th=getH(idx,'th'),tf=getH(idx,'tf');
-  const err=document.getElementById('err-h-'+idx);
-  if(err){
-    let msg='';
-    if(th>0&&tf>0&&th<tf) msg='⚠ الساعات الفعلية أكبر من الكلية!';
-    else if(th>24||tf>24) msg='⚠ الساعات تجاوزت 24 ساعة!';
-    if(msg)err.textContent=msg;
-    err.style.display=msg?'block':'none';
-  }
+  let msg='';
+  if(th>0&&tf>0&&th<tf) msg='⚠ الساعات الفعلية أكبر من الكلية!';
+  else if(th>24||tf>24) msg='⚠ الساعات تجاوزت 24 ساعة!';
+  ['err-h-','err-hd-'].forEach(p=>{
+    const err=document.getElementById(p+idx);
+    if(err){ if(msg)err.textContent=msg; err.style.display=msg?'block':'none'; }
+  });
 }
 function getH(idx,prefix){
   const mode=hmMode[idx]||'hm';
@@ -1477,6 +1480,32 @@ const FAULT_TRANSLATIONS={
   'كسر في الهوز':'Hose rupture',
   'عطل':'Fault',
   'توقف مفاجئ':'Sudden shutdown',
+  'ارتفاع حرارة مياه التبريد':'High Cooling Water Temperature',
+  'ارتفاع حرارة الزيت':'High Oil Temperature',
+  'انخفاض ضغط الزيت':'Low Oil Pressure',
+  'ارتفاع ضغط الزيت':'High Oil Pressure',
+  'انخفاض ضغط الغاز':'Low Gas Inlet Pressure',
+  'ارتفاع ضغط الغاز':'High Gas Pressure',
+  'انخفاض مستوى الزيت':'Low Oil Level',
+  'تسريب غاز':'Gas Leak',
+  'تسريب زيت':'Oil Leak',
+  'تسريب مياه':'Water Leak',
+  'عطل كهربائى':'Electrical Fault',
+  'انقطاع الكهرباء':'Power Outage',
+  'مياه التبريد':'Cooling Water',
+  'مياه تبريد':'Cooling Water',
+  'التبريد':'Cooling',
+  'انخفاض':'Low',
+  'ارتفاع':'High',
+  'حساس':'Sensor',
+  'إنذار':'Alarm',
+  'انذار':'Alarm',
+  'فلتر':'Filter',
+  'صمام':'Valve',
+  'مروحة':'Fan',
+  'سير':'Belt',
+  'مبرد':'Cooler',
+  'كهربائى':'Electrical',
   'ارتفاع ضغط':'High Pressure',
   'ارتفاع الضغط':'High Pressure',
   'ارتفاع حرارة':'High Temperature',
@@ -2061,6 +2090,31 @@ function showMgr(){
   if(d&&!d.value){const t=new Date();d.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);}
   loadMgrDay();
 }
+function exportDayCSV(){
+  const j=window.__lastDay;
+  if(!j){alert('اختر اليوم ودوس عرض أولاً');return;}
+  let csv='\uFEFF';
+  csv+='البيان اليومى,'+j.date+'\n';
+  csv+='مبيعات المنطقة م3,'+(j.totals.sales||0)+'\nأرسلت,'+j.sent+'\nلم ترسل,'+j.pending+'\nKWH/م3 للمنطقة,'+j.totals.kwhm3+'\nإجمالى مدد التوقف,'+j.totals.downtime+'\n\n';
+  csv+='الكود,المحطة,الحالة,مبيعات م3,KWH/م3,FR فعلى,حيود FR%,PF%,كفاءة التشغيل%,مدة التوقف\n';
+  j.stations.forEach(s=>{
+    const row=[s.code,s.name,s.sent?'أرسلت':'لم ترسل',s.sales!=null?s.sales:'',s.kwhM3,s.fr,s.frDev,s.pf,s.util,s.downtime||''];
+    csv+=row.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')+'\n';
+  });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='البيان_اليومى_'+j.date+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
+function emailDayReport(){
+  const j=window.__lastDay;
+  if(!j){alert('اختر اليوم ودوس عرض أولاً');return;}
+  if(!confirm('إرسال تقرير يوم '+j.date+' للإيميلات المسجلة؟'))return;
+  fetch(APPS_SCRIPT_URL+'?action=emailReport&date='+j.date)
+    .then(r=>r.text()).then(t=>alert(t))
+    .catch(e=>alert('❌ تعذر الإرسال: '+e));
+}
 function loadMgrDay(){
   const d=document.getElementById('mgr-day')?.value;
   if(!d)return;
@@ -2072,6 +2126,7 @@ function loadMgrDay(){
     .catch(e=>{stEl.textContent='❌ تعذر التحميل — تأكد من الاتصال وحدّث النشر. '+e;});
 }
 function renderMgrDay(j){
+  window.__lastDay=j;
   document.getElementById('mgr-c-date').textContent=j.date||'—';
   document.getElementById('mgr-c-sales').textContent=(j.totals.sales||0).toLocaleString('en-US',{maximumFractionDigits:0});
   document.getElementById('mgr-c-sent').textContent=j.sent+'/'+(j.sent+j.pending);
