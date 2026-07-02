@@ -646,6 +646,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <th class="mg-h">حيود FR%</th>
           <th class="mg-h">PF%</th>
           <th class="mg-h">كفاءة التشغيل%</th>
+          <th class="mg-h">مدة التوقف</th>
         </tr>
       </thead>
       <tbody id="mgr-table"></tbody>
@@ -982,10 +983,6 @@ function buildCompSections(indices){
         <div class="form-group" style="margin-top:10px">
           <label><span class="req">*</span> عدد مرات التشغيل</label>
           <input type="number" class="form-control" id="starts-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr">
-        </div>
-        <div class="form-group">
-          <label>ضغط دخول الضاغط PLC (bar)</label>
-          <input type="number" class="form-control" id="inlet-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr" placeholder="افتراضى = ضغط PLC للمحطة" oninput="calcLive()">
           <div class="validation-msg">إلزامى</div>
         </div>
         <!-- زيت الضاغط -->
@@ -1096,7 +1093,13 @@ function clampH(el,idx,field){
 function valH(idx){
   const th=getH(idx,'th'),tf=getH(idx,'tf');
   const err=document.getElementById('err-h-'+idx);
-  if(err)err.style.display=(th>0&&tf>0&&th<tf)?'block':'none';
+  if(err){
+    let msg='';
+    if(th>0&&tf>0&&th<tf) msg='⚠ الساعات الفعلية أكبر من الكلية!';
+    else if(th>24||tf>24) msg='⚠ الساعات تجاوزت 24 ساعة!';
+    if(msg)err.textContent=msg;
+    err.style.display=msg?'block':'none';
+  }
 }
 function getH(idx,prefix){
   const mode=hmMode[idx]||'hm';
@@ -1251,9 +1254,8 @@ function calcFlowRate(sales){
   }
 
   const spec = specs[specIdx];
-  const inletV = parseNum(document.getElementById('inlet-'+specIdx)?.value) || plc;
-  if(spec && inletV > 0){
-    frStd = spec.flow * (inletV / spec.suction);
+  if(spec && plc > 0){
+    frStd = spec.flow * (plc / spec.suction);
     const dev = frStd > 0 ? ((frActual - frStd)/frStd*100) : 0;
     const devColor = dev >= 0 ? '#276221' : dev >= -10 ? '#9C6500' : '#9C0006';
     const devIcon  = dev >= 0 ? '✅' : dev >= -10 ? '⚠' : '❌';
@@ -1312,17 +1314,6 @@ function calcSafety(val){
   });
 }
 
-// حساب مدة الإصلاح لبطاقة عطل
-function to24(hv,mv,ap){let hh=parseInt(hv)||0;const mm=parseInt(mv)||0;if(ap==='pm'&&hh<12)hh+=12;if(ap==='am'&&hh===12)hh=0;return hh*60+mm;}
-function calcRD(id){
-  const g=s=>document.getElementById('ft-'+s+'-'+id)?.value;
-  const fh=g('rfh'),fm=g('rfm'),fa=g('rfa'),th=g('rth'),tm=g('rtm'),ta=g('rta');
-  const el=document.getElementById('ft-rdur-'+id);
-  if(!el||!fh||!th)return;
-  let diff=to24(th,tm,ta)-to24(fh,fm,fa);
-  if(diff<0)diff+=24*60;
-  el.value=Math.floor(diff/60)+' س '+(diff%60)+' د';
-}
 // لو الضاغطان بنفس نوع الزيت — الرصيد يُسجل مرة واحدة (فى الضاغط الأول)
 function checkOilDup(){
   const t0=document.getElementById('oil-type-0')?.value||'';
@@ -1383,38 +1374,6 @@ function addFault(){
           </select>
         </div>
         <div class="dual-label" style="direction:ltr"><span style="text-align:right">ساعة</span><span>دقيقة</span></div>
-      </div>
-    </div>
-    <div class="form-grid" style="margin-top:8px;background:#F0F8FF;border-radius:8px;padding:8px">
-      <div class="form-group">
-        <label>🔧 بدء الإصلاح — من الساعة</label>
-        <div style="display:flex;gap:5px;align-items:center">
-          <div class="dual-input" style="direction:ltr;flex:1">
-            <input type="number" class="form-control" id="ft-rfh-${id}" min="1" max="12" step="1" inputmode="numeric" placeholder="س" style="direction:rtl;text-align:center" oninput="if(this.value>12)this.value=12;calcRD(${id})">
-            <div class="sep">:</div>
-            <input type="number" class="form-control" id="ft-rfm-${id}" min="0" max="59" step="1" inputmode="numeric" placeholder="د" style="direction:rtl;text-align:center" oninput="if(this.value>59)this.value=59;calcRD(${id})">
-          </div>
-          <select class="form-control" id="ft-rfa-${id}" style="width:82px;flex-shrink:0" onchange="calcRD(${id})">
-            <option value="am">صباحاً</option><option value="pm">مساءً</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>انتهاء الإصلاح — إلى الساعة</label>
-        <div style="display:flex;gap:5px;align-items:center">
-          <div class="dual-input" style="direction:ltr;flex:1">
-            <input type="number" class="form-control" id="ft-rth-${id}" min="1" max="12" step="1" inputmode="numeric" placeholder="س" style="direction:rtl;text-align:center" oninput="if(this.value>12)this.value=12;calcRD(${id})">
-            <div class="sep">:</div>
-            <input type="number" class="form-control" id="ft-rtm-${id}" min="0" max="59" step="1" inputmode="numeric" placeholder="د" style="direction:rtl;text-align:center" oninput="if(this.value>59)this.value=59;calcRD(${id})">
-          </div>
-          <select class="form-control" id="ft-rta-${id}" style="width:82px;flex-shrink:0" onchange="calcRD(${id})">
-            <option value="am">صباحاً</option><option value="pm">مساءً</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group" style="grid-column:1/-1">
-        <label>مدة الإصلاح (أوتوماتيك)</label>
-        <input type="text" class="form-control" id="ft-rdur-${id}" readonly style="background:var(--blue-pale);font-weight:800;text-align:center" placeholder="—">
       </div>
     </div>
     <div class="form-group" style="margin-top:8px">
@@ -1531,12 +1490,14 @@ const FAULT_TRANSLATIONS={
   'بلوف':'Valves',
   'طرمبة':'Pump',
 };
+function normAr(s){return String(s).replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' ').trim();}
 function tryLocalPhrase(text){
-  let out=text;
+  let out=' '+normAr(text)+' ';
   Object.keys(FAULT_TRANSLATIONS).sort((a,b)=>b.length-a.length).forEach(k=>{
-    out=out.split(k).join(FAULT_TRANSLATIONS[k]);
+    out=out.split(normAr(k)).join(' '+FAULT_TRANSLATIONS[k]+' ');
   });
-  return /[\u0600-\u06FF]/.test(out)?null:out; // نجحت لو مفيش عربى متبقى
+  out=out.replace(/\s+/g,' ').trim();
+  return /[\u0600-\u06FF]/.test(out)?null:out;
 }
 let translateTimers={};
 function autoTranslate(id){
@@ -1704,7 +1665,8 @@ function validateAll(){
   // البونات والسمارت تقبل صفر
   if(iVal('f-safety-date')){errors.push('تاريخ فحص الأمان');markErr('f-safety-date','إلزامى');}
   // ── قواعد الساعات: فعلية ≤ كلية، والحد الأقصى 24.00 ──
-  activeComps.forEach(ix=>{
+  const _acH=[0,1].filter(ix=>document.getElementById('starts-'+ix));
+  _acH.forEach(ix=>{valH(ix);
     const th=getH(ix,'th'), tf=getH(ix,'tf');
     if(th>24||tf>24){errors.push('ساعات الضاغط '+(ix+1)+' تجاوزت 24 ساعة');markErr('starts-'+ix,'تحقق من الساعات');}
     if(tf>th&&th>0){errors.push('الساعات الفعلية أكبر من الكلية — ضاغط '+(ix+1));markErr('starts-'+ix,'فعلية > كلية');}
@@ -1712,7 +1674,7 @@ function validateAll(){
   // ── تواريخ الصيانة/التشحيم لا تكون فى المستقبل بعد تاريخ البيان ──
   const repDate=document.getElementById('f-date')?.value||'';
   if(repDate){
-    activeComps.forEach(ix=>{
+    _acH.forEach(ix=>{
       [['maint-date','تاريخ آخر صيانة'],['gm-date','تاريخ صيانة المحرك'],['lube-date','تاريخ آخر تشحيم']].forEach(([fid,lbl])=>{
         const el=document.getElementById(fid+'-'+ix);
         if(el&&el.value&&el.value>repDate){errors.push(lbl+' فى المستقبل — ضاغط '+(ix+1));markErr(fid+'-'+ix,'تاريخ مستقبلى');}
@@ -1720,7 +1682,7 @@ function validateAll(){
     });
   }
   // ── الساعات الحالية ≥ الساعات عند آخر صيانة/تشحيم ──
-  activeComps.forEach(ix=>{
+  _acH.forEach(ix=>{
     [['maint-hrs','maint-cur','ساعات الصيانة'],['gm-hrs','gm-cur','ساعات صيانة المحرك'],['lube-hrs','lube-cur','ساعات التشحيم']].forEach(([a,b,lbl])=>{
       const av=parseNum(document.getElementById(a+'-'+ix)?.value), bv=parseNum(document.getElementById(b+'-'+ix)?.value);
       if(av>0&&bv>0&&bv<av){errors.push(lbl+': الحالية أصغر من ساعات آخر مرة — ضاغط '+(ix+1));markErr(b+'-'+ix,'أصغر من آخر مرة');}
@@ -1817,9 +1779,10 @@ function submitForm(){
     if(!document.getElementById('fault-'+fi))continue;
     const gv=s=>document.getElementById('ft-'+s+'-'+fi)?.value||'';
     const tmS=p=>{const hh=gv(p+'h');if(!hh)return '';const mm=('0'+(gv(p+'m')||0)).slice(-2);return hh+':'+mm+' '+(gv(p+'a')==='pm'?'م':'ص');};
-    const a=tmS('f'),b=tmS('t'),c=tmS('rf'),d=tmS('rt');
+    const tmR=n=>{const hh=gv('rh'+n);if(!hh)return '';const mm=('0'+(gv('rm'+n)||0)).slice(-2);return hh+':'+mm+' '+(gv('ra'+n)==='pm'?'م':'ص');};
+    const a=tmS('f'),b=tmS('t'),c=tmR(1),d=tmR(2);
     if(a)_sF.push(a); if(b)_sT.push(b); if(c)_rF.push(c); if(d)_rT.push(d);
-    const rd=gv('rdur'); if(rd)_rD.push(rd);
+    const rd=gv('rdur'); if(rd&&rd!=='—'&&rd.indexOf('تحقق')<0)_rD.push(rd);
     const ra=gv('reason'); if(ra)_rAr.push(ra);
     const re=gv('reason-en'); if(re)_rEn.push(re);
     const tyEl=document.getElementById('ft-type-'+fi);
@@ -1833,8 +1796,7 @@ function submitForm(){
     kwh_com_b: parseNum(document.getElementById('f-kwh-com-b')?.value),
     kvarh_b: parseNum(document.getElementById('f-kvarh-b')?.value),
     pf_b: window.__pfB||'',
-    c1_inlet: parseNum(document.getElementById('inlet-0')?.value)||'',
-    c2_inlet: parseNum(document.getElementById('inlet-1')?.value)||'',
+
     date: document.getElementById('f-date')?.value||'',
     code: st.code, name: st.name, region: st.region,
     sales, gas_price: parseNum(document.getElementById('f-gas-price')?.value)||0,
@@ -2132,121 +2094,11 @@ function renderMgrDay(j){
       '<td style="'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
       '<td>'+fmt(s.pf)+'</td>'+
       '<td>'+fmt(s.util)+'</td>'+
+      '<td style="color:var(--amber);font-weight:700">'+(s.downtime||'—')+'</td>'+
     '</tr>';
   });
   tb.innerHTML=html;
   buildOilPanel(j.oils||{});
-}
-function renderMgr(){
-  const all=Object.entries(STATIONS);
-  const sent=all.filter(([c])=>submittedData[c]?.sent);
-  const total=sent.reduce((a,[c])=>a+(submittedData[c]?.sales||0),0);
-  const totalSandoq=(total/1000*100).toFixed(2);
-  document.getElementById('mgr-sent').textContent=sent.length;
-  document.getElementById('mgr-pending').textContent=all.length-sent.length;
-  document.getElementById('mgr-total-sales').textContent=total.toLocaleString('en-US');
-  document.getElementById('mgr-total-sandoq').textContent=totalSandoq+' جنيه';
-  const tbl=document.getElementById('mgr-table');tbl.innerHTML='';
-  all.forEach(([code,st])=>{
-    const d=submittedData[code];const s=d?.sent;
-    const row=document.createElement('div');
-    row.className='mgr-table-row'+(s?' sent':'');
-    row.style.cssText='display:grid;grid-template-columns:48px 1fr 70px 80px 75px 75px 75px 80px 80px 80px 80px;padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:11px;gap:4px;align-items:center;min-width:900px';
-
-    // حساب المؤشرات
-    const sales = s ? (d.sales||0) : 0;
-    const kwhInd = s ? (d.kwh_ind||0) : 0;
-    const kvarh  = s ? (d.kvarh||0) : 0;
-    const c1tf   = s ? (d.c1_tf||0) : 0;
-    const c2tf   = s ? (d.c2_tf||0) : 0;
-    const plc    = s ? (d.press_plc||0) : 0;
-    const loss   = s ? (d.loss||0) : 0;
-    const safetyRem = s ? (d.safety_rem||0) : null;
-    const stopDur = s ? (d.total_downtime||'') : '';
-
-    // KWH/م³
-    const kwhM3 = (sales>0&&kwhInd>0) ? (kwhInd/sales).toFixed(3) : '—';
-
-    // PF
-    const kva = (kwhInd>0&&kvarh>0) ? Math.sqrt(kwhInd*kwhInd+kvarh*kvarh) : kwhInd;
-    const pf = kva>0 ? kwhInd/kva : 0;
-    const pfPct = pf>0 ? (pf*100).toFixed(1)+'%' : '—';
-    const pfColor = pf>=0.95?'var(--green)': pf>=0.92?'var(--green)': pf>=0.70?'var(--amber)':'var(--red)';
-
-    // حافز/غرامة
-    const indCost = kwhInd*2.74;
-    let pfAmountStr='—', pfAmountColor='#000';
-    if(pf>0&&indCost>0){
-      let amt=0;
-      if(pf>=0.95){ pfAmountStr='تخفيض'; pfAmountColor='var(--green)'; }
-      else if(pf>=0.92){ amt=(pf-0.92)*(1/5)*indCost; pfAmountStr='حافز '+amt.toFixed(0)+' ج'; pfAmountColor='var(--green)'; }
-      else if(pf>=0.70){ amt=(0.92-pf)*(1/5)*indCost; pfAmountStr='غرامة '+amt.toFixed(0)+' ج'; pfAmountColor='var(--amber)'; }
-      else { amt=(0.92-pf)*1*indCost; pfAmountStr='غرامة* '+amt.toFixed(0)+' ج'; pfAmountColor='var(--red)'; }
-    }
-
-    // FR والحيود
-    let frActual='—', frDev='—', frDevColor='#000';
-    const c1Active=c1tf>0, c2Active=c2tf>0;
-    if(s){
-      const specs=COMP_SPECS?.[code];
-      if(c1Active&&!c2Active){
-        const fr=sales>0?sales/c1tf:0;
-        frActual=fr.toFixed(1);
-        if(specs&&specs[0]&&plc>0){
-          const frStd=specs[0].flow*(plc/specs[0].suction);
-          const dev=frStd>0?(fr-frStd)/frStd*100:0;
-          frDev=dev.toFixed(1)+'%';
-          frDevColor=dev>=0?'var(--green)':dev>=-10?'var(--amber)':'var(--red)';
-        }
-      } else if(!c1Active&&c2Active){
-        const fr=sales>0?sales/c2tf:0;
-        frActual=fr.toFixed(1);
-      } else if(c1Active&&c2Active){
-        frActual='N/A'; frDev='N/A';
-      }
-    }
-
-    // فحص الأمان
-    let safetyStr='—', safetyColor='#000';
-    if(safetyRem!==null){
-      safetyStr=safetyRem+' يوم';
-      safetyColor=safetyRem<=0?'var(--red)':safetyRem<=15?'var(--amber)':'var(--green)';
-    }
-
-    // تشحيم ضاغط 1
-    const lubeRem = s ? (d.c1_lube_rem||null) : null;
-    let lubeStr='—', lubeColor='#000';
-    if(lubeRem!==null){
-      lubeStr=Math.round(lubeRem)+' س';
-      lubeColor=lubeRem<=0?'var(--red)':lubeRem<=200?'var(--amber)':'var(--green)';
-    }
-
-    // صيانة ض1
-    const maintRem = s ? (d.c1_maint_rem||null) : null;
-    let maintStr='—', maintColor='#000';
-    if(maintRem!==null){
-      maintStr=Math.round(maintRem)+' س';
-      maintColor=maintRem<=0?'var(--red)':maintRem<=500?'var(--amber)':'var(--green)';
-    }
-
-    row.innerHTML=`
-      <div style="font-weight:800;color:var(--blue-dark);font-size:12px;direction:ltr">${code}</div>
-      <div>
-        <div style="font-weight:700;font-size:11px">${st.name}</div>
-        <div style="font-size:9px;color:var(--gray-light)">${st.comps[0].name}</div>
-        ${stopDur?`<div style="font-size:9px;color:var(--red)">⏱ ${stopDur}</div>`:''}
-      </div>
-      <div><span class="${s?'badge-sent':'badge-pending'}">${s?'أرسل':'لم يُرسَل'}</span></div>
-      <div style="font-weight:700;direction:ltr">${s?sales.toLocaleString('en-US'):'—'}</div>
-      <div style="direction:ltr;color:${kwhM3!=='—'?'var(--blue-dark)':'#ccc'}">${kwhM3}</div>
-      <div style="direction:ltr">${frActual}</div>
-      <div style="direction:ltr;font-weight:700;color:${frDevColor}">${frDev}</div>
-      <div style="font-weight:700;color:${pfColor};direction:ltr">${pfPct}</div>
-      <div style="font-size:10px;font-weight:700;color:${pfAmountColor}">${pfAmountStr}</div>
-      <div style="font-weight:700;color:${loss>0?'var(--red)':'#ccc'}">${s?(loss||'—'):'—'}</div>
-      <div style="font-weight:700;color:${safetyColor}">${safetyStr}</div>`;
-    tbl.appendChild(row);
-  });
 }
 
 function resetToLogin(){
