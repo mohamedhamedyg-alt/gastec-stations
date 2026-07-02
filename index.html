@@ -655,7 +655,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <tbody id="mgr-table"></tbody>
     </table>
   </div>
-  <button class="btn-mgr export" onclick="exportDayCSV()">تصدير Excel (بيانات اليوم)</button>
+  <button class="btn-mgr export" onclick="exportSheetXlsx('display')">📥 تصدير العرض اليومى (Excel بنفس التنسيق)</button>
+  <button class="btn-mgr export" style="background:#1A6B4A" onclick="exportSheetXlsx('comp')">📥 تصدير مقارنة الضواغط (Excel)</button>
   <button class="btn-mgr send" onclick="emailDayReport()">إرسال التقرير للإيميلات</button>
   <button class="btn-mgr back" onclick="resetToLogin()">خروج</button>
 </div>
@@ -1480,6 +1481,48 @@ const FAULT_TRANSLATIONS={
   'كسر في الهوز':'Hose rupture',
   'عطل':'Fault',
   'توقف مفاجئ':'Sudden shutdown',
+  'ارتفاع ضغط الدخول':'Inlet High Pressure',
+  'انخفاض ضغط الدخول':'Inlet Low Pressure',
+  'ارتفاع ضغط المرحلة الأولى':'1st Stage High Pressure',
+  'ارتفاع ضغط المرحلة الثانية':'2nd Stage High Pressure',
+  'ارتفاع ضغط المرحلة الثالثة':'3rd Stage High Pressure',
+  'ارتفاع ضغط المرحلة الرابعة':'4th Stage High Pressure',
+  'ارتفاع ضغط بنك الهاى':'High Bank High Pressure',
+  'ارتفاع ضغط بنك الميديوم':'Medium Bank High Pressure',
+  'ارتفاع ضغط بنك اللو':'Low Bank High Pressure',
+  'ارتفاع حرارة المرحلة الأولى':'1st Stage High Temperature',
+  'ارتفاع حرارة المرحلة الثانية':'2nd Stage High Temperature',
+  'ارتفاع حرارة المرحلة الثالثة':'3rd Stage High Temperature',
+  'ارتفاع حرارة المرحلة الرابعة':'4th Stage High Temperature',
+  'انخفاض ضغط المياه':'Water Low Pressure',
+  'ارتفاع حرارة المياه':'Water High Temperature',
+  'فصل مفتاح الطوارئ':'ESD Tripped',
+  'ارتفاع معدل الاهتزاز':'High Vibration',
+  'ارتفاع الاهتزاز':'High Vibration',
+  'اهتزاز':'Vibration',
+  'انخفاض ضغط الهواء':'Air Low Pressure',
+  'اختلاف فازات':'Phase Sequence Fault',
+  'اختلاف الفازات':'Phase Sequence Fault',
+  'انخفاض جهد الكهرباء':'Low Voltage',
+  'ارتفاع جهد الكهرباء':'High Voltage',
+  'انخفاض الجهد':'Low Voltage',
+  'ارتفاع الجهد':'High Voltage',
+  'ارتفاع حرارة الموتور':'Main Motor High Temperature',
+  'فصل السكينة الرئيسية':'Main C.B Tripped',
+  'فصل الأوفرلود':'Overload Tripped',
+  'زيادة حمل الموتور':'Motor Overload',
+  'ارتفاع أمبير الموتور':'Motor High Current',
+  'عطل حساس':'Sensor Fault',
+  'عطل الديسبنسر':'Dispenser Fault',
+  'عطل طلمبة المياه':'Water Pump Fault',
+  'عطل مروحة التبريد':'Cooling Fan Fault',
+  'انفجار الطبة':'Rupture Disc Burst',
+  'عطل البريسوستات':'Pressure Switch Fault',
+  'عطل السوفت ستارتر':'Soft Starter Fault',
+  'عطل الانفرتر':'Inverter Fault',
+  'انقطاع الغاز':'Gas Supply Interruption',
+  'إنذار كشف الغاز':'Gas Detection Alarm',
+  'عطل PLC':'PLC Fault',
   'ارتفاع حرارة مياه التبريد':'High Cooling Water Temperature',
   'ارتفاع حرارة الزيت':'High Oil Temperature',
   'انخفاض ضغط الزيت':'Low Oil Pressure',
@@ -2090,22 +2133,23 @@ function showMgr(){
   if(d&&!d.value){const t=new Date();d.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);}
   loadMgrDay();
 }
-function exportDayCSV(){
-  const j=window.__lastDay;
-  if(!j){alert('اختر اليوم ودوس عرض أولاً');return;}
-  let csv='\uFEFF';
-  csv+='البيان اليومى,'+j.date+'\n';
-  csv+='مبيعات المنطقة م3,'+(j.totals.sales||0)+'\nأرسلت,'+j.sent+'\nلم ترسل,'+j.pending+'\nKWH/م3 للمنطقة,'+j.totals.kwhm3+'\nإجمالى مدد التوقف,'+j.totals.downtime+'\n\n';
-  csv+='الكود,المحطة,الحالة,مبيعات م3,KWH/م3,FR فعلى,حيود FR%,PF%,كفاءة التشغيل%,مدة التوقف\n';
-  j.stations.forEach(s=>{
-    const row=[s.code,s.name,s.sent?'أرسلت':'لم ترسل',s.sales!=null?s.sales:'',s.kwhM3,s.fr,s.frDev,s.pf,s.util,s.downtime||''];
-    csv+=row.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')+'\n';
-  });
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='البيان_اليومى_'+j.date+'.csv';
-  document.body.appendChild(a);a.click();a.remove();
+function exportSheetXlsx(kind){
+  const d=document.getElementById('mgr-day')?.value;
+  if(!d){alert('اختر اليوم أولاً');return;}
+  const st=document.getElementById('mgr-status');
+  st.textContent='⏳ جارى تجهيز ملف يوم '+d+' ... (15-30 ثانية)';
+  fetch(APPS_SCRIPT_URL+'?date='+d)
+    .then(()=>fetch(APPS_SCRIPT_URL+'?action=exportInfo'))
+    .then(r=>r.json())
+    .then(info=>{
+      const gid = kind==='comp' ? info.compGid : info.displayGid;
+      if(gid==null){st.textContent='❌ التابة غير موجودة — اعمل بناء أولاً';return;}
+      const url='https://docs.google.com/spreadsheets/d/'+info.id+'/export?format=xlsx&gid='+gid;
+      st.textContent='✅ جارى التنزيل...';
+      window.open(url,'_blank');
+      setTimeout(()=>{st.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');},4000);
+    })
+    .catch(e=>{st.textContent='❌ تعذر التصدير: '+e;});
 }
 function emailDayReport(){
   const j=window.__lastDay;
