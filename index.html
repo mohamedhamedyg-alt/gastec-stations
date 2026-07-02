@@ -188,6 +188,14 @@ input:checked+.slider:before{transform:translateX(-20px)}
   .mgr-table-head,.mgr-table-row{grid-template-columns:40px 1fr 65px 70px}
   .mgr-table-head>div:nth-child(n+5),.mgr-table-row>div:nth-child(n+5){display:none}
 }
+
+/* جدول المسئول — تجميد العناوين وأعمدة التعريف */
+#mgr-grid th,#mgr-grid td{padding:7px 8px;border-bottom:1px solid #eee;text-align:center;white-space:nowrap}
+.mg-h{position:sticky;top:0;background:var(--blue-dark);color:white;font-weight:800;z-index:5}
+.mg-fz1{position:sticky;right:0;z-index:7!important;min-width:48px}
+.mg-fz2{position:sticky;right:48px;z-index:7!important;min-width:150px}
+td.mg-fz1{position:sticky;right:0;background:#F4F8FC;font-weight:800;z-index:3}
+td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-align:right;z-index:3}
 </style>
 </head>
 <body>
@@ -287,18 +295,29 @@ input:checked+.slider:before{transform:translateX(-20px)}
         </div>
         <div class="form-grid cols3">
           <div class="form-group" id="fg-kwh-ind">
-            <label>KWH صناعى <span style="font-size:9px;color:var(--gray-light)">(2.74 ج.م)</span></label>
-            <input type="number" class="form-control" id="f-kwh-ind" min="0" step="1" inputmode="numeric" oninput="calcLive()" placeholder="0" style="direction:ltr">
+            <label>KWH صناعى <span style="font-size:9px;color:var(--gray-light)">(2.74 جنيه)</span></label>
+            <input type="text" class="form-control num-fmt" id="f-kwh-ind" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr">
             <div class="validation-msg">إلزامى</div>
           </div>
           <div class="form-group" id="fg-kwh-com" style="display:none">
-            <label>KWH تجارى <span style="font-size:9px;color:var(--gray-light)">(2.79 ج.م)</span></label>
-            <input type="number" class="form-control" id="f-kwh-com" min="0" step="1" inputmode="numeric" oninput="calcLive()" placeholder="0" style="direction:ltr">
+            <label>KWH تجارى <span style="font-size:9px;color:var(--gray-light)">(2.79 جنيه)</span></label>
+            <input type="text" class="form-control num-fmt" id="f-kwh-com" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr">
             <div class="validation-msg">إلزامى</div>
           </div>
           <div class="form-group">
             <label>KVARH <span style="font-size:9px;color:var(--gray-light)">(غير فعالة)</span></label>
-            <input type="number" class="form-control" id="f-kvarh" min="0" step="1" inputmode="numeric" oninput="calcLive()" placeholder="0" style="direction:ltr">
+            <input type="text" class="form-control num-fmt" id="f-kvarh" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr">
+          </div>
+        </div>
+        <div id="meter-b-block" style="display:none;grid-column:1/-1">
+          <div style="font-size:12px;font-weight:800;color:var(--blue-dark);margin:8px 0 6px;border-top:1px dashed #ccc;padding-top:8px">⚡ عداد الضاغط B (المحطة بعدادين — العداد الأول = الضاغط A)</div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="form-group"><label>KWH صناعى B</label><input type="text" class="form-control num-fmt" id="f-kwh-ind-b" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr"></div>
+            <div class="form-group"><label>KWH تجارى B</label><input type="text" class="form-control num-fmt" id="f-kwh-com-b" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr"></div>
+            <div class="form-group"><label>KVARH B</label><input type="text" class="form-control num-fmt" id="f-kvarh-b" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr"></div>
+          </div>
+          <div id="pf-b-note" style="font-size:11px;font-weight:800;color:var(--blue-dark);margin-top:4px"></div>
+
             <div class="validation-msg">إلزامى</div>
           </div>
         </div>
@@ -376,13 +395,13 @@ input:checked+.slider:before{transform:translateX(-20px)}
     <div class="section-head"><div class="dot"></div>المبيعات المالية</div>
     <div class="section-body">
       <div class="form-group" style="margin-bottom:12px">
-        <label><span class="req">*</span> سعر المتر المكعب الحالى (ج.م)</label>
+        <label><span class="req">*</span> سعر المتر المكعب الحالى (جنيه)</label>
         <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="" oninput="checkSalesTotal()" style="direction:ltr">
         <div class="validation-msg">إلزامى</div>
       </div>
       <div class="form-grid">
         <div class="form-group">
-          <label>الإيداع النقدى (ج.م)</label>
+          <label>الإيداع النقدى (جنيه)</label>
           <div class="dual-input" style="direction:ltr">
             <input type="number" class="form-control" id="f-cash-int" min="0" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="if(this.value<0)this.value=0;calcCashTotal()">
             <div class="sep">.</div>
@@ -393,29 +412,29 @@ input:checked+.slider:before{transform:translateX(-20px)}
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
-          <label>البونات (ج.م)</label>
+          <label>البونات (جنيه)</label>
           <input type="number" class="form-control" id="f-bonds" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
-          <label>سمارت غازتك (ج.م)</label>
+          <label>سمارت غازتك (جنيه)</label>
           <input type="number" class="form-control" id="f-smart-g" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
-          <label>سمارت كارجاس (ج.م)</label>
+          <label>سمارت كارجاس (جنيه)</label>
           <input type="number" class="form-control" id="f-smart-k" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
-          <label>شاحنة نقل الغاز (ج.م)</label>
+          <label>شاحنة نقل الغاز (جنيه)</label>
           <input type="number" class="form-control" id="f-truck" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
           <div class="validation-msg">إلزامى</div>
         </div>
       </div>
       <!-- استحقاق الصندوق -->
       <div style="background:var(--amber-pale);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:12px;font-weight:800;color:var(--amber)">استحقاق الصندوق (100 ج.م / 1000 م³)</span>
+        <span style="font-size:12px;font-weight:800;color:var(--amber)">استحقاق الصندوق (100 جنيه / 1000 م³)</span>
         <span style="font-size:18px;font-weight:800;color:var(--amber);direction:ltr" id="f-sandoq-display">—</span>
         <input type="hidden" id="f-sandoq" value="0">
       </div>
@@ -463,7 +482,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
         </div>
         <div class="form-group">
           <label>المتبقى على الفحص القادم (يوم)</label>
-          <input type="number" class="form-control" id="f-safety-remain" readonly style="direction:ltr;font-weight:800">
+          <input type="text" class="form-control" id="f-safety-remain" readonly style="direction:ltr;font-weight:800">
         </div>
       </div>
       <div class="safety-alert" id="safety-alert-inline"></div>
@@ -504,7 +523,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
         <div style="text-align:center;padding:8px">
           <div class="kpi-label">إجمالى تكلفة الكهرباء</div>
           <div class="kpi-val blue" id="d-total-elec" style="direction:ltr">—</div>
-          <div class="kpi-unit">ج.م</div>
+          <div class="kpi-unit">جنيه</div>
         </div>
         <div style="text-align:center;padding:8px">
           <div class="kpi-label">تكلفة KWH / م³ غاز</div>
@@ -550,7 +569,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
         <div style="text-align:center;padding:8px">
           <div class="kpi-label">حافز / غرامة</div>
           <div class="kpi-val" id="d-pf-amount" style="direction:ltr;font-size:14px">—</div>
-          <div class="kpi-unit">ج.م</div>
+          <div class="kpi-unit">جنيه</div>
         </div>
       </div>
       <div class="pf-bar-wrap"><div class="pf-bar-fill" id="pf-bar" style="width:0%"></div></div>
@@ -589,19 +608,38 @@ input:checked+.slider:before{transform:translateX(-20px)}
 <div class="container">
   <div class="mgr-header">
     <h2>لوحة متابعة المسئول — منطقة القناة وسيناء</h2>
-    <p id="mgr-date"></p>
-  </div>
-  <div class="mgr-sum" style="grid-template-columns:repeat(4,1fr)">
-    <div class="mgr-sum-card"><div class="mgr-sum-label">أرسلت</div><div class="mgr-sum-val" id="mgr-sent" style="color:var(--green)">0</div></div>
-    <div class="mgr-sum-card"><div class="mgr-sum-label">لم ترسل</div><div class="mgr-sum-val" id="mgr-pending" style="color:var(--red)">41</div></div>
-    <div class="mgr-sum-card"><div class="mgr-sum-label">مبيعات م³</div><div class="mgr-sum-val" id="mgr-total-sales" style="color:var(--blue-dark)">0</div></div>
-    <div class="mgr-sum-card"><div class="mgr-sum-label">استحقاق الصندوق</div><div class="mgr-sum-val" id="mgr-total-sandoq" style="color:var(--amber)">0</div></div>
-  </div>
-  <div class="mgr-table-wrap" style="max-height:calc(100vh - 340px);overflow-y:auto;overflow-x:auto">
-    <div class="mgr-table-head" style="position:sticky;top:0;z-index:10;grid-template-columns:48px 1fr 70px 80px 75px 75px 75px 80px 80px 80px 80px;min-width:900px">
-      <div>الكود</div><div>المحطة</div><div>الحالة</div><div>مبيعات م³</div><div>KWH/م³</div><div>FR فعلى</div><div>حيود FR%</div><div>PF%</div><div>حافز/غرامة</div><div>فقد م³</div><div>فحص الأمان</div>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px;flex-wrap:wrap">
+      <label style="font-size:13px;font-weight:800">اليوم المطلوب:</label>
+      <input type="date" id="mgr-day" class="form-control" style="width:170px;direction:ltr" onchange="loadMgrDay()">
+      <button onclick="loadMgrDay()" style="background:var(--blue-dark);color:white;border:none;border-radius:8px;padding:7px 16px;font-family:'Cairo';font-weight:800;cursor:pointer">عرض</button>
     </div>
-    <div id="mgr-table"></div>
+    <p id="mgr-status" style="font-size:12px;color:#888;margin-top:6px"></p>
+  </div>
+  <div class="mgr-sum" style="grid-template-columns:repeat(6,1fr)">
+    <div class="mgr-sum-card"><div class="mgr-sum-label">التاريخ</div><div class="mgr-sum-val" id="mgr-c-date" style="color:var(--blue-dark);font-size:15px">—</div></div>
+    <div class="mgr-sum-card"><div class="mgr-sum-label">مبيعات م³</div><div class="mgr-sum-val" id="mgr-c-sales" style="color:var(--blue-dark)">0</div></div>
+    <div class="mgr-sum-card"><div class="mgr-sum-label">أرسلت</div><div class="mgr-sum-val" id="mgr-c-sent" style="color:var(--green)">0</div></div>
+    <div class="mgr-sum-card"><div class="mgr-sum-label">لم ترسل</div><div class="mgr-sum-val" id="mgr-c-pending" style="color:var(--red)">42</div></div>
+    <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
+    <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
+  </div>
+  <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);overflow:auto;position:relative">
+    <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:940px;width:100%;font-size:12px">
+      <thead>
+        <tr>
+          <th class="mg-h mg-fz1">الكود</th>
+          <th class="mg-h mg-fz2">المحطة</th>
+          <th class="mg-h">الحالة</th>
+          <th class="mg-h">مبيعات م³</th>
+          <th class="mg-h">KWH/م³</th>
+          <th class="mg-h">FR فعلى</th>
+          <th class="mg-h">حيود FR%</th>
+          <th class="mg-h">PF%</th>
+          <th class="mg-h">كفاءة التشغيل%</th>
+        </tr>
+      </thead>
+      <tbody id="mgr-table"></tbody>
+    </table>
   </div>
   <button class="btn-mgr export" onclick="alert('التصدير متاح بعد الربط بـ Apps Script')">تصدير Excel</button>
   <button class="btn-mgr send" onclick="alert('الإرسال متاح بعد الربط بـ Apps Script')">إرسال التقرير للإيميلات</button>
@@ -635,6 +673,12 @@ document.addEventListener('DOMContentLoaded',function(){
   },true);
 });
 
+// ── أدوات الأرقام: قراءة بأمان + فواصل آلاف ──
+function parseNum(v){if(v==null)return 0;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:n;}
+function sanDec(el){let v=el.value.replace(/[^\d.]/g,'');const p=v.split('.');if(p.length>2)v=p[0]+'.'+p.slice(1).join('');el.value=v;}
+function sanInt(el){el.value=el.value.replace(/[^\d]/g,'');}
+function fmtBlur(el){const n=parseNum(el.value);if(!el.value)return;el.value=n.toLocaleString('en-US',{maximumFractionDigits:2});}
+function unfmt(el){el.value=String(el.value).replace(/,/g,'');}
 // ── CONSTANTS ──
 const ADMIN_CODE='ADMIN2024';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyB81Q2UuGMEjHe44zEk8pP_R4wup8j7r56KOq4vIFhGiYgi0VQap0MBHyg-aOnsIpYZg/exec';
@@ -744,7 +788,7 @@ const STATIONS={
   "250":{name:"السويس الجلاء",region:"السويس",comps:[{name:"CUBO",model:"P95B DB",motor:'elec'}],ref_flow:727.3},
   "202":{name:"السويس ورش المحافظة",region:"السويس",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:721.8},
   "174":{name:"السويس قوات الأمن",region:"السويس",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:779.6},
-  "197":{name:"السويس صلاح نسيم",region:"السويس",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'},{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:736.3},
+  "197":{name:"السويس صلاح نسيم",region:"السويس",meters2:true,comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'},{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:736.3},
   "180":{name:"السويس التحرير",region:"السويس",comps:[{name:"KwangShin",model:"GEO-BII-200",motor:'elec'}],ref_flow:750.7},
   "32":{name:"الإسماعيلية التجارى",region:"الإسماعيلية",comps:[{name:"GRAF",model:"GRF 115-3-4-160-2B",motor:'elec'}],ref_flow:720},
   "91":{name:"الإسماعيلية الإذاعة والتليفزيون",region:"الإسماعيلية",comps:[{name:"ASPRO",model:"IODM 115-4R",motor:'elec'}],ref_flow:765,meter_inner:true},
@@ -817,6 +861,7 @@ function loadForm(){
   document.getElementById('si-c1').textContent=st.comps[0]?st.comps[0].name+' — '+st.comps[0].model:'—';
   document.getElementById('si-c2').textContent=st.comps[1]?st.comps[1].name+' — '+st.comps[1].model:'—';
   if(st.meter_inner){document.getElementById('meter-inner').checked=true;toggleMeter(true);}
+  const mb=document.getElementById('meter-b-block');if(mb)mb.style.display=st.meters2?'block':'none';
   if(st.comps.length>1){buildCompSelector(st);}
   else{activeComps=[0];buildCompSections([0]);}
 }
@@ -927,6 +972,10 @@ function buildCompSections(indices){
         <div class="form-group" style="margin-top:10px">
           <label><span class="req">*</span> عدد مرات التشغيل</label>
           <input type="number" class="form-control" id="starts-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr">
+        </div>
+        <div class="form-group">
+          <label>ضغط دخول الضاغط PLC (bar)</label>
+          <input type="number" class="form-control" id="inlet-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr" placeholder="افتراضى = ضغط PLC للمحطة" oninput="calcLive()">
           <div class="validation-msg">إلزامى</div>
         </div>
         <!-- زيت الضاغط -->
@@ -935,7 +984,7 @@ function buildCompSections(indices){
         <div class="form-grid cols3">
           <div class="form-group" style="grid-column:1/4">
             <label>نوع الزيت</label>
-            <select class="form-control" id="oil-type-${idx}"><option value="">— اختر —</option>${oilOptions}</select>
+            <select class="form-control" id="oil-type-${idx}" onchange="checkOilDup()"><option value="">— اختر —</option>${oilOptions}</select>
             <div class="validation-msg">اختر نوع الزيت</div>
           </div>
           <div class="form-group">
@@ -1044,11 +1093,11 @@ function getH(idx,prefix){
   if(mode==='hm'){const h=parseInt(document.getElementById(`${prefix}-h-${idx}`)?.value)||0;const m=parseInt(document.getElementById(`${prefix}-m-${idx}`)?.value)||0;return h+m/60;}
   const i=parseInt(document.getElementById(`${prefix}-i-${idx}`)?.value)||0;const f=parseInt(document.getElementById(`${prefix}-f-${idx}`)?.value)||0;return parseFloat(`${i}.${f}`)||i;
 }
-function calcMDiff(idx){const a=parseFloat(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el&&(a>0||c>0))el.value=Math.max(0,c-a);}
-function calcGMDiff(idx){const a=parseFloat(document.getElementById('gm-hrs-'+idx)?.value)||0;const c=parseFloat(document.getElementById('gm-cur-'+idx)?.value)||0;const el=document.getElementById('gm-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
+function calcMDiff(idx){const a=parseNum(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el&&(a>0||c>0))el.value=Math.max(0,c-a);}
+function calcGMDiff(idx){const a=parseNum(document.getElementById('gm-hrs-'+idx)?.value)||0;const c=parseNum(document.getElementById('gm-cur-'+idx)?.value)||0;const el=document.getElementById('gm-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
 function calcLubeDiff(idx){
-  const a=parseFloat(document.getElementById('lube-hrs-'+idx)?.value)||0;
-  const c=parseFloat(document.getElementById('lube-cur-'+idx)?.value)||0;
+  const a=parseNum(document.getElementById('lube-hrs-'+idx)?.value)||0;
+  const c=parseNum(document.getElementById('lube-cur-'+idx)?.value)||0;
   const diffEl=document.getElementById('lube-diff-'+idx);
   const elapsed=Math.max(0,c-a);
   if(diffEl) diffEl.value=(a>0||c>0)?elapsed:'';
@@ -1078,9 +1127,9 @@ function toggleMeter(inner){document.getElementById('elec-fields').style.display
 
 // LIVE CALC — المعادلات الرسمية للكهرباء والـ Flow Rate
 function calcLive(){
-  const kwhInd = parseFloat(document.getElementById('f-kwh-ind')?.value)||0;
-  const kwhCom = parseFloat(document.getElementById('f-kwh-com')?.value)||0;
-  const kvarh  = parseFloat(document.getElementById('f-kvarh')?.value)||0;
+  const kwhInd = parseNum(document.getElementById('f-kwh-ind')?.value)||0;
+  const kwhCom = parseNum(document.getElementById('f-kwh-com')?.value)||0;
+  const kvarh  = parseNum(document.getElementById('f-kvarh')?.value)||0;
   const salesI = parseInt(document.getElementById('f-sales-int')?.value)||0;
   const salesF = parseInt(document.getElementById('f-sales-frac')?.value)||0;
   const sales  = salesF>0 ? parseFloat(salesI+'.'+String(salesF).padStart(String(salesF).length,'0')) : salesI;
@@ -1115,15 +1164,15 @@ function calcLive(){
   } else if(pf >= 0.92) {
     // حالة ③ — حافز = (PF - 0.92) × 1/5 × القيمة الكلية
     const bonus = (pf - 0.92) * (1/5) * indCost;
-    statusTxt = '✅ حافز '+bonus.toFixed(0)+' ج.م'; statusCls = 'ok';
+    statusTxt = '✅ حافز '+bonus.toFixed(0)+' جنيه'; statusCls = 'ok';
   } else if(pf >= 0.70) {
     // حالة ① — غرامة = (0.92 - PF) × 1/5 × القيمة الكلية
     const fine = (0.92 - pf) * (1/5) * indCost;
-    statusTxt = '⚠ غرامة '+fine.toFixed(0)+' ج.م'; statusCls = 'warn';
+    statusTxt = '⚠ غرامة '+fine.toFixed(0)+' جنيه'; statusCls = 'warn';
   } else {
     // حالة ② — PF أقل من 70% — غرامة مضاعفة = (0.92 - PF) × 1 × القيمة الكلية
     const fine = (0.92 - pf) * 1 * indCost;
-    statusTxt = '❌ غرامة مضاعفة '+fine.toFixed(0)+' ج.م'; statusCls = 'bad';
+    statusTxt = '❌ غرامة مضاعفة '+fine.toFixed(0)+' جنيه'; statusCls = 'bad';
   }
   pfEl.textContent = statusTxt;
   pfEl.className = 'live-calc-val '+(statusCls||'');
@@ -1175,6 +1224,11 @@ function calcFlowRate(sales){
   }
 
   let frActual = 0, frStd = 0, specIdx = 0;
+  if(c1Active && c2Active){
+    frActual = sales > 0 ? sales/(c1tf+c2tf) : 0;
+    frEl.innerHTML = '<span style="color:var(--blue-dark);font-weight:800">FR المحطة: '+frActual.toFixed(1)+' م³/س</span><br><span style="color:#9C6500;font-size:11px">تعذر حساب قيمة الـ FR لكل ضاغط على حدة نتيجة عمل الضاغطين معاً</span>';
+    return;
+  }
   if(c1Active){
     frActual = sales > 0 ? sales/c1tf : 0;
     specIdx = 0;
@@ -1182,13 +1236,14 @@ function calcFlowRate(sales){
     frActual = sales > 0 ? sales/c2tf : 0;
     specIdx = 1;
   } else {
-    frEl.innerHTML = '<span style="color:#888">FR: — (الضاغط واقف)</span>';
+    frEl.innerHTML = '<span style="color:#888">FR: — (أدخل ساعات التشغيل الفعلية)</span>';
     return;
   }
 
   const spec = specs[specIdx];
-  if(spec && plc > 0){
-    frStd = spec.flow * (plc / spec.suction);
+  const inletV = parseNum(document.getElementById('inlet-'+specIdx)?.value) || plc;
+  if(spec && inletV > 0){
+    frStd = spec.flow * (inletV / spec.suction);
     const dev = frStd > 0 ? ((frActual - frStd)/frStd*100) : 0;
     const devColor = dev >= 0 ? '#276221' : dev >= -10 ? '#9C6500' : '#9C0006';
     const devIcon  = dev >= 0 ? '✅' : dev >= -10 ? '⚠' : '❌';
@@ -1203,29 +1258,29 @@ function calcFlowRate(sales){
 
 // SALES TOTAL CHECK + استحقاق الصندوق
 function checkSalesTotal(){
-  const sales=parseFloat(document.getElementById('f-sales')?.value)||0;
-  const price=parseFloat(document.getElementById('f-gas-price')?.value)||0;
+  const sales=parseNum(document.getElementById('f-sales')?.value)||0;
+  const price=parseNum(document.getElementById('f-gas-price')?.value)||0;
   const cashI=parseInt(document.getElementById('f-cash-int')?.value)||0;
   const cashF=parseInt(document.getElementById('f-cash-frac')?.value)||0;
   const cash=cashF>0?parseFloat(cashI+'.'+String(cashF).padStart(2,'0')):cashI;
-  const bonds=parseFloat(document.getElementById('f-bonds')?.value)||0;
-  const sg=parseFloat(document.getElementById('f-smart-g')?.value)||0;
-  const sk=parseFloat(document.getElementById('f-smart-k')?.value)||0;
-  const truck=parseFloat(document.getElementById('f-truck')?.value)||0;
+  const bonds=parseNum(document.getElementById('f-bonds')?.value)||0;
+  const sg=parseNum(document.getElementById('f-smart-g')?.value)||0;
+  const sk=parseNum(document.getElementById('f-smart-k')?.value)||0;
+  const truck=parseNum(document.getElementById('f-truck')?.value)||0;
   // استحقاق الصندوق = المبيعات / 1000 * 100
   const sandoq=sales>0?(sales/1000*100):0;
   const sandoqEl=document.getElementById('f-sandoq-display');
   const sandoqHidden=document.getElementById('f-sandoq');
-  if(sandoqEl)sandoqEl.textContent=sandoq>0?sandoq.toFixed(2)+' ج.م':'—';
+  if(sandoqEl)sandoqEl.textContent=sandoq>0?sandoq.toFixed(2)+' جنيه':'—';
   if(sandoqHidden)sandoqHidden.value=sandoq;
   const el=document.getElementById('sales-check');
   if(sales>0&&price>0&&(cash+bonds+sg+sk+truck)>0){
     const exp=sales*price,act=cash+bonds+sg+sk+truck,diff=Math.abs(exp-act);
-    if(diff<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} ج.م | صندوق: ${sandoq.toFixed(2)} ج.م`;}
-    else{el.className='sales-check err';el.textContent=`⚠ فرق: ${diff.toFixed(2)} ج.م — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)} | صندوق: ${sandoq.toFixed(2)} ج.م`;}
+    if(diff<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} جنيه | صندوق: ${sandoq.toFixed(2)} جنيه`;}
+    else{el.className='sales-check err';el.textContent=`⚠ فرق: ${diff.toFixed(2)} جنيه — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)} | صندوق: ${sandoq.toFixed(2)} جنيه`;}
     el.style.display='block';
   } else {
-    if(sandoq>0){el.className='sales-check ok';el.textContent=`استحقاق الصندوق: ${sandoq.toFixed(2)} ج.م`;el.style.display='block';}
+    if(sandoq>0){el.className='sales-check ok';el.textContent=`استحقاق الصندوق: ${sandoq.toFixed(2)} جنيه`;el.style.display='block';}
     else el.style.display='none';
   }
 }
@@ -1235,7 +1290,10 @@ function calcSafety(val){
   if(!val)return;
   const diff=Math.floor((new Date()-new Date(val))/86400000);
   const rem=SAFETY_MAX-diff;
-  document.getElementById('f-safety-remain').value=rem;
+  const sEl=document.getElementById('f-safety-remain');
+  sEl.dataset.rem=rem;
+  if(rem<0){sEl.value='متأخر '+(-rem)+' يوم';sEl.style.color='var(--red)';sEl.style.background='#FFE5E5';}
+  else{sEl.value=rem;sEl.style.color='';sEl.style.background='';}
   ['safety-alert-top','safety-alert-inline'].forEach(id=>{
     const el=document.getElementById(id);
     if(diff>=SAFETY_MAX){el.className='safety-alert danger';el.textContent=`تحذير: تجاوزت فترة الفحص الحد الأقصى — مضى ${diff} يوم`;el.style.display='block';}
@@ -1244,6 +1302,26 @@ function calcSafety(val){
   });
 }
 
+// حساب مدة الإصلاح لبطاقة عطل
+function to24(hv,mv,ap){let hh=parseInt(hv)||0;const mm=parseInt(mv)||0;if(ap==='pm'&&hh<12)hh+=12;if(ap==='am'&&hh===12)hh=0;return hh*60+mm;}
+function calcRD(id){
+  const g=s=>document.getElementById('ft-'+s+'-'+id)?.value;
+  const fh=g('rfh'),fm=g('rfm'),fa=g('rfa'),th=g('rth'),tm=g('rtm'),ta=g('rta');
+  const el=document.getElementById('ft-rdur-'+id);
+  if(!el||!fh||!th)return;
+  let diff=to24(th,tm,ta)-to24(fh,fm,fa);
+  if(diff<0)diff+=24*60;
+  el.value=Math.floor(diff/60)+' س '+(diff%60)+' د';
+}
+// لو الضاغطان بنفس نوع الزيت — الرصيد يُسجل مرة واحدة (فى الضاغط الأول)
+function checkOilDup(){
+  const t0=document.getElementById('oil-type-0')?.value||'';
+  const t1=document.getElementById('oil-type-1')?.value||'';
+  const b1=document.getElementById('oil-bal-1');
+  if(!b1)return;
+  if(t0&&t1&&t0===t1){b1.value='';b1.disabled=true;b1.placeholder='الرصيد موحّد مع الضاغط الأول';}
+  else{b1.disabled=false;b1.placeholder='';}
+}
 // FAULTS
 function addFault(){
   faultCount++;
@@ -1295,6 +1373,38 @@ function addFault(){
           </select>
         </div>
         <div class="dual-label" style="direction:ltr"><span style="text-align:right">ساعة</span><span>دقيقة</span></div>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:8px;background:#F0F8FF;border-radius:8px;padding:8px">
+      <div class="form-group">
+        <label>🔧 بدء الإصلاح — من الساعة</label>
+        <div style="display:flex;gap:5px;align-items:center">
+          <div class="dual-input" style="direction:ltr;flex:1">
+            <input type="number" class="form-control" id="ft-rfh-${id}" min="1" max="12" step="1" inputmode="numeric" placeholder="س" style="direction:rtl;text-align:center" oninput="if(this.value>12)this.value=12;calcRD(${id})">
+            <div class="sep">:</div>
+            <input type="number" class="form-control" id="ft-rfm-${id}" min="0" max="59" step="1" inputmode="numeric" placeholder="د" style="direction:rtl;text-align:center" oninput="if(this.value>59)this.value=59;calcRD(${id})">
+          </div>
+          <select class="form-control" id="ft-rfa-${id}" style="width:82px;flex-shrink:0" onchange="calcRD(${id})">
+            <option value="am">صباحاً</option><option value="pm">مساءً</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>انتهاء الإصلاح — إلى الساعة</label>
+        <div style="display:flex;gap:5px;align-items:center">
+          <div class="dual-input" style="direction:ltr;flex:1">
+            <input type="number" class="form-control" id="ft-rth-${id}" min="1" max="12" step="1" inputmode="numeric" placeholder="س" style="direction:rtl;text-align:center" oninput="if(this.value>12)this.value=12;calcRD(${id})">
+            <div class="sep">:</div>
+            <input type="number" class="form-control" id="ft-rtm-${id}" min="0" max="59" step="1" inputmode="numeric" placeholder="د" style="direction:rtl;text-align:center" oninput="if(this.value>59)this.value=59;calcRD(${id})">
+          </div>
+          <select class="form-control" id="ft-rta-${id}" style="width:82px;flex-shrink:0" onchange="calcRD(${id})">
+            <option value="am">صباحاً</option><option value="pm">مساءً</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>مدة الإصلاح (أوتوماتيك)</label>
+        <input type="text" class="form-control" id="ft-rdur-${id}" readonly style="background:var(--blue-pale);font-weight:800;text-align:center" placeholder="—">
       </div>
     </div>
     <div class="form-group" style="margin-top:8px">
@@ -1398,7 +1508,26 @@ const FAULT_TRANSLATIONS={
   'كسر في الهوز':'Hose rupture',
   'عطل':'Fault',
   'توقف مفاجئ':'Sudden shutdown',
+  'ارتفاع ضغط':'High Pressure',
+  'ارتفاع الضغط':'High Pressure',
+  'ارتفاع حرارة':'High Temperature',
+  'ارتفاع درجة الحرارة':'High Temperature',
+  'المرحلة الأولى':'1st Stage',
+  'المرحلة الثانية':'2nd Stage',
+  'المرحلة الثالثة':'3rd Stage',
+  'المرحلة الرابعة':'4th Stage',
+  'المرحلة':'Stage',
+  'مرحلة':'Stage',
+  'بلوف':'Valves',
+  'طرمبة':'Pump',
 };
+function tryLocalPhrase(text){
+  let out=text;
+  Object.keys(FAULT_TRANSLATIONS).sort((a,b)=>b.length-a.length).forEach(k=>{
+    out=out.split(k).join(FAULT_TRANSLATIONS[k]);
+  });
+  return /[\u0600-\u06FF]/.test(out)?null:out; // نجحت لو مفيش عربى متبقى
+}
 let translateTimers={};
 function autoTranslate(id){
   const text=(document.getElementById('ft-reason-'+id)?.value||'').trim();
@@ -1411,7 +1540,10 @@ function autoTranslate(id){
     // أولاً: ابحث في القاموس المحلى
     const localMatch=Object.entries(FAULT_TRANSLATIONS).find(([ar])=>text.includes(ar));
     if(localMatch){if(enEl)enEl.value=localMatch[1];if(indicator)indicator.style.display='none';return;}
-    // ثانياً: جرب MyMemory API
+    // ثانياً: ترجمة محلية بالتركيب
+    const local=tryLocalPhrase(text);
+    if(local){if(enEl)enEl.value=local;const sp=document.getElementById('ft-translating-'+id);if(sp)sp.style.display='none';return;}
+    // ثالثاً: جرب MyMemory API
     try{
       const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ar|en&de=gastec@gmail.com`;
       const res=await fetch(url,{signal:AbortSignal.timeout(5000)});
@@ -1490,7 +1622,7 @@ function calcCashTotal(){
 
 // VALIDATION
 function clearVal(){document.querySelectorAll('.form-group.error').forEach(el=>el.classList.remove('error'));const s=document.getElementById('validation-summary');s.style.display='none';s.innerHTML='';}
-function markErr(id,msg){const el=document.getElementById(id);if(!el)return;const fg=el.closest('.form-group');if(fg){fg.classList.add('error');const vm=fg.querySelector('.validation-msg');if(vm)vm.textContent=msg;}}
+function markErr(id,msg){const el=document.getElementById(id);if(!el)return;if(!window.__firstErr)window.__firstErr=el;const fg=el.closest('.form-group');if(fg){fg.classList.add('error');const vm=fg.querySelector('.validation-msg');if(vm)vm.textContent=msg;}}
 function iVal(id){const el=document.getElementById(id);return !el||el.value===''||el.value===null;}
 
 function validateAll(){
@@ -1545,8 +1677,8 @@ function validateAll(){
   });
   // Electricity
   if(!mi){
-    const kI=parseFloat(document.getElementById('f-kwh-ind')?.value)||0;
-    const kC=parseFloat(document.getElementById('f-kwh-com')?.value)||0;
+    const kI=parseNum(document.getElementById('f-kwh-ind')?.value)||0;
+    const kC=parseNum(document.getElementById('f-kwh-com')?.value)||0;
     if((tariff==='ind'||tariff==='both')&&kI<=0){errors.push('KWH صناعى');markErr('f-kwh-ind','إلزامى');}
     if((tariff==='com'||tariff==='both')&&kC<=0){errors.push('KWH تجارى');markErr('f-kwh-com','إلزامى');}
     if(iVal('f-kvarh')){errors.push('KVARH');markErr('f-kvarh','إلزامى');}
@@ -1556,75 +1688,152 @@ function validateAll(){
   // ضغط الغاز - إلزامى
   if(document.getElementById('f-pm-int')?.value===''){errors.push('ضغط الموديول (الجزء الصحيح)');}
   if(document.getElementById('f-pp-int')?.value===''){errors.push('ضغط PLC (الجزء الصحيح)');}
-  if(!document.getElementById('f-gas-price')?.value||parseFloat(document.getElementById('f-gas-price')?.value)<=0){errors.push('سعر المتر المكعب');}
+  if(!document.getElementById('f-gas-price')?.value||parseNum(document.getElementById('f-gas-price')?.value)<=0){errors.push('سعر المتر المكعب');}
   const cashIntCheck=parseInt(document.getElementById('f-cash-int')?.value);
   if(isNaN(cashIntCheck)||document.getElementById('f-cash-int')?.value===''){errors.push('الإيداع النقدى');markErr('f-cash','إلزامى');}
   // البونات والسمارت تقبل صفر
   if(iVal('f-safety-date')){errors.push('تاريخ فحص الأمان');markErr('f-safety-date','إلزامى');}
+  // ── قواعد الساعات: فعلية ≤ كلية، والحد الأقصى 24.00 ──
+  activeComps.forEach(ix=>{
+    const th=getH(ix,'th'), tf=getH(ix,'tf');
+    if(th>24||tf>24){errors.push('ساعات الضاغط '+(ix+1)+' تجاوزت 24 ساعة');markErr('starts-'+ix,'تحقق من الساعات');}
+    if(tf>th&&th>0){errors.push('الساعات الفعلية أكبر من الكلية — ضاغط '+(ix+1));markErr('starts-'+ix,'فعلية > كلية');}
+  });
+  // ── تواريخ الصيانة/التشحيم لا تكون فى المستقبل بعد تاريخ البيان ──
+  const repDate=document.getElementById('f-date')?.value||'';
+  if(repDate){
+    activeComps.forEach(ix=>{
+      [['maint-date','تاريخ آخر صيانة'],['gm-date','تاريخ صيانة المحرك'],['lube-date','تاريخ آخر تشحيم']].forEach(([fid,lbl])=>{
+        const el=document.getElementById(fid+'-'+ix);
+        if(el&&el.value&&el.value>repDate){errors.push(lbl+' فى المستقبل — ضاغط '+(ix+1));markErr(fid+'-'+ix,'تاريخ مستقبلى');}
+      });
+    });
+  }
+  // ── الساعات الحالية ≥ الساعات عند آخر صيانة/تشحيم ──
+  activeComps.forEach(ix=>{
+    [['maint-hrs','maint-cur','ساعات الصيانة'],['gm-hrs','gm-cur','ساعات صيانة المحرك'],['lube-hrs','lube-cur','ساعات التشحيم']].forEach(([a,b,lbl])=>{
+      const av=parseNum(document.getElementById(a+'-'+ix)?.value), bv=parseNum(document.getElementById(b+'-'+ix)?.value);
+      if(av>0&&bv>0&&bv<av){errors.push(lbl+': الحالية أصغر من ساعات آخر مرة — ضاغط '+(ix+1));markErr(b+'-'+ix,'أصغر من آخر مرة');}
+    });
+  });
   return errors;
 }
 
 // SUBMIT
 function submitForm(){
+  window.__firstErr=null;
   const errors=validateAll();
   if(errors.length>0){
     const sum=document.getElementById('validation-summary');
     sum.innerHTML=`<div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:7px">البيانات غير مكتملة (${errors.length} حقل):</div>`+errors.map(e=>`<div style="font-size:11px;color:#7F1D1D;padding:2px 0">• ${e}</div>`).join('');
     sum.style.display='block';
-    window.scrollTo({top:0,behavior:'smooth'});
+    if(window.__firstErr){window.__firstErr.scrollIntoView({behavior:'smooth',block:'center'});}
+    else{window.scrollTo({top:0,behavior:'smooth'});}
+    window.__firstErr=null;
     return;
   }
   clearVal();
   const st=currentStation;
-  const sales=parseFloat(document.getElementById('f-sales').value)||0;
-  const kwhInd=parseFloat(document.getElementById('f-kwh-ind')?.value)||0;
-  const kwhCom=parseFloat(document.getElementById('f-kwh-com')?.value)||0;
-  const kvarh=parseFloat(document.getElementById('f-kvarh')?.value)||0;
+  const sales=parseNum(document.getElementById('f-sales').value)||0;
+  const kwhInd=parseNum(document.getElementById('f-kwh-ind')?.value)||0;
+  const kwhCom=parseNum(document.getElementById('f-kwh-com')?.value)||0;
+  const kvarh=parseNum(document.getElementById('f-kvarh')?.value)||0;
   const mi=document.getElementById('meter-inner').checked;
+  const kwhIndB=parseNum(document.getElementById('f-kwh-ind-b')?.value);
+  const kvarhB=parseNum(document.getElementById('f-kvarh-b')?.value);
+  const kwhIndTotal=kwhInd+kwhIndB; // صلاح نسيم: مجموع العدادين
   const kwhForPF=kwhInd>0?kwhInd:(kwhCom>0?kwhCom:0);
   let pf=null,kwhCost=null,pfResult=null,pfAmount=null,totalElecLE=null,costPerM3LE=null;
-  if(!mi&&kwhForPF>0){
-    pf=kwhForPF/Math.sqrt(kwhForPF*kwhForPF+kvarh*kvarh);
-    kwhCost=sales>0?kwhForPF/sales:null; // KWH/m³
-    totalElecLE=((kwhInd||0)*2.74)+((kwhCom||0)*2.79); // إجمالى تكلفة الكهرباء بالجنيه
-    costPerM3LE=sales>0?(kwhInd>0?kwhInd*2.74:kwhCom*2.79)/sales:null; // ج.م/م³
+  window.__pfB='';
+  if(kwhIndB>0){const kvaB=kvarhB>0?Math.sqrt(kwhIndB*kwhIndB+kvarhB*kvarhB):kwhIndB;window.__pfB=kvaB>0?(kwhIndB/kvaB).toFixed(4):'';}
+  if(!mi&&kwhIndTotal>0){
+    // ── تعريفة صناعية: كل الحسابات على الصناعى فقط ──
+    pf=kwhInd>0?kwhInd/Math.sqrt(kwhInd*kwhInd+kvarh*kvarh):null;
+    kwhCost=sales>0?kwhIndTotal/sales:null; // KWH/m³ — صناعى فقط (مجموع العدادين)
+    totalElecLE=kwhIndTotal*2.74; // إجمالى تكلفة الكهرباء — صناعى فقط
+    costPerM3LE=sales>0?(kwhIndTotal*2.74)/sales:null; // جنيه/م³
     const indCost=kwhInd*2.74;
-    if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${(indCost*(0.92-pf)*1).toFixed(2)} ج.م`;}
-    else if(pf<0.92){pfResult='fine';pfAmount=`غرامة: ${(indCost*(0.92-pf)*0.5).toFixed(2)} ج.م`;}
-    else if(pf<=0.95){pfResult='good';pfAmount=`حافز: ${(indCost*(pf-0.92)*0.5).toFixed(2)} ج.م`;}
-    else{pfResult='good';pfAmount=`حافز: ${(indCost*(0.95-0.92)*0.5).toFixed(2)} ج.م (أقصى)`;}
+    if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${(indCost*(0.92-pf)*1).toFixed(2)} جنيه`;}
+    else if(pf<0.92){pfResult='fine';pfAmount=`غرامة: ${(indCost*(0.92-pf)*0.5).toFixed(2)} جنيه`;}
+    else if(pf<=0.95){pfResult='good';pfAmount=`حافز: ${(indCost*(pf-0.92)*0.5).toFixed(2)} جنيه`;}
+    else{pfResult='good';pfAmount=`حافز: ${(indCost*(0.95-0.92)*0.5).toFixed(2)} جنيه (أقصى)`;}
+  } else if(!mi&&kwhCom>0){
+    // ── تعريفة تجارية فقط: لا يوجد Power Factor — التكلفة من التجارى ──
+    pf=null; pfResult=''; pfAmount='لا يوجد PF — تعريفة تجارية';
+    kwhCost=sales>0?kwhCom/sales:null;          // KWH/m³ من التجارى
+    totalElecLE=kwhCom*2.79;                     // إجمالى التكلفة بالجنيه
+    costPerM3LE=sales>0?totalElecLE/sales:null;  // جنيه/م³
   }
   // Get hours for efficiency (use first active comp)
   const idx0=activeComps[0];
-  const th=getH(idx0,'th'),tf=getH(idx0,'tf');
+  let _sumTf=0,_sumTh=0;
+  activeComps.forEach(ix=>{_sumTf+=getH(ix,'tf');_sumTh+=getH(ix,'th');});
+  const th=_sumTh,tf=_sumTf;
   const util=th>0?(tf/th*100):null;
-  const flow=(activeComps.length===1&&tf>0)?(sales/tf):null;
+  const flow=tf>0?(sales/tf):null; // ضاغط واحد أو مجموع الضاغطين
   const refFlow=st.ref_flow;
   const flowDev=flow&&refFlow?((flow-refFlow)/refFlow*100):null;
   const downDT=document.getElementById('f-total-downtime')?.value||'0';
   weekData[6]=sales;
-  submittedData[st.code]={sent:true,name:st.name,region:st.region,sales,pf,kwh_cost:kwhCost,util};
+  // تجميع أرصدة الزيوت (مع تجنب تكرار الرصيد لو الضاغطان بنفس النوع)
+  const _oils=[];
+  const _t0=document.getElementById('oil-type-0')?.value||'';
+  activeComps.forEach(ix=>{
+    const t=document.getElementById('oil-type-'+ix)?.value||'';
+    const b=parseNum(document.getElementById('oil-bal-'+ix)?.value);
+    if(t&&b>0&&!(ix===1&&t===_t0))_oils.push({type:t,bal:b});
+    const t2=document.getElementById('oil2-type-'+ix)?.value||'';
+    const b2=parseNum(document.getElementById('oil2-bal-'+ix)?.value);
+    if(t2&&b2>0)_oils.push({type:t2,bal:b2});
+    const gt=document.getElementById('goil-type-'+ix)?.value||'';
+    const gb=parseNum(document.getElementById('goil-bal-'+ix)?.value);
+    if(gt&&gb>0)_oils.push({type:gt,bal:gb});
+  });
+  submittedData[st.code]={sent:true,name:st.name,region:st.region,sales,pf,kwh_cost:kwhCost,util,oils:_oils};
 
   // حساب تكلفة م³ الغاز بالجنيه
   const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
 
   // ── إرسال البيانات لـ Apps Script ──
-  const pressPlcInt=parseFloat(document.getElementById('f-pp-int')?.value)||0;
-  const pressPlcFrac=parseFloat(document.getElementById('f-pp-frac')?.value)||0;
+  const pressPlcInt=parseNum(document.getElementById('f-pp-int')?.value)||0;
+  const pressPlcFrac=parseNum(document.getElementById('f-pp-frac')?.value)||0;
   const pressPlcVal=parseFloat(`${pressPlcInt}.${pressPlcFrac}`)||pressPlcInt;
-  const pressModInt=parseFloat(document.getElementById('f-pm-int')?.value)||0;
-  const pressModFrac=parseFloat(document.getElementById('f-pm-frac')?.value)||0;
+  const pressModInt=parseNum(document.getElementById('f-pm-int')?.value)||0;
+  const pressModFrac=parseNum(document.getElementById('f-pm-frac')?.value)||0;
 
+  // تجميع بيانات التوقفات من كل البطاقات
+  const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[];
+  for(let fi=1;fi<=faultCount;fi++){
+    if(!document.getElementById('fault-'+fi))continue;
+    const gv=s=>document.getElementById('ft-'+s+'-'+fi)?.value||'';
+    const tmS=p=>{const hh=gv(p+'h');if(!hh)return '';const mm=('0'+(gv(p+'m')||0)).slice(-2);return hh+':'+mm+' '+(gv(p+'a')==='pm'?'م':'ص');};
+    const a=tmS('f'),b=tmS('t'),c=tmS('rf'),d=tmS('rt');
+    if(a)_sF.push(a); if(b)_sT.push(b); if(c)_rF.push(c); if(d)_rT.push(d);
+    const rd=gv('rdur'); if(rd)_rD.push(rd);
+    const ra=gv('reason'); if(ra)_rAr.push(ra);
+    const re=gv('reason-en'); if(re)_rEn.push(re);
+    const tyEl=document.getElementById('ft-type-'+fi);
+    if(tyEl&&tyEl.value)_types.push(tyEl.options[tyEl.selectedIndex].text);
+  }
   const payload={
+    stop_reason:_types.join(' | '), stop_ar:_rAr.join(' | '), stop_en:_rEn.join(' | '),
+    stop_from:_sF.join(' | '), stop_to:_sT.join(' | '),
+    repair_dur:_rD.join(' | '), repair_from:_rF.join(' | '), repair_to:_rT.join(' | '),
+    kwh_ind_b: parseNum(document.getElementById('f-kwh-ind-b')?.value),
+    kwh_com_b: parseNum(document.getElementById('f-kwh-com-b')?.value),
+    kvarh_b: parseNum(document.getElementById('f-kvarh-b')?.value),
+    pf_b: window.__pfB||'',
+    c1_inlet: parseNum(document.getElementById('inlet-0')?.value)||'',
+    c2_inlet: parseNum(document.getElementById('inlet-1')?.value)||'',
     date: document.getElementById('f-date')?.value||'',
     code: st.code, name: st.name, region: st.region,
-    sales, gas_price: parseFloat(document.getElementById('f-gas-price')?.value)||0,
-    cash: parseFloat(document.getElementById('f-cash')?.value)||0,
-    bonds: parseFloat(document.getElementById('f-bonds')?.value)||0,
-    smart_g: parseFloat(document.getElementById('f-smart-g')?.value)||0,
-    smart_k: parseFloat(document.getElementById('f-smart-k')?.value)||0,
-    truck: parseFloat(document.getElementById('f-truck')?.value)||0,
-    sandoq: parseFloat(document.getElementById('f-sandoq')?.value)||0,
+    sales, gas_price: parseNum(document.getElementById('f-gas-price')?.value)||0,
+    cash: parseNum(document.getElementById('f-cash')?.value)||0,
+    bonds: parseNum(document.getElementById('f-bonds')?.value)||0,
+    smart_g: parseNum(document.getElementById('f-smart-g')?.value)||0,
+    smart_k: parseNum(document.getElementById('f-smart-k')?.value)||0,
+    truck: parseNum(document.getElementById('f-truck')?.value)||0,
+    sandoq: parseNum(document.getElementById('f-sandoq')?.value)||0,
     press_mod: parseFloat(`${pressModInt}.${pressModFrac}`)||pressModInt,
     press_plc: pressPlcVal,
     meter_inner: document.getElementById('meter-inner')?.checked||false,
@@ -1639,14 +1848,14 @@ function submitForm(){
     efficiency: util||0,
     faults: document.getElementById('f-total-downtime')?.value||'',
     total_downtime: document.getElementById('f-total-downtime')?.value||'',
-    loss: parseFloat(document.getElementById('f-loss')?.value)||0,
+    loss: parseNum(document.getElementById('f-loss')?.value)||0,
     low_reason: document.getElementById('f-low-reason')?.value||'',
     high_reason: document.getElementById('f-high-reason')?.value||'',
     safety_date: document.getElementById('f-safety-date')?.value||'',
-    safety_rem: parseFloat(document.getElementById('f-safety-remain')?.value)||0,
+    safety_rem: parseFloat(document.getElementById('f-safety-remain')?.dataset.rem)||0,
     notes: document.getElementById('f-notes')?.value||'',
-    w_drink: parseFloat(document.getElementById('f-w-drink')?.value)||0,
-    w_fire: parseFloat(document.getElementById('f-w-fire')?.value)||0,
+    w_drink: parseNum(document.getElementById('f-w-drink')?.value)||0,
+    w_fire: parseNum(document.getElementById('f-w-fire')?.value)||0,
   };
 
   // بيانات كل ضاغط
@@ -1658,39 +1867,39 @@ function submitForm(){
     payload[pre+'_model']=c.model;
     payload[pre+'_th']=getH(idx,'th');
     payload[pre+'_tf']=getH(idx,'tf');
-    payload[pre+'_starts']=parseFloat(document.getElementById('starts-'+idx)?.value)||0;
+    payload[pre+'_starts']=parseNum(document.getElementById('starts-'+idx)?.value)||0;
     payload[pre+'_oil_type']=document.getElementById('oil-type-'+idx)?.value||'';
-    payload[pre+'_oil_cons']=parseFloat(document.getElementById('oil-cons-'+idx)?.value)||0;
-    payload[pre+'_oil_bal']=parseFloat(document.getElementById('oil-bal-'+idx)?.value)||0;
+    payload[pre+'_oil_cons']=parseNum(document.getElementById('oil-cons-'+idx)?.value)||0;
+    payload[pre+'_oil_bal']=parseNum(document.getElementById('oil-bal-'+idx)?.value)||0;
     payload[pre+'_oil2_type']=document.getElementById('oil2-type-'+idx)?.value||'';
-    payload[pre+'_oil2_cons']=parseFloat(document.getElementById('oil2-cons-'+idx)?.value)||0;
-    payload[pre+'_oil2_bal']=parseFloat(document.getElementById('oil2-bal-'+idx)?.value)||0;
+    payload[pre+'_oil2_cons']=parseNum(document.getElementById('oil2-cons-'+idx)?.value)||0;
+    payload[pre+'_oil2_bal']=parseNum(document.getElementById('oil2-bal-'+idx)?.value)||0;
     payload[pre+'_maint_last']=document.getElementById('maint-last-'+idx)?.value||'';
     payload[pre+'_maint_date']=document.getElementById('maint-date-'+idx)?.value||'';
-    payload[pre+'_maint_hrs']=parseFloat(document.getElementById('maint-hrs-'+idx)?.value)||0;
-    payload[pre+'_maint_cur']=parseFloat(document.getElementById('maint-cur-'+idx)?.value)||0;
-    payload[pre+'_maint_diff']=parseFloat(document.getElementById('maint-diff-'+idx)?.value)||0;
+    payload[pre+'_maint_hrs']=parseNum(document.getElementById('maint-hrs-'+idx)?.value)||0;
+    payload[pre+'_maint_cur']=parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;
+    payload[pre+'_maint_diff']=parseNum(document.getElementById('maint-diff-'+idx)?.value)||0;
     payload[pre+'_maint_next']=document.getElementById('maint-next-'+idx)?.value||'';
-    payload[pre+'_maint_rem']=parseFloat(document.getElementById('maint-rem-'+idx)?.value)||0;
+    payload[pre+'_maint_rem']=parseNum(document.getElementById('maint-rem-'+idx)?.value)||0;
     payload[pre+'_motor_type']=c.motor||'';
     if(c.motor==='gas'){
       payload[pre+'_goil_type']=document.getElementById('goil-type-'+idx)?.value||'';
-      payload[pre+'_goil_cons']=parseFloat(document.getElementById('goil-cons-'+idx)?.value)||0;
-      payload[pre+'_goil_bal']=parseFloat(document.getElementById('goil-bal-'+idx)?.value)||0;
+      payload[pre+'_goil_cons']=parseNum(document.getElementById('goil-cons-'+idx)?.value)||0;
+      payload[pre+'_goil_bal']=parseNum(document.getElementById('goil-bal-'+idx)?.value)||0;
       payload[pre+'_gm_last']=document.getElementById('gm-last-'+idx)?.value||'';
       payload[pre+'_gm_date']=document.getElementById('gm-date-'+idx)?.value||'';
-      payload[pre+'_gm_hrs']=parseFloat(document.getElementById('gm-hrs-'+idx)?.value)||0;
-      payload[pre+'_gm_cur']=parseFloat(document.getElementById('gm-cur-'+idx)?.value)||0;
-      payload[pre+'_gm_diff']=parseFloat(document.getElementById('gm-diff-'+idx)?.value)||0;
+      payload[pre+'_gm_hrs']=parseNum(document.getElementById('gm-hrs-'+idx)?.value)||0;
+      payload[pre+'_gm_cur']=parseNum(document.getElementById('gm-cur-'+idx)?.value)||0;
+      payload[pre+'_gm_diff']=parseNum(document.getElementById('gm-diff-'+idx)?.value)||0;
       payload[pre+'_gm_next']=document.getElementById('gm-next-'+idx)?.value||'';
-      payload[pre+'_gm_rem']=parseFloat(document.getElementById('gm-rem-'+idx)?.value)||0;
+      payload[pre+'_gm_rem']=parseNum(document.getElementById('gm-rem-'+idx)?.value)||0;
     }
     if(c.motor==='elec'){
       payload[pre+'_lube_date']=document.getElementById('lube-date-'+idx)?.value||'';
-      payload[pre+'_lube_hrs']=parseFloat(document.getElementById('lube-hrs-'+idx)?.value)||0;
-      payload[pre+'_lube_cur']=parseFloat(document.getElementById('lube-cur-'+idx)?.value)||0;
-      payload[pre+'_lube_diff']=parseFloat(document.getElementById('lube-diff-'+idx)?.value)||0;
-      payload[pre+'_lube_rem']=parseFloat(document.getElementById('lube-rem-'+idx)?.value)||0;
+      payload[pre+'_lube_hrs']=parseNum(document.getElementById('lube-hrs-'+idx)?.value)||0;
+      payload[pre+'_lube_cur']=parseNum(document.getElementById('lube-cur-'+idx)?.value)||0;
+      payload[pre+'_lube_diff']=parseNum(document.getElementById('lube-diff-'+idx)?.value)||0;
+      payload[pre+'_lube_rem']=parseNum(document.getElementById('lube-rem-'+idx)?.value)||0;
     }
   });
 
@@ -1722,7 +1931,7 @@ function submitForm(){
   if(totalElecEl)totalElecEl.textContent=(totalElecLE&&totalElecLE>0)?fmtEn(totalElecLE,0):'—';
   document.getElementById('d-cost-unit').textContent=kwhInd>0?'KWH/م³ (صناعى)':'KWH/م³ (تجارى)';
   const costLEEl=document.getElementById('d-cost-le');
-  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' ج.م/م³':'—';
+  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' جنيه/م³':'—';
   // Flow rate with actual inlet pressure correction
   const pressPlc=pressPlcVal;
   const st_refPress=currentStation?.comps?.[idx0]?.ref_press||null; // to be added
@@ -1817,8 +2026,8 @@ function submitForm(){
     const c=st.comps[idx];
     if(c.motor!=='elec')return;
     const lubeInterval=LUBE_HOURS[c.model]||null;
-    const lubeDiff=parseFloat(document.getElementById('lube-diff-'+idx)?.value)||0;
-    const lubeRem=parseFloat(document.getElementById('lube-rem-'+idx)?.value)||0;
+    const lubeDiff=parseNum(document.getElementById('lube-diff-'+idx)?.value)||0;
+    const lubeRem=parseNum(document.getElementById('lube-rem-'+idx)?.value)||0;
     const card=document.createElement('div');
     card.className='section-card';
     card.style.marginBottom='10px';
@@ -1844,7 +2053,7 @@ function submitForm(){
   });
 
   // ⑧ Safety
-  const safetyRem=parseFloat(document.getElementById('f-safety-remain')?.value)||0;
+  const safetyRem=parseNum(document.getElementById('f-safety-remain')?.value)||0;
   const safetyEl=document.getElementById('d-safety');
   safetyEl.textContent=safetyRem>0?fmtEn(safetyRem,0):'—';
   safetyEl.className='kpi-val '+(safetyRem>15?'ok':safetyRem>0?'warn':'bad');
@@ -1857,11 +2066,66 @@ function submitForm(){
 }
 
 // MANAGER
+function buildOilPanel(totals){
+  totals=totals||{};
+  let panel=document.getElementById('mgr-oils');
+  if(!panel){
+    panel=document.createElement('div');
+    panel.id='mgr-oils';
+    panel.style.cssText='background:white;border-radius:12px;padding:14px 16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.08)';
+    const sum=document.querySelector('.mgr-sum');
+    if(sum&&sum.parentNode)sum.parentNode.insertBefore(panel,sum.nextSibling);
+  }
+  const keys=Object.keys(totals);
+  if(keys.length===0){panel.innerHTML='<div style="font-size:13px;font-weight:800;color:var(--blue-dark)">🛢️ رصيد الزيوت بالمنطقة</div><div style="font-size:12px;color:#888;margin-top:5px">لا توجد أرصدة مسجلة لهذا اليوم</div>';return;}
+  let rows='';
+  keys.sort().forEach(k=>{rows+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #eee"><span style="font-weight:700">'+k+'</span><span style="font-weight:800;color:var(--blue-dark);direction:ltr">'+totals[k].toLocaleString('en-US',{maximumFractionDigits:1})+' لتر</span></div>';});
+  panel.innerHTML='<div style="font-size:13px;font-weight:800;color:var(--blue-dark);margin-bottom:6px">🛢️ رصيد الزيوت بالمنطقة — إجمالى اللترات لكل نوع</div>'+rows;
+}
 function showMgr(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('mgr-screen').style.display='block';
-  document.getElementById('mgr-date').textContent=new Date().toLocaleDateString('ar-EG');
-  renderMgr();
+  const d=document.getElementById('mgr-day');
+  if(d&&!d.value){const t=new Date();d.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);}
+  loadMgrDay();
+}
+function loadMgrDay(){
+  const d=document.getElementById('mgr-day')?.value;
+  if(!d)return;
+  const stEl=document.getElementById('mgr-status');
+  stEl.textContent='⏳ جارى تحميل بيانات '+d+' من الشيت...';
+  fetch(APPS_SCRIPT_URL+'?action=day&date='+d)
+    .then(r=>r.json())
+    .then(j=>{renderMgrDay(j);stEl.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');})
+    .catch(e=>{stEl.textContent='❌ تعذر التحميل — تأكد من الاتصال وحدّث النشر. '+e;});
+}
+function renderMgrDay(j){
+  document.getElementById('mgr-c-date').textContent=j.date||'—';
+  document.getElementById('mgr-c-sales').textContent=(j.totals.sales||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  document.getElementById('mgr-c-sent').textContent=j.sent+'/'+(j.sent+j.pending);
+  document.getElementById('mgr-c-pending').textContent=j.pending;
+  document.getElementById('mgr-c-kwhm3').textContent=j.totals.kwhm3;
+  document.getElementById('mgr-c-down').textContent=j.totals.downtime;
+  const tb=document.getElementById('mgr-table');
+  let html='';
+  j.stations.forEach(s=>{
+    const status=s.sent?'<span style="color:var(--green);font-weight:800">✔ أرسلت</span>':'<span style="color:var(--red);font-weight:800">✖ لم ترسل</span>';
+    const fmt=v=>(v==null||v==='—')?'—':(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:1}):v);
+    const devColor=String(s.frDev).startsWith('-')?'color:#9C0006;font-weight:800':'color:#276221;font-weight:800';
+    html+='<tr>'+
+      '<td class="mg-fz1">'+s.code+'</td>'+
+      '<td class="mg-fz2">'+s.name+'</td>'+
+      '<td>'+status+'</td>'+
+      '<td style="font-weight:800">'+fmt(s.sales)+'</td>'+
+      '<td>'+fmt(s.kwhM3)+'</td>'+
+      '<td>'+fmt(s.fr)+'</td>'+
+      '<td style="'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
+      '<td>'+fmt(s.pf)+'</td>'+
+      '<td>'+fmt(s.util)+'</td>'+
+    '</tr>';
+  });
+  tb.innerHTML=html;
+  buildOilPanel(j.oils||{});
 }
 function renderMgr(){
   const all=Object.entries(STATIONS);
@@ -1871,7 +2135,7 @@ function renderMgr(){
   document.getElementById('mgr-sent').textContent=sent.length;
   document.getElementById('mgr-pending').textContent=all.length-sent.length;
   document.getElementById('mgr-total-sales').textContent=total.toLocaleString('en-US');
-  document.getElementById('mgr-total-sandoq').textContent=totalSandoq+' ج.م';
+  document.getElementById('mgr-total-sandoq').textContent=totalSandoq+' جنيه';
   const tbl=document.getElementById('mgr-table');tbl.innerHTML='';
   all.forEach(([code,st])=>{
     const d=submittedData[code];const s=d?.sent;
