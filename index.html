@@ -1778,9 +1778,13 @@ function calcFD(id){
   const tm=parseInt(document.getElementById('ft-tm-'+id)?.value)||0;
   const ta=document.getElementById('ft-ta-'+id)?.value||'am';
   const to24=(h,m,a)=>{let hh=h%12;if(a==='pm')hh+=12;return hh*60+m;};
-  const dur=to24(th,tm,ta)-to24(fh,fm,fa);
+  let dur=to24(th,tm,ta)-to24(fh,fm,fa);
+  // لو النهاية ≤ البداية → التوقف عبر منتصف الليل لليوم التالى (أضف 24 ساعة)
+  const hasFrom=document.getElementById('ft-fh-'+id)?.value;
+  const hasTo=document.getElementById('ft-th-'+id)?.value;
+  if(dur<=0 && hasFrom && hasTo) dur+=24*60; // 7ص→7ص = 24 ساعة، 10م→2ص = 4 ساعات
   const el=document.getElementById('ft-dur-'+id);
-  if(el){if(dur>0){const dh=Math.floor(dur/60),dm=dur%60;el.value=(dh>0?dh+' س ':'')+dm+' د';}else el.value=dur===0?'0 د':'⚠ تحقق من الأوقات';}
+  if(el){if(dur>0){const dh=Math.floor(dur/60),dm=dur%60;el.value=(dh>0?dh+' س ':'')+dm+' د';}else el.value=(hasFrom&&hasTo)?'0 د':'';}
   updateTotalDT();
 }
 function updateTotalDT(){
@@ -1902,10 +1906,14 @@ function validateAll(){
   // ── تواريخ الصيانة/التشحيم لا تكون فى المستقبل بعد تاريخ البيان ──
   const repDate=document.getElementById('f-date')?.value||'';
   if(repDate){
+    const repD=new Date(repDate); repD.setHours(23,59,59);
     _acH.forEach(ix=>{
       [['maint-date','تاريخ آخر صيانة'],['gm-date','تاريخ صيانة المحرك'],['lube-date','تاريخ آخر تشحيم']].forEach(([fid,lbl])=>{
         const el=document.getElementById(fid+'-'+ix);
-        if(el&&el.value&&el.value>repDate){errors.push(lbl+' فى المستقبل — ضاغط '+(ix+1));markErr(fid+'-'+ix,'تاريخ مستقبلى');}
+        if(el&&el.value){
+          const d=new Date(el.value);
+          if(d.getTime()>repD.getTime()){errors.push(lbl+' فى المستقبل — ضاغط '+(ix+1));markErr(fid+'-'+ix,'تاريخ مستقبلى');}
+        }
       });
     });
   }
