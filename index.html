@@ -1111,7 +1111,7 @@ function buildCompSections(indices){
         <div class="form-grid">
           <div class="form-group"><label>نوع صيانة المحرك الأخيرة</label><select class="form-control" id="gm-last-${idx}" onchange="calcMotorNext(${idx})"><option value="">— اختر —</option>${gmOpts}</select><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>تاريخ صيانة المحرك الأخيرة</label><input type="date" class="form-control" id="gm-date-${idx}"><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>ساعات المحرك عند آخر صيانة</label><input type="number" class="form-control" id="gm-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>ساعات المحرك عند آخر صيانة</label><input type="number" class="form-control" id="gm-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx});calcMotorNext(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية للمحرك</label><input type="number" class="form-control" id="gm-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx});calcMotorNext(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات منذ آخر صيانة (أوتوماتيك)</label><input type="number" class="form-control" id="gm-diff-${idx}" readonly style="direction:ltr;background:var(--blue-pale);font-weight:800"></div>
           <div class="form-group"><label>نوع صيانة المحرك القادمة</label><input type="text" class="form-control" id="gm-next-${idx}" readonly style="background:var(--blue-pale);font-weight:700"><div class="validation-msg">إلزامى</div></div>
@@ -1188,21 +1188,25 @@ function calcMaintNext(idx){
   const list = MAINT_SYS[sys];
   if(!list) return;
   const lastSel = document.getElementById('maint-last-'+idx)?.value;
-  const cur = parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;
+  const lastHrs = parseNum(document.getElementById('maint-hrs-'+idx)?.value)||0; // ساعات آخر صيانة
+  const cur = parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;     // الساعات الحالية
   const nextEl = document.getElementById('maint-next-'+idx);
   const remEl = document.getElementById('maint-rem-'+idx);
   if(lastSel===''||lastSel==null){if(nextEl)nextEl.value='';if(remEl)remEl.value='';return;}
   const li = parseInt(lastSel);
   const ni = (li+1) % list.length; // القادمة (تلف للأول)
   if(nextEl) nextEl.value = list[ni].l;
-  // الساعة المستحقة للقادمة: لو لفّت، نضيف دورة كاملة
+  // الفجوة النظرية بين الصيانتين
   const cycle = list[list.length-1].d;
   let nextDue = list[ni].d;
   if(ni<=li) nextDue += cycle; // لفّت لدورة جديدة
+  const gap = nextDue - list[li].d;              // الفجوة النظرية (القادمة − الأخيرة)
+  const elapsed = cur - lastHrs;                 // المنقضى الفعلى منذ آخر صيانة
   if(remEl){
-    const rem = nextDue - cur;
+    if(!lastHrs && !cur){ remEl.value=''; return; }
+    const rem = gap - elapsed;                   // المتبقى = الفجوة − المنقضى
     remEl.value = rem;
-    remEl.style.color = rem<0 ? 'var(--red)' : '';
+    remEl.style.color = rem<0 ? 'var(--red)' : (rem<500?'var(--amber)':'');
     remEl.style.fontWeight='800';
   }
 }
@@ -1210,6 +1214,7 @@ function calcMaintNext(idx){
 function calcMotorNext(idx){
   const list = MAINT_SYS['__MOTOR__'];
   const lastSel = document.getElementById('gm-last-'+idx)?.value;
+  const lastHrs = parseNum(document.getElementById('gm-hrs-'+idx)?.value)||0;
   const cur = parseNum(document.getElementById('gm-cur-'+idx)?.value)||0;
   const nextEl = document.getElementById('gm-next-'+idx);
   const remEl = document.getElementById('gm-rem-'+idx);
@@ -1218,7 +1223,15 @@ function calcMotorNext(idx){
   if(nextEl) nextEl.value=list[ni].l;
   const cycle=list[list.length-1].d;
   let nextDue=list[ni].d; if(ni<=li) nextDue+=cycle;
-  if(remEl){const rem=nextDue-cur;remEl.value=rem;remEl.style.color=rem<0?'var(--red)':'';remEl.style.fontWeight='800';}
+  const gap = nextDue - list[li].d;
+  const elapsed = cur - lastHrs;
+  if(remEl){
+    if(!lastHrs && !cur){ remEl.value=''; return; }
+    const rem = gap - elapsed;
+    remEl.value=rem;
+    remEl.style.color = rem<0?'var(--red)':(rem<200?'var(--amber)':'');
+    remEl.style.fontWeight='800';
+  }
 }
 function calcMDiff(idx){const a=parseNum(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el)el.value=Math.max(0,c-a);calcMaintNext(idx);}
 function calcGMDiff(idx){const a=parseNum(document.getElementById('gm-hrs-'+idx)?.value)||0;const c=parseNum(document.getElementById('gm-cur-'+idx)?.value)||0;const el=document.getElementById('gm-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
