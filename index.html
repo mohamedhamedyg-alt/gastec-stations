@@ -709,6 +709,50 @@ const GAS_ENGINE_SCHEDULES={
   'Ariel':  [700,16000,32000],
   'default':[700,16000,32000],
 };
+// ══════════════ نظام الصيانة الدورية ══════════════
+const MAINT_SYS = {
+  'IMW': [{l:'1000 الأولى',d:1000},{l:'1000 الثانية',d:2000},{l:'1000 الثالثة',d:3000},{l:'1000 الرابعة',d:4000},{l:'1000 الخامسة + 5000 الأولى',d:5000},{l:'1000 السادسة',d:6000},{l:'1000 السابعة',d:7000},{l:'1000 الثامنة',d:8000},{l:'1000 التاسعة',d:9000},{l:'1000 العاشرة + 5000 الثانية + 10000 الأولى',d:10000},{l:'1000 الحادية عشر',d:11000},{l:'1000 الثانية عشر',d:12000},{l:'1000 الثالثة عشر',d:13000},{l:'1000 الرابعة عشر',d:14000},{l:'1000 الخامسة عشر + 5000 الثالثة',d:15000},{l:'1000 السادسة عشر',d:16000},{l:'1000 السابعة عشر',d:17000},{l:'1000 الثامنة عشر',d:18000},{l:'1000 التاسعة عشر',d:19000},{l:'1000 العشرين + 5000 الرابعة + 10000 الثانية + 20000 الأولى',d:20000}],
+  'J.W': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000},{l:'2000 الخامسة',d:10000},{l:'2000 السادسة +4000 الثالثة',d:12000},{l:'2000 السابعة',d:14000},{l:'2000 الثامنة + 4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000}],
+  'W.F': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000},{l:'2000 الخامسة',d:10000},{l:'2000 السادسة +4000 الثالثة',d:12000},{l:'2000 السابعة',d:14000},{l:'2000 الثامنة + 4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000}],
+  'Safe SHG 355': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000},{l:'2000 الخامسة',d:10000},{l:'2000 السادسة +4000 الثالثة',d:12000},{l:'2000 السابعة',d:14000},{l:'2000 الثامنة + 4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000},{l:'2000 التاسعة',d:18000},{l:'2000 العاشرة + 4000 الخامسة + 20000 الأولى',d:20000}],
+  'Safe SHG 315': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000},{l:'2000 الخامسة',d:10000},{l:'2000 السادسة +4000 الثالثة',d:12000},{l:'2000 السابعة',d:14000},{l:'2000 الثامنة + 4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000},{l:'2000 التاسعة',d:18000},{l:'2000 العاشرة + 4000 الخامسة + 20000 الأولى',d:20000}],
+  'Aspro': [{l:'2500 الأولى',d:2500},{l:'2500 الثانية + 5000 الأولى',d:5000},{l:'2500 الثالثة',d:7500},{l:'2500 الرابعة + 5000 الثانية + 10000 الأولى',d:10000},{l:'2500 الخامسة',d:12500},{l:'2500 السادسة + 5000 الثالثة + 15000 الأولى',d:15000},{l:'2500 السابعة',d:17500},{l:'2500 الثامنة + 5000 الرابعة + 20000 الأولى',d:20000}],
+  'Safe SW': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000},{l:'2000 الخامسة',d:10000},{l:'2000 السادسة +4000 الثالثة',d:12000},{l:'2000 السابعة',d:14000},{l:'2000 الثامنة + 4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000}],
+  'Graf': [{l:'4000 الأولى',d:4000},{l:'4000 الثانية + 8000 الأولى',d:8000},{l:'4000 الثالثة + 12000 الأولى',d:12000},{l:'4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000}],
+  'Fornovo': [{l:'4000 الأولى',d:4000},{l:'4000 الثانية + 8000 الأولى',d:8000},{l:'4000 الثالثة',d:12000},{l:'4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000},{l:'4000 الخامسة',d:20000},{l:'4000 السادسة + 8000 الثالثة',d:24000},{l:'4000 السابعة',d:28000},{l:'4000 الثامنة + 8000 الرابعة + 16000 الثانية + 32000 الأولى',d:32000}],
+  'Kwangshin': [{l:'4000 الأولى',d:4000},{l:'4000 الثانية + 8000 الأولى',d:8000},{l:'4000 الثالثة',d:12000},{l:'4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000}],
+  'Clean Energy - S975-F1.7-EM': [{l:'1000 الأولى',d:1000},{l:'1000 الثانية',d:2000},{l:'1000 الثالثة',d:3000},{l:'1000 الرابعة',d:4000},{l:'1000 الخامسة + 5000 الأولى',d:5000},{l:'1000 السادسة',d:6000},{l:'1000 السابعة',d:7000},{l:'1000 الثامنة',d:8000},{l:'1000 التاسعة',d:9000},{l:'1000 العاشرة + 5000 الثانية + 10000 الأولى',d:10000},{l:'1000 الحادية عشر',d:11000},{l:'1000 الثانية عشر',d:12000},{l:'1000 الثالثة عشر',d:13000},{l:'1000 الرابعة عشر',d:14000},{l:'1000 الخامسة عشر + 5000 الثالثة',d:15000},{l:'1000 السادسة عشر',d:16000},{l:'1000 السابعة عشر',d:17000},{l:'1000 الثامنة عشر',d:18000},{l:'1000 التاسعة عشر',d:19000},{l:'1000 العشرين + 5000 الرابعة + 10000 الثانية',d:20000}],
+  'Clean Energy - CLEANCNG5750DA-250-3626-4AC': [{l:'1000 الأولى',d:1000},{l:'1000 الثانية',d:2000},{l:'1000 الثالثة',d:3000},{l:'1000 الرابعة',d:4000},{l:'1000 الخامسة + 5000 الأولى',d:5000},{l:'1000 السادسة',d:6000},{l:'1000 السابعة',d:7000},{l:'1000 الثامنة',d:8000},{l:'1000 التاسعة',d:9000},{l:'1000 العاشرة + 5000 الثانية + 10000 الأولى',d:10000},{l:'1000 الحادية عشر',d:11000},{l:'1000 الثانية عشر',d:12000},{l:'1000 الثالثة عشر',d:13000},{l:'1000 الرابعة عشر',d:14000},{l:'1000 الخامسة عشر + 5000 الثالثة',d:15000},{l:'1000 السادسة عشر',d:16000},{l:'1000 السابعة عشر',d:17000},{l:'1000 الثامنة عشر',d:18000},{l:'1000 التاسعة عشر',d:19000},{l:'1000 العشرين + 5000 الرابعة + 10000 الثانية',d:20000}],
+  'Hyosung': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000},{l:'2000 الخامسة',d:10000},{l:'2000 السادسة + 4000 الثالثة',d:12000},{l:'2000 السابعة',d:14000},{l:'2000 الثامنة + 4000 الرابعة + 8000 الثانية',d:16000},{l:'2000 التاسعة',d:18000},{l:'2000 العاشرة + 4000 الخامسة',d:20000},{l:'2000 الحادية عشر',d:22000},{l:'2000 الثانية عشر + 4000 السادسة + 8000 الثالثة',d:24000},{l:'2000 الثالثة عشر',d:26000},{l:'2000 الرابعة عشر + 4000 السابعة',d:28000},{l:'2000 الخامسة عشر',d:30000},{l:'2000 السادسة عشر + 4000 الثامنة + 8000 الرابعة + 32000 الأولى',d:32000}],
+  'Cubo': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000}],
+  'Safe ST': [{l:'2000 الأولى',d:2000},{l:'2000 الثانية + 4000 الأولى',d:4000},{l:'2000 الثالثة',d:6000},{l:'2000 الرابعة + 4000 الثانية + 8000 الأولى',d:8000},{l:'2000 الخامسة',d:10000},{l:'2000 السادسة +4000 الثالثة',d:12000},{l:'2000 السابعة',d:14000},{l:'2000 الثامنة + 4000 الرابعة + 8000 الثانية + 16000 الأولى',d:16000}],
+  '__MOTOR__': [{l:'700 الأولى',d:700},{l:'700 الثانية',d:1400},{l:'700 الثالثة',d:2100},{l:'700 الرابعة',d:2800},{l:'700 الخامسة',d:3500},{l:'700 السادسة',d:4200},{l:'700 السابعة',d:4900},{l:'700 الثامنة',d:5600},{l:'700 التاسعة',d:6300},{l:'700 العاشرة',d:7000},{l:'700 الحادية عشر',d:7700},{l:'700 الثانية عشر',d:8400},{l:'700 الثالثة عشر',d:9100},{l:'700 الرابعة عشر',d:9800},{l:'700 الخامسة عشر',d:10500},{l:'700 السادسة عشر',d:11200},{l:'700 السابعة عشر',d:11900},{l:'700 الثامنة عشر',d:12600},{l:'700 التاسعة عشر',d:13300},{l:'700 العشرين',d:14000},{l:'700 الحادية والعشرون',d:14700},{l:'700 الثانية والعشرون',d:15400},{l:'700 الثالثة والعشرون',d:16100},{l:'16000 الأولى',d:16000}],
+};
+const MODEL_TO_SYS = {
+  'M302': 'W.F',
+  'H304': 'J.W',
+  'SHG 315': 'Safe SHG 315',
+  'SHG355-F4-EM': 'Safe SHG 355',
+  'SWSE200 F5,5 IEC': 'Safe SW',
+  'SWSE160FS,5-EM': 'Safe SW',
+  'ST 75T26-EM': 'Safe ST',
+  'ST 65T26-1M90-EM': 'Safe ST',
+  'GRF 115-6-4-132-2B': 'Graf',
+  'GRF 115-3-4-160-2B': 'Graf',
+  'GRF 115-3-4-200-2B': 'Graf',
+  'IMW50-6250DA': 'IMW',
+  'IMW50 5750DA': 'IMW',
+  'IMW50-5125DA': 'IMW',
+  'GEO-BII-200': 'Kwangshin',
+  'P95B DB': 'Cubo',
+  'IODM 115-4R': 'Aspro',
+  'S975-F1.7-EM': 'Clean Energy - S975-F1.7-EM',
+  'CLEANCNG5750DA': 'Clean Energy - CLEANCNG5750DA-250-3626-4AC',
+  '4DA388': 'Fornovo',
+  'JGJ/4': 'Hyosung',
+};
+const MOTOR_STATIONS = {'33':true,'117':true,'104':true};
+
 function getMaintOpts(brand, isGasEngine=false){
   let list;
   if(isGasEngine){
@@ -909,6 +953,7 @@ function buildCompSelector(st){
 }
 
 // BUILD COMP SECTIONS
+window.__compModels={};
 function buildCompSections(indices){
   const container=document.getElementById('comps-container');
   container.innerHTML='';
@@ -918,8 +963,9 @@ function buildCompSections(indices){
     const isGraf=GRAF_MODELS.includes(c.model);
     const compLabel=`${c.name} — ${c.model}`;
     const oilOptions=ALL_OILS.map(o=>`<option>${o}</option>`).join('');
-    const maintOpts=getMaintOpts(c.name);
-    const gmOpts=getMaintOpts(c.motor_name||'CAT',true);
+    window.__compModels[idx]=c.model;
+    const maintOpts=maintOptsForModel(c.model);
+    const gmOpts=motorMaintOpts();
     const secEl=document.createElement('div');
     secEl.id=`comp-section-${idx}`;
     secEl.innerHTML=`
@@ -1040,13 +1086,13 @@ function buildCompSections(indices){
       <div class="section-head"><div class="dot"></div>الصيانة الدورية — ${compLabel}</div>
       <div class="section-body">
         <div class="form-grid">
-          <div class="form-group"><label>نوع الصيانة الأخيرة</label><select class="form-control" id="maint-last-${idx}"><option value="">— اختر —</option>${maintOpts}</select><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>نوع الصيانة الأخيرة</label><select class="form-control" id="maint-last-${idx}" onchange="calcMaintNext(${idx})"><option value="">— اختر —</option>${maintOpts}</select><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>تاريخ الصيانة الأخيرة</label><input type="date" class="form-control" id="maint-date-${idx}" type="date" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية عند آخر صيانة</label><input type="number" class="form-control" id="maint-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية</label><input type="number" class="form-control" id="maint-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات منذ آخر صيانة (أوتوماتيك)</label><input type="number" class="form-control" id="maint-diff-${idx}" readonly style="direction:ltr;background:var(--blue-pale);font-weight:800"></div>
-          <div class="form-group"><label>نوع الصيانة القادمة</label><select class="form-control" id="maint-next-${idx}"><option value="">— اختر —</option>${maintOpts}</select><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>الساعات المتبقية للصيانة القادمة</label><input type="number" class="form-control" id="maint-rem-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>نوع الصيانة القادمة (أوتوماتيك)</label><input type="text" class="form-control" id="maint-next-${idx}" readonly style="background:var(--blue-pale);font-weight:700"></div>
+          <div class="form-group"><label>الساعات المتبقية للقادمة (أوتوماتيك)</label><input type="text" class="form-control" id="maint-rem-${idx}" readonly style="background:var(--blue-pale);font-weight:800"></div>
         </div>
       </div>
     </div>
@@ -1063,13 +1109,13 @@ function buildCompSections(indices){
         </div>
         <div class="divider"></div>
         <div class="form-grid">
-          <div class="form-group"><label>نوع صيانة المحرك الأخيرة</label><select class="form-control" id="gm-last-${idx}"><option value="">— اختر —</option>${gmOpts}</select><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>نوع صيانة المحرك الأخيرة</label><select class="form-control" id="gm-last-${idx}" onchange="calcMotorNext(${idx})"><option value="">— اختر —</option>${gmOpts}</select><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>تاريخ صيانة المحرك الأخيرة</label><input type="date" class="form-control" id="gm-date-${idx}"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات المحرك عند آخر صيانة</label><input type="number" class="form-control" id="gm-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>الساعات الكلية الحالية للمحرك</label><input type="number" class="form-control" id="gm-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx})"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>الساعات الكلية الحالية للمحرك</label><input type="number" class="form-control" id="gm-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx});calcMotorNext(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات منذ آخر صيانة (أوتوماتيك)</label><input type="number" class="form-control" id="gm-diff-${idx}" readonly style="direction:ltr;background:var(--blue-pale);font-weight:800"></div>
-          <div class="form-group"><label>نوع صيانة المحرك القادمة</label><select class="form-control" id="gm-next-${idx}"><option value="">— اختر —</option>${gmOpts}</select><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>الساعات المتبقية لصيانة المحرك</label><input type="number" class="form-control" id="gm-rem-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>نوع صيانة المحرك القادمة</label><input type="text" class="form-control" id="gm-next-${idx}" readonly style="background:var(--blue-pale);font-weight:700"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>الساعات المتبقية لصيانة المحرك</label><input type="text" class="form-control" id="gm-rem-${idx}" readonly style="background:var(--blue-pale);font-weight:800"></div>
         </div>
       </div>
     </div>`:''}
@@ -1125,7 +1171,56 @@ function getH(idx,prefix){
   if(mode==='hm'){const h=parseInt(document.getElementById(`${prefix}-h-${idx}`)?.value)||0;const m=parseInt(document.getElementById(`${prefix}-m-${idx}`)?.value)||0;return h+m/60;}
   const i=parseInt(document.getElementById(`${prefix}-i-${idx}`)?.value)||0;const f=parseInt(document.getElementById(`${prefix}-f-${idx}`)?.value)||0;return parseFloat(`${i}.${f}`)||i;
 }
-function calcMDiff(idx){const a=parseNum(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el&&(a>0||c>0))el.value=Math.max(0,c-a);}
+// خيارات الصيانة لموديل معيّن (ضاغط)
+function maintOptsForModel(model){
+  const sys = MODEL_TO_SYS[model];
+  if(!sys || !MAINT_SYS[sys]) return '';
+  return MAINT_SYS[sys].map((o,i)=>`<option value="${i}">${o.l}</option>`).join('');
+}
+// خيارات صيانة المحرك (700×23 + 16000)
+function motorMaintOpts(){
+  return MAINT_SYS['__MOTOR__'].map((o,i)=>`<option value="${i}">${o.l}</option>`).join('');
+}
+// حساب الصيانة القادمة والمتبقى — ضاغط
+function calcMaintNext(idx){
+  const model = window.__compModels?.[idx];
+  const sys = MODEL_TO_SYS[model];
+  const list = MAINT_SYS[sys];
+  if(!list) return;
+  const lastSel = document.getElementById('maint-last-'+idx)?.value;
+  const cur = parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;
+  const nextEl = document.getElementById('maint-next-'+idx);
+  const remEl = document.getElementById('maint-rem-'+idx);
+  if(lastSel===''||lastSel==null){if(nextEl)nextEl.value='';if(remEl)remEl.value='';return;}
+  const li = parseInt(lastSel);
+  const ni = (li+1) % list.length; // القادمة (تلف للأول)
+  if(nextEl) nextEl.value = list[ni].l;
+  // الساعة المستحقة للقادمة: لو لفّت، نضيف دورة كاملة
+  const cycle = list[list.length-1].d;
+  let nextDue = list[ni].d;
+  if(ni<=li) nextDue += cycle; // لفّت لدورة جديدة
+  if(remEl){
+    const rem = nextDue - cur;
+    remEl.value = rem;
+    remEl.style.color = rem<0 ? 'var(--red)' : '';
+    remEl.style.fontWeight='800';
+  }
+}
+// حساب صيانة المحرك القادمة والمتبقى
+function calcMotorNext(idx){
+  const list = MAINT_SYS['__MOTOR__'];
+  const lastSel = document.getElementById('gm-last-'+idx)?.value;
+  const cur = parseNum(document.getElementById('gm-cur-'+idx)?.value)||0;
+  const nextEl = document.getElementById('gm-next-'+idx);
+  const remEl = document.getElementById('gm-rem-'+idx);
+  if(lastSel===''||lastSel==null){if(nextEl)nextEl.value='';if(remEl)remEl.value='';return;}
+  const li=parseInt(lastSel), ni=(li+1)%list.length;
+  if(nextEl) nextEl.value=list[ni].l;
+  const cycle=list[list.length-1].d;
+  let nextDue=list[ni].d; if(ni<=li) nextDue+=cycle;
+  if(remEl){const rem=nextDue-cur;remEl.value=rem;remEl.style.color=rem<0?'var(--red)':'';remEl.style.fontWeight='800';}
+}
+function calcMDiff(idx){const a=parseNum(document.getElementById('maint-hrs-'+idx)?.value)||0;const c=parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;const el=document.getElementById('maint-diff-'+idx);if(el)el.value=Math.max(0,c-a);calcMaintNext(idx);}
 function calcGMDiff(idx){const a=parseNum(document.getElementById('gm-hrs-'+idx)?.value)||0;const c=parseNum(document.getElementById('gm-cur-'+idx)?.value)||0;const el=document.getElementById('gm-diff-'+idx);if(el&&a>0&&c>0)el.value=Math.max(0,c-a);}
 function calcLubeDiff(idx){
   const a=parseNum(document.getElementById('lube-hrs-'+idx)?.value)||0;
@@ -1743,6 +1838,7 @@ function validateAll(){
     if(iVal('maint-date-'+idx)){errors.push(`تاريخ صيانة ${label}`);markErr('maint-date-'+idx,'إلزامى');}
     if(iVal('maint-hrs-'+idx)){errors.push(`ساعات آخر صيانة ${label}`);markErr('maint-hrs-'+idx,'إلزامى');}
     if(iVal('maint-cur-'+idx)){errors.push(`الساعات الحالية للضاغط ${label}`);markErr('maint-cur-'+idx,'إلزامى');}
+    if(iVal('maint-last-'+idx)){errors.push(`نوع آخر صيانة ${label}`);markErr('maint-last-'+idx,'إلزامى');}
     if(!document.getElementById('maint-next-'+idx)?.value){errors.push(`الصيانة القادمة ${label}`);markErr('maint-next-'+idx,'إلزامى');}
     if(iVal('maint-rem-'+idx)){errors.push(`المتبقى للصيانة ${label}`);markErr('maint-rem-'+idx,'إلزامى');}
     if(c.motor==='gas'){
@@ -1970,6 +2066,9 @@ function submitForm(){
     payload[pre+'_maint_date']=document.getElementById('maint-date-'+idx)?.value||'';
     payload[pre+'_maint_hrs']=parseNum(document.getElementById('maint-hrs-'+idx)?.value)||0;
     payload[pre+'_maint_cur']=parseNum(document.getElementById('maint-cur-'+idx)?.value)||0;
+    payload[pre+'_maint_last']=document.getElementById('maint-last-'+idx)?.selectedOptions[0]?.text||'';
+    payload[pre+'_maint_next']=document.getElementById('maint-next-'+idx)?.value||'';
+    payload[pre+'_maint_rem']=document.getElementById('maint-rem-'+idx)?.value||'';
     payload[pre+'_maint_diff']=parseNum(document.getElementById('maint-diff-'+idx)?.value)||0;
     payload[pre+'_maint_next']=document.getElementById('maint-next-'+idx)?.value||'';
     payload[pre+'_maint_rem']=parseNum(document.getElementById('maint-rem-'+idx)?.value)||0;
@@ -1980,6 +2079,9 @@ function submitForm(){
       payload[pre+'_goil_bal']=parseNum(document.getElementById('goil-bal-'+idx)?.value)||0;
       payload[pre+'_gm_last']=document.getElementById('gm-last-'+idx)?.value||'';
       payload[pre+'_gm_date']=document.getElementById('gm-date-'+idx)?.value||'';
+      payload[pre+'_gm_last']=document.getElementById('gm-last-'+idx)?.selectedOptions[0]?.text||'';
+      payload[pre+'_gm_next']=document.getElementById('gm-next-'+idx)?.value||'';
+      payload[pre+'_gm_rem']=document.getElementById('gm-rem-'+idx)?.value||'';
       payload[pre+'_gm_hrs']=parseNum(document.getElementById('gm-hrs-'+idx)?.value)||0;
       payload[pre+'_gm_cur']=parseNum(document.getElementById('gm-cur-'+idx)?.value)||0;
       payload[pre+'_gm_diff']=parseNum(document.getElementById('gm-diff-'+idx)?.value)||0;
