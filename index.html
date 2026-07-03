@@ -904,6 +904,7 @@ function loadForm(){
   const twoC=(st.comps&&st.comps.length>1);
   const p2=document.getElementById('press2-block');if(p2)p2.style.display=twoC?'block':'none';
   const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=twoC?'block':'none';
+  setTimeout(checkOilDup, 300); // فحص الزيت الموحّد بعد بناء بطاقات الضواغط
   if(st.comps.length>1){buildCompSelector(st);}
   else{activeComps=[0];buildCompSections([0]);}
 }
@@ -1774,6 +1775,7 @@ function validateAll(){
   if(isNaN(cashIntCheck)||document.getElementById('f-cash-int')?.value===''){errors.push('الإيداع النقدى');markErr('f-cash','إلزامى');}
   // البونات والسمارت تقبل صفر
   if(iVal('f-safety-date')){errors.push('تاريخ فحص الأمان');markErr('f-safety-date','إلزامى');}
+  checkOilDup(); // ضمان تطبيق قاعدة الزيت الموحّد قبل الفحص
   // ── قواعد الساعات: فعلية ≤ كلية، والحد الأقصى 24.00 ──
   const _acH=[0,1].filter(ix=>document.getElementById('starts-'+ix));
   _acH.forEach(ix=>{valH(ix);
