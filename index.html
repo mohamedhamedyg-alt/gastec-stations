@@ -1182,6 +1182,10 @@ function motorMaintOpts(){
   return MAINT_SYS['__MOTOR__'].map((o,i)=>`<option value="${i}">${o.l}</option>`).join('');
 }
 // حساب الصيانة القادمة والمتبقى — ضاغط
+function firstNum(label){
+  const m = String(label).match(/(\d+)/);
+  return m ? parseInt(m[1]) : 0;
+}
 function calcMaintNext(idx){
   const model = window.__compModels?.[idx];
   const sys = MODEL_TO_SYS[model];
@@ -1200,11 +1204,10 @@ function calcMaintNext(idx){
   const cycle = list[list.length-1].d;
   let nextDue = list[ni].d;
   if(ni<=li) nextDue += cycle; // لفّت لدورة جديدة
-  const gap = nextDue - list[li].d;              // الفجوة النظرية (القادمة − الأخيرة)
   const elapsed = cur - lastHrs;                 // المنقضى الفعلى منذ آخر صيانة
   if(remEl){
     if(!lastHrs && !cur){ remEl.value=''; return; }
-    const rem = gap - elapsed;                   // المتبقى = الفجوة − المنقضى
+    const rem = firstNum(list[ni].l) - elapsed;  // أول رقم فى القادمة − المنقضى
     remEl.value = rem;
     remEl.style.color = rem<0 ? 'var(--red)' : (rem<500?'var(--amber)':'');
     remEl.style.fontWeight='800';
@@ -1223,11 +1226,10 @@ function calcMotorNext(idx){
   if(nextEl) nextEl.value=list[ni].l;
   const cycle=list[list.length-1].d;
   let nextDue=list[ni].d; if(ni<=li) nextDue+=cycle;
-  const gap = nextDue - list[li].d;
   const elapsed = cur - lastHrs;
   if(remEl){
     if(!lastHrs && !cur){ remEl.value=''; return; }
-    const rem = gap - elapsed;
+    const rem = firstNum(list[ni].l) - elapsed;  // أول رقم فى القادمة − المنقضى
     remEl.value=rem;
     remEl.style.color = rem<0?'var(--red)':(rem<200?'var(--amber)':'');
     remEl.style.fontWeight='800';
