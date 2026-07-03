@@ -2185,32 +2185,72 @@ function submitForm(){
   maintSection.innerHTML='';
   activeComps.forEach(idx=>{
     const c=st.comps[idx];
-    const lastMaint=document.getElementById('maint-last-'+idx)?.value||'—';
-    const elapsed=document.getElementById('maint-diff-'+idx)?.value||'—';
+    // القيم من النظام الجديد
+    const lastSel=document.getElementById('maint-last-'+idx);
+    const lastMaint=(lastSel&&lastSel.selectedOptions[0])?lastSel.selectedOptions[0].text:'—';
+    const nextMaint=document.getElementById('maint-next-'+idx)?.value||'—';
     const rem=document.getElementById('maint-rem-'+idx)?.value||'—';
+    const remN=parseFloat(rem);
+    const remColor=isNaN(remN)?'var(--blue-dark)':(remN<0?'var(--red)':remN<500?'var(--amber)':'var(--green)');
     const card=document.createElement('div');
     card.className='section-card';
     card.style.marginBottom='10px';
     card.innerHTML=`
       <div class="section-head" style="background:#F0F9FF;color:#0C343D;font-size:12px;font-weight:800">
-        <div class="dot" style="background:#0891B2"></div>الصيانة الدورية — ${c.name} ${c.model}
+        <div class="dot" style="background:#0891B2"></div>الصيانة الدورية للضاغط — ${c.name} ${c.model}
       </div>
       <div class="section-body">
         <div class="form-grid">
           <div class="kpi-card" style="border:none;padding:8px;text-align:center">
             <div class="kpi-label">نوع آخر صيانة</div>
-            <div style="font-size:13px;font-weight:800;color:var(--blue-dark)">${lastMaint}</div>
+            <div style="font-size:12px;font-weight:800;color:var(--blue-dark)">${lastMaint}</div>
           </div>
           <div class="kpi-card" style="border:none;padding:8px;text-align:center">
-            <div class="kpi-label">ساعات منذ آخر صيانة</div>
-            <div style="font-size:16px;font-weight:800;direction:ltr;color:var(--amber)">${fmtEn(parseFloat(elapsed)||0,0)}</div>
+            <div class="kpi-label">نوع الصيانة القادمة</div>
+            <div style="font-size:12px;font-weight:800;color:#0891B2">${nextMaint}</div>
           </div>
-          
+          <div class="kpi-card" style="border:none;padding:8px;text-align:center;grid-column:1/-1">
+            <div class="kpi-label">المتبقى للصيانة القادمة</div>
+            <div style="font-size:18px;font-weight:800;direction:ltr;color:${remColor}">${isNaN(remN)?'—':fmtEn(remN,0)}</div>
             <div class="kpi-unit">ساعة</div>
           </div>
         </div>
       </div>`;
     maintSection.appendChild(card);
+    // ── صيانة المحرك (لو المحطة فيها محرك) ──
+    if(MOTOR_STATIONS[st.code] && document.getElementById('gm-last-'+idx)){
+      const gLastSel=document.getElementById('gm-last-'+idx);
+      const gLast=(gLastSel&&gLastSel.selectedOptions[0])?gLastSel.selectedOptions[0].text:'—';
+      const gNext=document.getElementById('gm-next-'+idx)?.value||'—';
+      const gRem=document.getElementById('gm-rem-'+idx)?.value||'—';
+      const gRemN=parseFloat(gRem);
+      const gColor=isNaN(gRemN)?'var(--blue-dark)':(gRemN<0?'var(--red)':gRemN<200?'var(--amber)':'var(--green)');
+      const mcard=document.createElement('div');
+      mcard.className='section-card';
+      mcard.style.marginBottom='10px';
+      mcard.innerHTML=`
+        <div class="section-head" style="background:#FFF0F5;color:#7F1D4A;font-size:12px;font-weight:800">
+          <div class="dot" style="background:#BE185D"></div>الصيانة الدورية للمحرك — ${c.name}
+        </div>
+        <div class="section-body">
+          <div class="form-grid">
+            <div class="kpi-card" style="border:none;padding:8px;text-align:center">
+              <div class="kpi-label">نوع آخر صيانة</div>
+              <div style="font-size:12px;font-weight:800;color:#7F1D4A">${gLast}</div>
+            </div>
+            <div class="kpi-card" style="border:none;padding:8px;text-align:center">
+              <div class="kpi-label">نوع الصيانة القادمة</div>
+              <div style="font-size:12px;font-weight:800;color:#BE185D">${gNext}</div>
+            </div>
+            <div class="kpi-card" style="border:none;padding:8px;text-align:center;grid-column:1/-1">
+              <div class="kpi-label">المتبقى للصيانة القادمة</div>
+              <div style="font-size:18px;font-weight:800;direction:ltr;color:${gColor}">${isNaN(gRemN)?'—':fmtEn(gRemN,0)}</div>
+              <div class="kpi-unit">ساعة</div>
+            </div>
+          </div>
+        </div>`;
+      maintSection.appendChild(mcard);
+    }
   });
 
   // ⑦ Lubrication per active comp (elec motors only)
