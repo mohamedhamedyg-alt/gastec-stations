@@ -376,57 +376,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
   </div>
 
-  <!-- ④ ضغط الغاز -->
-  <div class="section-card sec-press">
-    <div class="section-head"><div class="dot"></div>ضغط دخول الغاز</div>
-    <div class="section-body">
-      <div id="press1-title" style="display:none;font-size:12px;font-weight:800;color:var(--blue-dark);margin-bottom:6px">⚙️ الضاغط الأول</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label><span class="req">*</span> من الموديول (bar)</label>
-          <div class="dual-input" style="direction:ltr">
-            <input type="number" class="form-control" id="f-pm-int" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center">
-            <div class="sep">.</div>
-            <input type="number" class="form-control" id="f-pm-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center">
-          </div>
-          <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
-        </div>
-        <div class="form-group">
-          <label><span class="req">*</span> من شاشة PLC (bar)</label>
-          <div class="dual-input" style="direction:ltr">
-            <input type="number" class="form-control" id="f-pp-int" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="calcLive()">
-            <div class="sep">.</div>
-            <input type="number" class="form-control" id="f-pp-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center" oninput="calcLive()">
-          </div>
-          <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
-        </div>
-      </div>
-      <div id="press2-block" style="display:none">
-        <div style="font-size:12px;font-weight:800;color:var(--blue-dark);margin:10px 0 6px;border-top:1px dashed #ccc;padding-top:8px">⚙️ الضاغط الثانى</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>من الموديول (bar) — ض2</label>
-            <div class="dual-input" style="direction:ltr">
-              <input type="number" class="form-control" id="f-pm2-int" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center">
-              <div class="sep">.</div>
-              <input type="number" class="form-control" id="f-pm2-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center">
-            </div>
-            <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
-          </div>
-          <div class="form-group">
-            <label>من شاشة PLC (bar) — ض2</label>
-            <div class="dual-input" style="direction:ltr">
-              <input type="number" class="form-control" id="f-pp2-int" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="calcLive()">
-              <div class="sep">.</div>
-              <input type="number" class="form-control" id="f-pp2-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center" oninput="calcLive()">
-            </div>
-            <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ⑤ المبيعات المالية -->
   <div class="section-card sec-sales">
     <div class="section-head"><div class="dot"></div>المبيعات المالية</div>
@@ -489,6 +438,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <span style="font-size:12px;font-weight:800;color:var(--amber)">إجمالى مدة التوقف اليوم</span>
         <input type="text" id="f-total-downtime" readonly style="width:120px;text-align:center;background:white;border:1px solid var(--amber);border-radius:6px;padding:5px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;color:var(--red);" placeholder="—">
       </div>
+      <div class="divider"></div>
+      <div class="sub-title" style="background:#FFF4E5;color:#8A5A00">🔧 الهوزات المتوقفة (أرقام فقط — للعلم)</div>
+      <div id="hoses-container"></div>
+      <button type="button" class="btn-add-fault" style="background:#FFF4E5;color:#8A5A00;border-color:#E0B060" onclick="addHose()">+ إضافة هوز متوقف</button>
       <div class="divider"></div>
       <div class="form-grid">
         <div class="form-group">
@@ -674,6 +627,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <th class="mg-h">PF%</th>
           <th class="mg-h">كفاءة التشغيل%</th>
           <th class="mg-h">مدة التوقف</th>
+          <th class="mg-h">هوزات متوقفة</th>
         </tr>
       </thead>
       <tbody id="mgr-table"></tbody>
@@ -712,6 +666,17 @@ document.addEventListener('DOMContentLoaded',function(){
   },true);
 });
 
+// قراءة ضغط PLC لضاغط معيّن
+function getInletPLC(idx){
+  const i=parseNum(document.getElementById('pp-int-'+idx)?.value)||0;
+  const f=parseNum(document.getElementById('pp-frac-'+idx)?.value)||0;
+  return f>0?parseFloat(i+'.'+f):i;
+}
+function getInletMod(idx){
+  const i=parseNum(document.getElementById('pm-int-'+idx)?.value)||0;
+  const f=parseNum(document.getElementById('pm-frac-'+idx)?.value)||0;
+  return f>0?parseFloat(i+'.'+f):i;
+}
 // ── أدوات الأرقام: قراءة بأمان + فواصل آلاف ──
 function parseNum(v){if(v==null)return 0;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:n;}
 function sanDec(el){let v=el.value.replace(/[^\d.]/g,'');const p=v.split('.');if(p.length>2)v=p[0]+'.'+p.slice(1).join('');el.value=v;}
@@ -764,7 +729,7 @@ const LUBE_HOURS={
   'GEO-BII-200': 4000,
   'P95B DB': 6000,
   'IODM 115-4R': 4300,
-  'S975-F1.7-EM': 1700, 'CLEANCNG5750DA': 2750,
+  'S975-F1.7-EM': 1700, 'CLEANCNG5750DA': 4000,
   '4DA388': 16000,
   'JGJ/4': 2750,
 };
@@ -901,9 +866,9 @@ function loadForm(){
   document.getElementById('si-c2').textContent=st.comps[1]?st.comps[1].name+' — '+st.comps[1].model:'—';
   if(st.meter_inner){document.getElementById('meter-inner').checked=true;toggleMeter(true);}
   const mb=document.getElementById('meter-b-block');if(mb)mb.style.display=st.meters2?'block':'none';
-  const twoC=(st.comps&&st.comps.length>1);
-  const p2=document.getElementById('press2-block');if(p2)p2.style.display=twoC?'block':'none';
-  const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=twoC?'block':'none';
+  window.__stationHasTwo = (st.comps && st.comps.length>1);
+  const p2=document.getElementById('press2-block');if(p2)p2.style.display=window.__stationHasTwo?'block':'none';
+  const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=window.__stationHasTwo?'block':'none';
   setTimeout(checkOilDup, 300); // فحص الزيت الموحّد بعد بناء بطاقات الضواغط
   if(st.comps.length>1){buildCompSelector(st);}
   else{activeComps=[0];buildCompSections([0]);}
@@ -1017,6 +982,28 @@ function buildCompSections(indices){
           <label><span class="req">*</span> عدد مرات التشغيل</label>
           <input type="number" class="form-control" id="starts-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr">
           <div class="validation-msg">إلزامى</div>
+        </div>
+        <div class="divider"></div>
+        <div class="sub-title" style="background:#E8F5E9;color:#1B5E20">⚙️ ضغط دخول الغاز — ${compLabel}</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label><span class="req">*</span> من الموديول (bar)</label>
+            <div class="dual-input" style="direction:ltr">
+              <input type="number" class="form-control" id="pm-int-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center">
+              <div class="sep">.</div>
+              <input type="number" class="form-control" id="pm-frac-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center">
+            </div>
+            <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
+          </div>
+          <div class="form-group">
+            <label><span class="req">*</span> من شاشة PLC (bar)</label>
+            <div class="dual-input" style="direction:ltr">
+              <input type="number" class="form-control" id="pp-int-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="calcLive()">
+              <div class="sep">.</div>
+              <input type="number" class="form-control" id="pp-frac-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center" oninput="calcLive()">
+            </div>
+            <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
+          </div>
         </div>
         <!-- زيت الضاغط -->
         <div class="divider"></div>
@@ -1253,9 +1240,8 @@ function calcFlowRate(sales){
   }
 
   // ضغط الدخول الفعلى
-  const plcInt  = parseInt(document.getElementById('f-pp-int')?.value)||0;
-  const plcFrac = parseInt(document.getElementById('f-pp-frac')?.value)||0;
-  const plc     = plcFrac>0 ? parseFloat(plcInt+'.'+plcFrac) : plcInt;
+  const _activeIdx0 = (typeof activeComps!=='undefined'&&activeComps.length)?activeComps[0]:0;
+  const plc     = getInletPLC(_activeIdx0);
 
   const frEl = document.getElementById('lc-fr');
   if(!frEl) return;
@@ -1286,10 +1272,7 @@ function calcFlowRate(sales){
   }
 
   const spec = specs[specIdx];
-  const pp2iL=parseNum(document.getElementById('f-pp2-int')?.value)||0;
-  const pp2fL=parseNum(document.getElementById('f-pp2-frac')?.value)||0;
-  const plc2L=parseFloat(pp2iL+'.'+pp2fL)||pp2iL;
-  const inletL=(specIdx===1&&plc2L>0)?plc2L:plc;
+  const inletL=getInletPLC(specIdx)||plc;
   if(spec && inletL > 0){
     frStd = spec.flow * (inletL / spec.suction);
     const dev = frStd > 0 ? ((frActual - frStd)/frStd*100) : 0;
@@ -1356,10 +1339,34 @@ function checkOilDup(){
   const t1=document.getElementById('oil-type-1')?.value||'';
   const b1=document.getElementById('oil-bal-1');
   if(!b1)return;
-  if(t0&&t1&&t0===t1){b1.value='';b1.disabled=true;b1.placeholder='الرصيد موحّد مع الضاغط الأول';const fg=b1.closest('.form-group');if(fg)fg.classList.remove('error');}
-  else{b1.disabled=false;b1.placeholder='';}
+  if(t0&&t1&&t0===t1){
+    b1.value='';b1.disabled=true;b1.dataset.unified='1';
+    b1.placeholder='موحّد مع الضاغط الأول';
+    const fg=b1.closest('.form-group');if(fg)fg.classList.remove('error');
+  } else {
+    b1.disabled=false;b1.dataset.unified='';b1.placeholder='';
+  }
 }
 // FAULTS
+let hoseCount=0;
+function addHose(){
+  hoseCount++;
+  const wrap=document.getElementById('hoses-container');
+  const div=document.createElement('div');
+  div.id='hose-row-'+hoseCount;
+  div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
+  div.innerHTML='<input type="number" class="form-control" id="hose-num-'+hoseCount+'" min="1" step="1" inputmode="numeric" placeholder="رقم الهوز المتوقف" style="direction:ltr;flex:1" oninput="sanInt(this)"><button type="button" onclick="removeHose('+hoseCount+')" style="background:#FEE;color:var(--red);border:1px solid #FBB;border-radius:8px;width:40px;height:40px;font-size:18px;cursor:pointer;flex-shrink:0">×</button>';
+  wrap.appendChild(div);
+}
+function removeHose(id){const el=document.getElementById('hose-row-'+id);if(el)el.remove();}
+function collectHoses(){
+  const nums=[];
+  document.querySelectorAll('[id^="hose-num-"]').forEach(el=>{
+    const v=parseInt(el.value);
+    if(v>0 && nums.indexOf(v)<0) nums.push(v);
+  });
+  return nums;
+}
 function addFault(){
   faultCount++;
   const id=faultCount;
@@ -1374,12 +1381,7 @@ function addFault(){
         <select class="form-control" id="ft-type-${id}" onchange="updateFT(${id})">
           <option value="">— اختر —</option>
           ${compOpts}
-          <option value="hose">هوز</option>
         </select>
-      </div>
-      <div id="ft-hose-${id}" style="display:none" class="form-group">
-        <label>رقم الهوز</label>
-        <select class="form-control"><option value="">—</option>${hozes}</select>
       </div>
     </div>
     <div class="form-grid" style="margin-top:8px">
@@ -1482,7 +1484,7 @@ function addFault(){
   document.getElementById('faults-container').appendChild(div);
   document.getElementById('total-downtime-wrap').style.display='flex';
 }
-function updateFT(id){document.getElementById('ft-hose-'+id).style.display=document.getElementById('ft-type-'+id).value==='hose'?'block':'none';}
+function updateFT(id){updateTotalDT();}
 function updateStopReason(id){
   const reason=document.getElementById('ft-stop-reason-'+id)?.value||'';
   const translations={'عطل':'Fault','صيانة دورية':'Scheduled Maintenance','أخرى':'Other'};
@@ -1735,7 +1737,7 @@ function validateAll(){
     if(!document.getElementById('oil-type-'+idx)?.value){errors.push(`نوع زيت ${label}`);markErr('oil-type-'+idx,'اختر');}
     if(iVal('oil-cons-'+idx)){errors.push(`استهلاك زيت ${label}`);markErr('oil-cons-'+idx,'إلزامى');}
     const _obEl=document.getElementById('oil-bal-'+idx);
-    const _obSkip=(idx===1&&_obEl&&_obEl.disabled); // الرصيد موحّد مع الضاغط الأول
+    const _obSkip=(idx===1&&_obEl&&(_obEl.disabled||_obEl.dataset.unified==='1')); // موحّد مع الأول
     if(!_obSkip && iVal('oil-bal-'+idx)){errors.push(`رصيد زيت ${label}`);markErr('oil-bal-'+idx,'إلزامى');}
     if(iVal('maint-last-'+idx)){errors.push(`الصيانة الأخيرة للضاغط ${label}`);markErr('maint-last-'+idx,'إلزامى');}
     if(iVal('maint-date-'+idx)){errors.push(`تاريخ صيانة ${label}`);markErr('maint-date-'+idx,'إلزامى');}
@@ -1768,8 +1770,11 @@ function validateAll(){
   if(iVal('f-w-drink')){errors.push('مياه الشرب');markErr('f-w-drink','إلزامى');}
   if(iVal('f-w-fire')){errors.push('مياه الحريق');markErr('f-w-fire','إلزامى');}
   // ضغط الغاز - إلزامى
-  if(document.getElementById('f-pm-int')?.value===''){errors.push('ضغط الموديول (الجزء الصحيح)');}
-  if(document.getElementById('f-pp-int')?.value===''){errors.push('ضغط PLC (الجزء الصحيح)');}
+  const _acPress=[0,1].filter(ix=>document.getElementById('pp-int-'+ix));
+  _acPress.forEach(ix=>{
+    if((document.getElementById('pm-int-'+ix)?.value||'')===''){errors.push('ضغط الموديول — ضاغط '+(ix+1));markErr('pm-int-'+ix,'إلزامى');}
+    if((document.getElementById('pp-int-'+ix)?.value||'')===''){errors.push('ضغط PLC — ضاغط '+(ix+1));markErr('pp-int-'+ix,'إلزامى');}
+  });
   if(!document.getElementById('f-gas-price')?.value||parseNum(document.getElementById('f-gas-price')?.value)<=0){errors.push('سعر المتر المكعب');}
   const cashIntCheck=parseInt(document.getElementById('f-cash-int')?.value);
   if(isNaN(cashIntCheck)||document.getElementById('f-cash-int')?.value===''){errors.push('الإيداع النقدى');markErr('f-cash','إلزامى');}
@@ -1879,14 +1884,10 @@ function submitForm(){
   const costLEPerM3=(totalElecLE&&totalElecLE>0&&sales>0)?(totalElecLE/sales):null;
 
   // ── إرسال البيانات لـ Apps Script ──
-  const pressPlcInt=parseNum(document.getElementById('f-pp-int')?.value)||0;
-  const pressPlcFrac=parseNum(document.getElementById('f-pp-frac')?.value)||0;
-  const pressPlcVal=parseFloat(`${pressPlcInt}.${pressPlcFrac}`)||pressPlcInt;
-  const pp2i=parseNum(document.getElementById('f-pp2-int')?.value)||0;
-  const pp2f=parseNum(document.getElementById('f-pp2-frac')?.value)||0;
-  const pressPlc2Val=parseFloat(pp2i+'.'+pp2f)||pp2i;
-  const pressModInt=parseNum(document.getElementById('f-pm-int')?.value)||0;
-  const pressModFrac=parseNum(document.getElementById('f-pm-frac')?.value)||0;
+  const _p0=getInletPLC(0), _p1=getInletPLC(1), _m0=getInletMod(0);
+  const pressPlcVal=_p0;
+  const pressPlc2Val=_p1;
+  const pressModInt=_m0;
 
   // تجميع بيانات التوقفات من كل البطاقات
   const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[];
@@ -1907,6 +1908,8 @@ function submitForm(){
     stop_reason:_types.join(' | '), stop_ar:(_rAr.length?_rAr:_types).join(' | '), stop_en:(_rEn.length?_rEn:_types.map(t=>tryLocalPhrase(t)||t)).join(' | '),
     stop_from:_sF.join(' | '), stop_to:_sT.join(' | '),
     repair_dur:_rD.join(' | '), repair_from:_rF.join(' | '), repair_to:_rT.join(' | '),
+    hoses_stopped: collectHoses().join(', '),
+    hoses_count: collectHoses().length,
     kwh_ind_b: parseNum(document.getElementById('f-kwh-ind-b')?.value),
     kwh_com_b: parseNum(document.getElementById('f-kwh-com-b')?.value),
     kvarh_b: parseNum(document.getElementById('f-kvarh-b')?.value),
@@ -1921,10 +1924,10 @@ function submitForm(){
     smart_k: parseNum(document.getElementById('f-smart-k')?.value)||0,
     truck: parseNum(document.getElementById('f-truck')?.value)||0,
     sandoq: parseNum(document.getElementById('f-sandoq')?.value)||0,
-    press_mod: parseFloat(`${pressModInt}.${pressModFrac}`)||pressModInt,
+    press_mod: _m0,
     press_plc: pressPlcVal,
-    c1_inlet: pressPlcVal||'',
-    c2_inlet: pressPlc2Val||pressPlcVal||'',
+    c1_inlet: _p0||'',
+    c2_inlet: _p1||_p0||'',
     meter_inner: document.getElementById('meter-inner')?.checked||false,
     tariff, kwh_ind: kwhInd, kwh_com: kwhCom, kvarh,
     pf: pf||0, pf_status: pfResult||'', pf_amount: pfAmount||'',
@@ -2243,6 +2246,7 @@ function renderMgrDay(j){
       '<td>'+fmt(s.pf)+'</td>'+
       '<td>'+fmt(s.util)+'</td>'+
       '<td style="color:var(--amber);font-weight:700">'+(s.downtime||'—')+'</td>'+
+      '<td style="color:#8A5A00;font-weight:800">'+(s.hoses>0?s.hoses:'—')+'</td>'+
     '</tr>';
   });
   tb.innerHTML=html;
@@ -2259,6 +2263,7 @@ function resetToLogin(){
   document.getElementById('comp-selector-btns').innerHTML='';
   document.getElementById('faults-container').innerHTML='';
   document.getElementById('total-downtime-wrap').style.display='none';
+  const hc=document.getElementById('hoses-container');if(hc)hc.innerHTML='';hoseCount=0;
   document.getElementById('meter-inner').checked=false;toggleMeter(false);
   document.getElementById('pf-card-dash').style.display='none';
   ['safety-alert-top','safety-alert-inline'].forEach(id=>document.getElementById(id).style.display='none');
