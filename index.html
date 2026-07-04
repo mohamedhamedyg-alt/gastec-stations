@@ -911,12 +911,12 @@ function loadForm(){
   if(st.meter_inner){document.getElementById('meter-inner').checked=true;toggleMeter(true);}
   const mb=document.getElementById('meter-b-block');if(mb)mb.style.display=st.meters2?'block':'none';
   window.__stationHasTwo = (st.comps && st.comps.length>1);
+  window.__currentStationCode = st.code;
   const p2=document.getElementById('press2-block');if(p2)p2.style.display=window.__stationHasTwo?'block':'none';
   const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=window.__stationHasTwo?'block':'none';
   setTimeout(checkOilDup, 300); // فحص الزيت الموحّد بعد بناء بطاقات الضواغط
   if(st.comps.length>1){buildCompSelector(st);}
   else{activeComps=[0];buildCompSections([0]);}
-  loadStationDefaults(st.code);
 }
 
 // COMP SELECTOR
@@ -1179,6 +1179,7 @@ function buildCompSections(indices){
     </div>`:''}`;
     container.appendChild(secEl);
   });
+  if(window.__currentStationCode) loadStationDefaults(window.__currentStationCode);
 }
 
 // HOURS HELPERS
@@ -2026,11 +2027,18 @@ function submitForm(){
   }
   // Get hours for efficiency (use first active comp)
   const idx0=activeComps[0];
-  let _sumTf=0,_sumTh=0;
-  activeComps.forEach(ix=>{_sumTf+=getH(ix,'tf');_sumTh+=getH(ix,'th');});
-  const th=_sumTh,tf=_sumTf;
-  const util=th>0?(tf/th*100):null;
-  const flow=tf>0?(sales/tf):null; // ضاغط واحد أو مجموع الضاغطين
+  // كفاءة كل ضاغط لوحده
+  const utilPerComp = activeComps.map(ix=>{
+    const tfi=getH(ix,'tf'), thi=getH(ix,'th');
+    return thi>0 ? (tfi/thi*100) : null;
+  });
+  const hasTwoActive = activeComps.length>1;
+  // FR: ضاغط واحد شغّال → بتاعه، الاتنين → N/A
+  const c1tf_=getH(0,'tf'), c2tf_=getH(1,'tf');
+  const onlyOne = (c1tf_>0)!==(c2tf_>0); // واحد بس شغّال
+  let flow=null, activeIdx=-1;
+  if(onlyOne){ activeIdx = c1tf_>0?0:1; flow = getH(activeIdx,'tf')>0?(sales/getH(activeIdx,'tf')):null; }
+  const util = utilPerComp.length===1 ? utilPerComp[0] : null; // للتوافق
   const refFlow=st.ref_flow;
   const flowDev=flow&&refFlow?((flow-refFlow)/refFlow*100):null;
   const downDT=document.getElementById('f-total-downtime')?.value||'0';
@@ -2253,7 +2261,16 @@ function submitForm(){
     document.getElementById('pf-card-dash').style.display='none';
   }
   const utilEl=document.getElementById('d-util');
-  if(util!==null){utilEl.textContent=fmtEn(util,1)+'%';utilEl.className='kpi-val '+(util>=85?'ok':util>=70?'warn':'bad');document.getElementById('d-util-dev').textContent=util>=85?'Efficiency ممتازة':util>=70?'Efficiency مقبولة':'Efficiency منخفضة';}
+  if(hasTwoActive){
+    const parts=utilPerComp.map((u,i)=>'ض'+(activeComps[i]+1)+': '+(u==null?'—':fmtEn(u,1)+'%'));
+    utilEl.textContent=parts.join('  |  ');
+    utilEl.style.fontSize='15px';
+    utilEl.className='kpi-val';
+    document.getElementById('d-util-dev').textContent='كفاءة كل ضاغط على حدة';
+  } else if(util!==null){
+    utilEl.textContent=fmtEn(util,1)+'%';utilEl.className='kpi-val '+(util>=85?'ok':util>=70?'warn':'bad');
+    document.getElementById('d-util-dev').textContent=util>=85?'Efficiency ممتازة':util>=70?'Efficiency مقبولة':'Efficiency منخفضة';
+  }
   else{utilEl.textContent='—';utilEl.className='kpi-val';}
   document.getElementById('d-down').textContent=downDT||'0';
 
