@@ -467,7 +467,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div class="form-grid">
         <div class="form-group">
           <label>تاريخ آخر فحص معدات الأمان</label>
-          <input type="date" class="form-control" id="f-safety-date" onchange="calcSafety(this.value)">
+          <input type="date" style="direction:ltr" class="form-control" id="f-safety-date" onchange="calcSafety(this.value)">
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="form-group">
@@ -916,6 +916,7 @@ function loadForm(){
   setTimeout(checkOilDup, 300); // فحص الزيت الموحّد بعد بناء بطاقات الضواغط
   if(st.comps.length>1){buildCompSelector(st);}
   else{activeComps=[0];buildCompSections([0]);}
+  loadStationDefaults(st.code);
 }
 
 // COMP SELECTOR
@@ -954,6 +955,46 @@ function buildCompSelector(st){
 
 // BUILD COMP SECTIONS
 window.__compModels={};
+
+// ══════════ حفظ واستعادة القيم الثابتة لكل محطة (localStorage) ══════════
+const STICKY_FIELDS = ['maint-date','maint-hrs','maint-last','lube-date','lube-hrs']; // لكل ضاغط
+function saveStationDefaults(code){
+  try{
+    const data={safety:document.getElementById('f-safety-date')?.value||'', comps:{}};
+    [0,1].forEach(ix=>{
+      if(!document.getElementById('maint-date-'+ix))return;
+      const c={};
+      STICKY_FIELDS.forEach(f=>{ const el=document.getElementById(f+'-'+ix); if(el)c[f]=el.value; });
+      // صيانة المحرك لو موجودة
+      ['gm-date','gm-hrs','gm-last'].forEach(f=>{ const el=document.getElementById(f+'-'+ix); if(el)c[f]=el.value; });
+      data.comps[ix]=c;
+    });
+    localStorage.setItem('gastec_def_'+code, JSON.stringify(data));
+  }catch(e){}
+}
+function loadStationDefaults(code){
+  try{
+    const raw=localStorage.getItem('gastec_def_'+code);
+    if(!raw)return;
+    const data=JSON.parse(raw);
+    setTimeout(()=>{ // بعد بناء البطاقات
+      const sEl=document.getElementById('f-safety-date');
+      if(sEl&&data.safety){sEl.value=data.safety;calcSafety(data.safety);}
+      Object.keys(data.comps||{}).forEach(ix=>{
+        const c=data.comps[ix];
+        Object.keys(c).forEach(f=>{
+          const el=document.getElementById(f+'-'+ix);
+          if(el&&c[f]){el.value=c[f];}
+        });
+        // إعادة الحسابات
+        if(document.getElementById('maint-last-'+ix)){calcMDiff(ix);calcMaintNext(ix);}
+        if(document.getElementById('gm-last-'+ix)){calcGMDiff&&calcGMDiff(ix);calcMotorNext(ix);}
+        if(document.getElementById('lube-hrs-'+ix)){calcLubeDiff&&calcLubeDiff(ix);}
+      });
+    }, 400);
+  }catch(e){}
+}
+
 function buildCompSections(indices){
   const container=document.getElementById('comps-container');
   container.innerHTML='';
@@ -1110,7 +1151,7 @@ function buildCompSections(indices){
         <div class="divider"></div>
         <div class="form-grid">
           <div class="form-group"><label>نوع صيانة المحرك الأخيرة</label><select class="form-control" id="gm-last-${idx}" onchange="calcMotorNext(${idx})"><option value="">— اختر —</option>${gmOpts}</select><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>تاريخ صيانة المحرك الأخيرة</label><input type="date" class="form-control" id="gm-date-${idx}"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>تاريخ صيانة المحرك الأخيرة</label><input type="date" style="direction:ltr" class="form-control" id="gm-date-${idx}"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات المحرك عند آخر صيانة</label><input type="number" class="form-control" id="gm-hrs-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx});calcMotorNext(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الساعات الكلية الحالية للمحرك</label><input type="number" class="form-control" id="gm-cur-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr" oninput="calcGMDiff(${idx});calcMotorNext(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>ساعات منذ آخر صيانة (أوتوماتيك)</label><input type="number" class="form-control" id="gm-diff-${idx}" readonly style="direction:ltr;background:var(--blue-pale);font-weight:800"></div>
@@ -1788,14 +1829,25 @@ function calcFD(id){
   updateTotalDT();
 }
 function updateTotalDT(){
-  let total=0;
+  let total=0; const stoppedComps=new Set();
   document.querySelectorAll('[id^="ft-dur-"]').forEach(el=>{
     const t=el.value;if(!t||t.includes('⚠'))return;
     const hm=t.match(/(\d+)\s*س/),mm=t.match(/(\d+)\s*د/);
     total+=(hm?parseInt(hm[1])*60:0)+(mm?parseInt(mm[1]):0);
+    // أى ضاغط اتوقف؟
+    const id=el.id.replace('ft-dur-','');
+    const ty=document.getElementById('ft-type-'+id)?.value;
+    if(ty&&ty.startsWith('c')) stoppedComps.add(parseInt(ty.slice(1)));
   });
   const el=document.getElementById('f-total-downtime');
-  if(el)el.value=total>0?(Math.floor(total/60)>0?Math.floor(total/60)+' س ':'')+total%60+' د':'';
+  let txt = total>0?(Math.floor(total/60)>0?Math.floor(total/60)+' س ':'')+total%60+' د':'';
+  // لو محطة ضاغطين وواقف واحد بس → وضّح
+  const nComps=(currentStation?.comps||[]).length;
+  if(total>0 && nComps>1 && stoppedComps.size>0 && stoppedComps.size<nComps){
+    const tags=[...stoppedComps].sort().map(i=>'ض'+(i+1)).join('+');
+    txt += ' ('+tags+')';
+  }
+  if(el)el.value=txt;
 }
 function validatePositive(el){if(el.value<0)el.value=0;}
 function calcSalesTotal(){
@@ -2121,6 +2173,7 @@ function submitForm(){
   });
 
   // إرسال للـ Apps Script
+  try{ saveStationDefaults(st.code); }catch(e){}
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors',
@@ -2129,6 +2182,7 @@ function submitForm(){
   }).then(()=>{
     console.log('تم الإرسال للشيت');
   }).catch(err=>{
+    void 0;
     console.warn('تحذير إرسال:', err);
   });
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
