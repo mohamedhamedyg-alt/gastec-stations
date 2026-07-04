@@ -960,12 +960,17 @@ window.__compModels={};
 const STICKY_FIELDS = ['maint-date','maint-hrs','maint-last','lube-date','lube-hrs']; // لكل ضاغط
 function saveStationDefaults(code){
   try{
-    const data={safety:document.getElementById('f-safety-date')?.value||'', comps:{}};
+    // ندمج مع المحفوظ سابقاً حتى لا نمسح بيانات ضاغط غير مبنى حالياً
+    let data={safety:'', comps:{}};
+    const prev=localStorage.getItem('gastec_def_'+code);
+    if(prev){ try{ data=JSON.parse(prev); }catch(e){} }
+    if(!data.comps) data.comps={};
+    const safEl=document.getElementById('f-safety-date');
+    if(safEl && safEl.value) data.safety=safEl.value;
     [0,1].forEach(ix=>{
-      if(!document.getElementById('maint-date-'+ix))return;
-      const c={};
+      if(!document.getElementById('maint-date-'+ix))return; // الضاغط ده مش مبنى → نسيب محفوظه
+      const c=data.comps[ix]||{};
       STICKY_FIELDS.forEach(f=>{ const el=document.getElementById(f+'-'+ix); if(el)c[f]=el.value; });
-      // صيانة المحرك لو موجودة
       ['gm-date','gm-hrs','gm-last'].forEach(f=>{ const el=document.getElementById(f+'-'+ix); if(el)c[f]=el.value; });
       data.comps[ix]=c;
     });
@@ -977,21 +982,21 @@ function loadStationDefaults(code){
     const raw=localStorage.getItem('gastec_def_'+code);
     if(!raw)return;
     const data=JSON.parse(raw);
-    setTimeout(()=>{ // بعد بناء البطاقات
-      const sEl=document.getElementById('f-safety-date');
-      if(sEl&&data.safety){sEl.value=data.safety;calcSafety(data.safety);}
-      Object.keys(data.comps||{}).forEach(ix=>{
-        const c=data.comps[ix];
-        Object.keys(c).forEach(f=>{
-          const el=document.getElementById(f+'-'+ix);
-          if(el&&c[f]){el.value=c[f];}
-        });
-        // إعادة الحسابات
-        if(document.getElementById('maint-last-'+ix)){calcMDiff(ix);calcMaintNext(ix);}
-        if(document.getElementById('gm-last-'+ix)){calcGMDiff&&calcGMDiff(ix);calcMotorNext(ix);}
-        if(document.getElementById('lube-hrs-'+ix)){calcLubeDiff&&calcLubeDiff(ix);}
+    // safety مستقل عن الضواغط
+    const sEl=document.getElementById('f-safety-date');
+    if(sEl&&data.safety){sEl.value=data.safety;calcSafety(data.safety);}
+    // القيم لكل ضاغط موجود حالياً فى الصفحة
+    Object.keys(data.comps||{}).forEach(ix=>{
+      if(!document.getElementById('maint-date-'+ix))return; // الضاغط ده مش مبنى دلوقتى
+      const c=data.comps[ix];
+      Object.keys(c).forEach(f=>{
+        const el=document.getElementById(f+'-'+ix);
+        if(el&&c[f]){el.value=c[f];}
       });
-    }, 400);
+      if(document.getElementById('maint-last-'+ix)){calcMDiff(ix);calcMaintNext(ix);}
+      if(document.getElementById('gm-last-'+ix)){calcGMDiff&&calcGMDiff(ix);calcMotorNext(ix);}
+      if(document.getElementById('lube-hrs-'+ix)){calcLubeDiff&&calcLubeDiff(ix);}
+    });
   }catch(e){}
 }
 
