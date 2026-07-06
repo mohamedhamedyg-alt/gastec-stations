@@ -2218,32 +2218,37 @@ function submitForm(){
     }
   });
 
-  // إرسال للـ Apps Script
+  // إرسال للـ Apps Script (no-cors للإرسال، ثم تحقق فعلى بقراءة الشيت)
   try{ saveStationDefaults(st.code); }catch(e){}
-  // التحقق الفعلى من الإرسال (بدون no-cors عشان نقرا الرد)
   const sendBtn=document.getElementById('submit-btn');
   const oldBtnTxt=sendBtn?sendBtn.textContent:'';
-  if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='⏳ جارى الإرسال والتأكد...';}
+  const reqDate=document.getElementById('f-date')?.value||'';
+  if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='⏳ جارى الإرسال...';}
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(payload)
-  })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res && res.status==='ok'){
-      // نجاح مؤكد من السيرفر
-      if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
-      window.__sendConfirmed=true;
-    } else {
-      throw new Error(res&&res.msg?res.msg:'رد غير متوقع');
-    }
-  })
-  .catch(err=>{
-    // فشل فعلى (نت مقطوع أو خطأ) — نمنع شاشة النجاح الكاذبة
+  }).then(()=>{
+    // التحقق الفعلى: نسأل السيرفر بعد ثانيتين هل وصل البيان
+    if(sendBtn)sendBtn.textContent='⏳ جارى التأكد من الوصول...';
+    setTimeout(()=>{
+      fetch(APPS_SCRIPT_URL+'?action=verify&date='+encodeURIComponent(reqDate)+'&code='+st.code)
+        .then(r=>r.json())
+        .then(v=>{
+          if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
+          if(v && v.found){
+            window.__sendConfirmed=true; // وصل فعلاً
+          } else {
+            window.__sendConfirmed=false;
+            alert('⚠️ تحذير: لم نتمكن من تأكيد وصول البيان للسيرفر.\nربما انقطع الإنترنت أثناء الإرسال.\nافتح شاشة المسؤول للتأكد، وأعد الإرسال لو لم تجد المحطة.');
+          }
+        })
+        .catch(()=>{ if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;} });
+    }, 2500);
+  }).catch(err=>{
     if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
-    window.__sendConfirmed=false;
-    alert('⚠️ لم يتم تأكيد الإرسال!\nربما انقطع الإنترنت. تأكد من اتصالك وأعد المحاولة.\nلا تعتمد على شاشة النجاح إلا بعد ظهور تأكيد.\n\nتفاصيل: '+err.message);
+    alert('⚠️ فشل الإرسال — تأكد من الإنترنت وأعد المحاولة.');
   });
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
