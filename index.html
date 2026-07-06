@@ -2478,10 +2478,9 @@ function exportSheetXlsx(kind){
   const d=document.getElementById('mgr-day')?.value;
   if(!d){alert('اختر اليوم أولاً');return;}
   const st=document.getElementById('mgr-status');
-  st.textContent='⏳ جارى تجهيز الملف ... (15-30 ثانية، من فضلك انتظر)';
-  // 1) نبنى اليوم المطلوب  2) نطلب الملف جاهز base64 من صلاحية المالك
-  fetch(APPS_SCRIPT_URL+'?date='+encodeURIComponent(d))
-    .then(()=>fetch(APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind))
+  st.textContent='⏳ جارى تجهيز الملف ...';
+  // نداء واحد فقط: التصدير يبنى داخلياً لو محتاج (أسرع)
+  fetch(APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind+'&date='+encodeURIComponent(d))
     .then(r=>r.json())
     .then(res=>{
       if(!res.file){st.textContent='❌ تعذر التجهيز — اعمل عرض أولاً';return;}
@@ -2519,13 +2518,25 @@ function loadHolding(){
         if(j.periods.length){sel.value=j.periods[j.periods.length-1];return loadHolding();}
       }
       window.__holding=j;
-      let html='<table style="width:100%;border-collapse:collapse"><tr style="background:#6B21A8;color:#fff"><th style="padding:6px">الكود</th><th style="padding:6px;text-align:right">المحطة</th><th style="padding:6px">المبيعات م³</th></tr>';
-      (j.stations||[]).sort((a,b)=>b.sales-a.sales).forEach(s=>{
-        html+='<tr style="border-bottom:1px solid #eee"><td style="padding:5px;text-align:center">'+s.code+'</td><td style="padding:5px;text-align:right">'+s.name+'</td><td style="padding:5px;text-align:center;font-weight:800;direction:ltr">'+s.sales.toLocaleString('en-US',{maximumFractionDigits:2})+'</td></tr>';
+      const stns=(j.stations||[]).slice().sort((a,b)=>b.sales-a.sales);
+      let html='<div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center">';
+      html+='<div style="font-size:15px;font-weight:800">بيان مبيعات المنطقة للقابضة</div>';
+      html+='<div style="font-size:12px;opacity:.9;margin-top:3px">الفترة: '+period+' — عدد المحطات: '+stns.length+'</div></div>';
+      html+='<table style="width:100%;border-collapse:collapse;font-size:13px">';
+      html+='<tr style="background:#4A148C;color:#fff"><th style="padding:9px 6px;width:38px">#</th><th style="padding:9px 6px">الكود</th><th style="padding:9px 6px;text-align:right">المحطة</th><th style="padding:9px 6px;text-align:left">إجمالى الـ15 يوم (م³)</th></tr>';
+      stns.forEach((s,i)=>{
+        const bg = i%2===0 ? '#FAF5FF' : '#fff';
+        html+='<tr style="background:'+bg+';border-bottom:1px solid #EDE4F5">'
+          +'<td style="padding:7px 6px;text-align:center;color:#9333EA;font-weight:800">'+(i+1)+'</td>'
+          +'<td style="padding:7px 6px;text-align:center;color:#666">'+s.code+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;font-weight:600">'+s.name+'</td>'
+          +'<td style="padding:7px 10px;text-align:left;font-weight:800;direction:ltr;color:#4A148C">'+s.sales.toLocaleString('en-US',{maximumFractionDigits:2})+'</td></tr>';
       });
-      html+='<tr style="background:#F3E8FF;font-weight:800"><td colspan="2" style="padding:8px;text-align:center">إجمالى المنطقة</td><td style="padding:8px;text-align:center;color:#6B21A8;direction:ltr;font-size:15px">'+(j.total||0).toLocaleString('en-US',{maximumFractionDigits:2})+' م³</td></tr>';
+      html+='<tr style="background:linear-gradient(135deg,#F3E8FF,#E9D5FF);border-top:2px solid #6B21A8">'
+        +'<td colspan="3" style="padding:12px;text-align:right;font-weight:800;font-size:14px;color:#4A148C">إجمالى مبيعات المنطقة خلال الـ15 يوم</td>'
+        +'<td style="padding:12px 10px;text-align:left;color:#6B21A8;direction:ltr;font-size:17px;font-weight:800">'+(j.total||0).toLocaleString('en-US',{maximumFractionDigits:2})+'</td></tr>';
       html+='</table>';
-      content.innerHTML = (j.stations&&j.stations.length) ? html : '<div style="color:#888;text-align:center;padding:20px">لا توجد بيانات لهذه الفترة بعد</div>';
+      content.innerHTML = stns.length ? html : '<div style="color:#888;text-align:center;padding:30px">لا توجد بيانات لهذه الفترة بعد</div>';
     })
     .catch(e=>{content.innerHTML='❌ تعذر التحميل: '+e;});
 }
