@@ -2282,12 +2282,12 @@ function submitForm(){
       .then(v=>{
         if(_verifyDone)return;
         if(v&&v.found){ _ok(); }                 // وصل — نجاح فورى
-        else if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 900); } // لسه بيكتب، نعيد
+        else if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 700); } // لسه بيكتب، نعيد
         else { _fail('لم يصل البيان للسيرفر — تأكد من الإنترنت وأعد الإرسال. (لم يُحفظ شىء)'); }
       })
       .catch(()=>{
         if(_verifyDone)return;
-        if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 900); }
+        if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 700); }
         else { _softConfirm('تم الإرسال — لكن تعذّر تأكيد الوصول تلقائياً. راجع شاشة المسؤول.'); }
       });
   }
@@ -2298,7 +2298,7 @@ function submitForm(){
   }).then(()=>{
     if(sendBtn)sendBtn.textContent='⏳ جارى التأكد...';
     showSendBanner('sending','جارى تأكيد وصول البيان...');
-    setTimeout(()=>_pollVerify(1), 700); // أول محاولة بعد 700ms بس
+    setTimeout(()=>_pollVerify(1), 500); // أول محاولة بعد 500ms (الكاش سريع)
   }).catch(()=>_fail('فشل الاتصال بالسيرفر — تأكد من الإنترنت وأعد المحاولة. (لم يُحفظ شىء)'));
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
