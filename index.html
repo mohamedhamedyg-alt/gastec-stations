@@ -620,6 +620,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <th class="mg-h mg-fz1">الكود</th>
           <th class="mg-h mg-fz2">المحطة</th>
           <th class="mg-h">الحالة</th>
+          <th class="mg-h">وقت الإرسال</th>
           <th class="mg-h">مبيعات م³</th>
           <th class="mg-h">KWH/م³</th>
           <th class="mg-h">FR فعلى</th>
@@ -628,7 +629,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <th class="mg-h">كفاءة التشغيل%</th>
           <th class="mg-h">مدة التوقف</th>
           <th class="mg-h">هوزات متوقفة</th>
-          <th class="mg-h">وقت الإرسال</th>
         </tr>
       </thead>
       <tbody id="mgr-table"></tbody>
@@ -2511,6 +2511,7 @@ function renderMgrDay(j){
       '<td class="mg-fz1">'+s.code+'</td>'+
       '<td class="mg-fz2">'+s.name+'</td>'+
       '<td>'+status+'</td>'+
+      '<td style="color:var(--blue-dark);font-weight:800;direction:ltr">'+(s.sent?(function(a){if(!a)return '✔';return /^\d{4}-/.test(a)?(a.split(" ")[1]||a):(a.split(" ")[0]||a);})(s.sentAt||''):'—')+'</td>'+
       '<td style="font-weight:800">'+fmt(s.sales)+'</td>'+
       '<td>'+fmt(s.kwhM3)+'</td>'+
       '<td>'+fmt(s.fr)+'</td>'+
@@ -2519,7 +2520,6 @@ function renderMgrDay(j){
       '<td>'+fmt(s.util)+'</td>'+
       '<td style="color:var(--amber);font-weight:700">'+(s.downtime||'—')+'</td>'+
       '<td style="color:#8A5A00;font-weight:800">'+(s.hoses>0?s.hoses:'—')+'</td>'+
-      '<td style="color:var(--blue-dark);font-weight:700;direction:ltr">'+(s.sent?((s.sentAt&&s.sentAt.indexOf(" ")>=0)?s.sentAt.split(" ")[1]:(s.sentAt||'✔')):'—')+'</td>'+
     '</tr>';
   });
   tb.innerHTML=html;
