@@ -620,7 +620,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <th class="mg-h mg-fz1">الكود</th>
           <th class="mg-h mg-fz2">المحطة</th>
           <th class="mg-h">الحالة</th>
-          <th class="mg-h">وقت الإرسال</th>
           <th class="mg-h">مبيعات م³</th>
           <th class="mg-h">KWH/م³</th>
           <th class="mg-h">FR فعلى</th>
@@ -1986,29 +1985,6 @@ function validateAll(){
   return errors;
 }
 
-// ===== إرسال مؤكَّد: لا نُظهر "تم الإرسال" إلا بعد تأكيد وصول البيان فعلاً للشيت =====
-async function __sendConfirmed(payload){
-  try{
-    const resp=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
-    const txt=await resp.text();
-    if(txt&&txt.indexOf('"status":"ok"')>=0) return {ok:true};
-    if(txt&&txt.indexOf('"status":"error"')>=0) return {ok:false,msg:'الخادم رفض البيان (خطأ داخلى)'};
-  }catch(e){ /* رد غير مقروء أو نت ضعيف → نتأكد بالقراءة المرتجعة */ }
-  return await __verifyLanded(payload.code,payload.date,3);
-}
-async function __verifyLanded(code,date,tries){
-  for(let i=0;i<(tries||3);i++){
-    await new Promise(r=>setTimeout(r,i===0?1500:2500));
-    try{
-      const r=await fetch(APPS_SCRIPT_URL+'?action=day&date='+encodeURIComponent(date),{signal:AbortSignal.timeout(12000)});
-      const j=await r.json();
-      const hit=(j.stations||[]).find(s=>String(s.code)===String(code)&&s.sent);
-      if(hit) return {ok:true,sentAt:hit.sentAt||''};
-    }catch(e){}
-  }
-  return {ok:false,msg:'تعذّر تأكيد وصول البيان بعد عدة محاولات — قد يكون النت ضعيف'};
-}
-
 // SUBMIT
 function submitForm(){
   window.__firstErr=null;
@@ -2211,27 +2187,24 @@ function submitForm(){
 
   // إرسال للـ Apps Script
   try{ saveStationDefaults(st.code); }catch(e){}
-  const __submitBtn=document.querySelector('.btn-submit');
-  if(__submitBtn){__submitBtn.disabled=true;__submitBtn.dataset._orig=__submitBtn.textContent;__submitBtn.textContent='⏳ جارى الإرسال والتأكيد...';}
-  __sendConfirmed(payload).then(function(__res){
-    if(__submitBtn){__submitBtn.disabled=false;__submitBtn.textContent=__submitBtn.dataset._orig||'إرسال بيانات اليوم';}
-    if(!__res.ok){
-      alert('⚠️ لم يصل البيان للشيت.\n'+(__res.msg||'')+'\n\nمن فضلك اضغط "إرسال بيانات اليوم" تانى.');
-      return;
-    }
-    __renderDashboard(__res.sentAt||'');
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify(payload)
+  }).then(()=>{
+    console.log('تم الإرسال للشيت');
+  }).catch(err=>{
+    void 0;
+    console.warn('تحذير إرسال:', err);
   });
-  return;
-
-  function __renderDashboard(__sentAtServer){
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
   document.getElementById('form-screen').style.display='none';
   document.getElementById('dashboard-screen').style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
-  var __sentTime=(__sentAtServer&&__sentAtServer.indexOf(' ')>=0)?__sentAtServer.split(' ')[1]:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('dash-sub').textContent=st.name+' — '+(document.getElementById('f-date')?.value||new Date().toLocaleDateString('ar-EG'))+' — ✅ وصل الساعة '+__sentTime;
+  document.getElementById('dash-sub').textContent=st.name+' — '+(document.getElementById('f-date')?.value||new Date().toLocaleDateString('ar-EG'));
   // KPI CARDS
   document.getElementById('d-sales').textContent=fmtEn(sales,0);
     // Electricity cost display
@@ -2423,7 +2396,6 @@ function submitForm(){
   const days=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
   const tod=new Date().getDay(),mx=Math.max(...weekData,sales,1);
   for(let i=0;i<7;i++){const val=i===6?sales:weekData[i];const pct=Math.round(val/mx*60);const w=document.createElement('div');w.className='week-bar-wrap';w.innerHTML=`<div class="week-val">${val>0?val.toLocaleString('en-US'):''}</div><div class="week-bar${i===6?' today':''}" style="height:${pct}px"></div><div class="week-day">${days[(tod-6+i+7)%7]}</div>`;wc.appendChild(w);}
-  } // نهاية __renderDashboard
 }
 
 // MANAGER
@@ -2455,18 +2427,15 @@ function exportSheetXlsx(kind){
   if(!d){alert('اختر اليوم أولاً');return;}
   const st=document.getElementById('mgr-status');
   st.textContent='⏳ جارى تجهيز ملف يوم '+d+' ... (15-30 ثانية)';
-  fetch(APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind+'&date='+encodeURIComponent(d))
+  fetch(APPS_SCRIPT_URL+'?date='+d)
+    .then(()=>fetch(APPS_SCRIPT_URL+'?action=exportInfo'))
     .then(r=>r.json())
     .then(info=>{
-      if(!info||!info.ok){st.textContent='❌ تعذر التصدير: '+((info&&info.msg)||'خطأ غير معروف');return;}
-      const bytes=Uint8Array.from(atob(info.b64),c=>c.charCodeAt(0));
-      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;a.download=info.fname||('غازتك_'+d+'.xlsx');
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(url),1500);
-      st.textContent='✅ تم تنزيل الملف';
+      const gid = kind==='comp' ? info.compGid : info.displayGid;
+      if(gid==null){st.textContent='❌ التابة غير موجودة — اعمل بناء أولاً';return;}
+      const url='https://docs.google.com/spreadsheets/d/'+info.id+'/export?format=xlsx&gid='+gid;
+      st.textContent='✅ جارى التنزيل...';
+      window.open(url,'_blank');
       setTimeout(()=>{st.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');},4000);
     })
     .catch(e=>{st.textContent='❌ تعذر التصدير: '+e;});
@@ -2511,7 +2480,6 @@ function renderMgrDay(j){
       '<td class="mg-fz1">'+s.code+'</td>'+
       '<td class="mg-fz2">'+s.name+'</td>'+
       '<td>'+status+'</td>'+
-      '<td style="color:var(--blue-dark);font-weight:800;direction:ltr">'+(s.sent?(function(a){if(!a)return '✔';return /^\d{4}-/.test(a)?(a.split(" ")[1]||a):(a.split(" ")[0]||a);})(s.sentAt||''):'—')+'</td>'+
       '<td style="font-weight:800">'+fmt(s.sales)+'</td>'+
       '<td>'+fmt(s.kwhM3)+'</td>'+
       '<td>'+fmt(s.fr)+'</td>'+
