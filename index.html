@@ -2010,6 +2010,30 @@ function validateAll(){
 }
 
 // SUBMIT
+
+// بانر إشعار احترافي بروح الواجهة (بدل alert)
+function showSendBanner(type, msg){
+  let b=document.getElementById('send-banner');
+  if(!b){
+    b=document.createElement('div');
+    b.id='send-banner';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:14px 18px;text-align:center;font-family:Cairo,sans-serif;font-weight:800;font-size:14px;color:#fff;transform:translateY(-100%);transition:transform .3s ease;box-shadow:0 3px 12px rgba(0,0,0,.2)';
+    document.body.appendChild(b);
+  }
+  const styles={
+    sending:{bg:'linear-gradient(135deg,#1e3a5f,#2c5282)',icon:'⏳'},
+    ok:{bg:'linear-gradient(135deg,#1B5E20,#2E7D32)',icon:'✓'},
+    error:{bg:'linear-gradient(135deg,#8B1A1A,#B71C1C)',icon:'⚠'}
+  };
+  const s=styles[type]||styles.sending;
+  b.style.background=s.bg;
+  b.innerHTML=s.icon+'  '+msg;
+  b.style.transform='translateY(0)';
+  if(type!=='sending'){
+    setTimeout(()=>{ b.style.transform='translateY(-100%)'; }, type==='ok'?3500:6000);
+  }
+}
+
 function submitForm(){
   window.__firstErr=null;
   checkSalesTotal();
@@ -2218,44 +2242,48 @@ function submitForm(){
     }
   });
 
-  // إرسال للـ Apps Script (no-cors للإرسال، ثم تحقق فعلى بقراءة الشيت)
+  // إرسال للـ Apps Script — الانتقال لشاشة النجاح يحدث فقط بعد تأكيد الوصول
   try{ saveStationDefaults(st.code); }catch(e){}
   const sendBtn=document.getElementById('submit-btn');
   const oldBtnTxt=sendBtn?sendBtn.textContent:'';
   const reqDate=document.getElementById('f-date')?.value||'';
   if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='⏳ جارى الإرسال...';}
+  showSendBanner('sending','جارى إرسال البيان...');
+  // دالة إظهار الداشبورد (تُنادى فقط عند التأكيد)
+  window.__showDash=function(){
+    document.getElementById('form-screen').style.display='none';
+    document.getElementById('dashboard-screen').style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  let _verifyDone=false;
+  const _fail=(msg)=>{
+    if(_verifyDone)return; _verifyDone=true;
+    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
+    showSendBanner('error', msg);
+  };
+  const _ok=()=>{
+    if(_verifyDone)return; _verifyDone=true;
+    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
+    showSendBanner('ok','تم إرسال البيان بنجاح وتأكيد وصوله ✓');
+    window.__showDash();
+  };
   fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
+    method: 'POST', mode: 'no-cors',
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(payload)
   }).then(()=>{
-    // التحقق الفعلى: نسأل السيرفر بعد ثانيتين هل وصل البيان
     if(sendBtn)sendBtn.textContent='⏳ جارى التأكد من الوصول...';
+    showSendBanner('sending','جارى التأكد من وصول البيان للسيرفر...');
     setTimeout(()=>{
       fetch(APPS_SCRIPT_URL+'?action=verify&date='+encodeURIComponent(reqDate)+'&code='+st.code)
         .then(r=>r.json())
-        .then(v=>{
-          if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
-          if(v && v.found){
-            window.__sendConfirmed=true; // وصل فعلاً
-          } else {
-            window.__sendConfirmed=false;
-            alert('⚠️ تحذير: لم نتمكن من تأكيد وصول البيان للسيرفر.\nربما انقطع الإنترنت أثناء الإرسال.\nافتح شاشة المسؤول للتأكد، وأعد الإرسال لو لم تجد المحطة.');
-          }
-        })
-        .catch(()=>{ if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;} });
+        .then(v=>{ if(v&&v.found)_ok(); else _fail('لم يصل البيان للسيرفر — تأكد من الإنترنت وأعد الإرسال. (لم يُحفظ شىء)'); })
+        .catch(()=>_fail('تعذّر تأكيد الوصول — تأكد من الإنترنت وأعد الإرسال. (لم يُحفظ شىء)'));
     }, 2500);
-  }).catch(err=>{
-    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
-    alert('⚠️ فشل الإرسال — تأكد من الإنترنت وأعد المحاولة.');
-  });
+  }).catch(()=>_fail('فشل الاتصال بالسيرفر — تأكد من الإنترنت وأعد المحاولة. (لم يُحفظ شىء)'));
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
-  document.getElementById('form-screen').style.display='none';
-  document.getElementById('dashboard-screen').style.display='block';
-  window.scrollTo({top:0,behavior:'smooth'});
   document.getElementById('dash-sub').textContent=st.name+' — '+(document.getElementById('f-date')?.value||new Date().toLocaleDateString('ar-EG'));
   // KPI CARDS
   document.getElementById('d-sales').textContent=fmtEn(sales,0);
