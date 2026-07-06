@@ -235,6 +235,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div class="toggle-group" style="margin-bottom:18px">
         <button class="toggle-btn active" id="btn-mode-station" onclick="setLoginMode('station')">مشرف محطة</button>
         <button class="toggle-btn" id="btn-mode-admin" onclick="setLoginMode('admin')">المسئول</button>
+        <button class="toggle-btn" id="btn-mode-maint" onclick="setLoginMode('maint')">الصيانة</button>
       </div>
       <input type="text" class="login-input" id="station-code" placeholder="000" inputmode="numeric" maxlength="10" onkeydown="if(event.key==='Enter')doLogin()">
       <button class="btn-login" onclick="doLogin()">دخول</button>
@@ -593,6 +594,21 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 </div>
 </div>
 
+<!-- MAINTENANCE PANEL -->
+<div id="maint-screen" style="display:none">
+<div class="container">
+  <div class="mgr-header" style="background:linear-gradient(135deg,#7c2d12,#ea580c)">
+    <h2>🔧 لوحة الصيانة — منطقة القناة وسيناء</h2>
+    <div class="mgr-sub" id="maint-sub">الصيانات والفحوصات المستحقة للتجهيز</div>
+  </div>
+  <div style="text-align:center;margin:12px 0">
+    <button class="btn-mgr" style="background:#7c2d12;color:#fff;width:auto;padding:8px 20px" onclick="loadMaintDue()">🔄 تحديث</button>
+    <span id="maint-status" style="font-size:12px;color:#666;margin-right:10px"></span>
+  </div>
+  <div id="maint-content" style="padding:0 4px 30px"></div>
+</div>
+</div>
+
 <!-- MANAGER -->
 <div id="mgr-screen">
 <div class="container">
@@ -695,6 +711,7 @@ function fmtBlur(el){const n=parseNum(el.value);if(!el.value)return;el.value=n.t
 function unfmt(el){el.value=String(el.value).replace(/,/g,'');}
 // ── CONSTANTS ──
 const ADMIN_CODE='ADMIN2024';
+const MAINT_CODE='MAINT2024';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyB81Q2UuGMEjHe44zEk8pP_R4wup8j7r56KOq4vIFhGiYgi0VQap0MBHyg-aOnsIpYZg/exec';
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
@@ -893,6 +910,7 @@ function setLoginMode(mode){
   loginMode=mode;
   document.getElementById('btn-mode-station').classList.toggle('active',mode==='station');
   document.getElementById('btn-mode-admin').classList.toggle('active',mode==='admin');
+  const bm=document.getElementById('btn-mode-maint'); if(bm) bm.classList.toggle('active',mode==='maint');
   const inp=document.getElementById('station-code');
   if(mode==='station'){inp.setAttribute('inputmode','numeric');inp.type='text';inp.placeholder='000';}
   else{inp.removeAttribute('inputmode');inp.type='password';inp.placeholder='••••••••';}
@@ -902,6 +920,7 @@ function setLoginMode(mode){
 function doLogin(){
   const code=document.getElementById('station-code').value.trim();
   if(loginMode==='admin'){if(code===ADMIN_CODE){showMgr();return;}document.getElementById('login-err').style.display='block';return;}
+  if(loginMode==='maint'){if(code===MAINT_CODE){showMaintPanel();return;}document.getElementById('login-err').style.display='block';return;}
   const st=STATIONS[code];
   if(!st){document.getElementById('login-err').style.display='block';return;}
   currentStation={...st,code};
@@ -2514,6 +2533,53 @@ function buildOilPanel(totals){
   keys.sort().forEach(k=>{rows+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #eee"><span style="font-weight:700">'+k+'</span><span style="font-weight:800;color:var(--blue-dark);direction:ltr">'+totals[k].toLocaleString('en-US',{maximumFractionDigits:1})+' لتر</span></div>';});
   panel.innerHTML='<div style="font-size:13px;font-weight:800;color:var(--blue-dark);margin-bottom:6px">🛢️ رصيد الزيوت بالمنطقة — إجمالى اللترات لكل نوع</div>'+rows;
 }
+
+// ══════════ لوحة الصيانة ══════════
+function showMaintPanel(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('maint-screen').style.display='block';
+  window.scrollTo(0,0);
+  loadMaintDue();
+}
+function loadMaintDue(){
+  const c=document.getElementById('maint-content');
+  const s=document.getElementById('maint-status');
+  s.textContent='⏳ جارى التحميل...';
+  c.innerHTML='';
+  fetch(APPS_SCRIPT_URL+'?action=maintDue')
+    .then(r=>r.json())
+    .then(j=>{
+      s.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');
+      c.innerHTML = renderMaintSection('🔴 عاجل — مطلوب التجهيز فوراً', j.urgent||[], '#B71C1C', '#FEE2E2')
+                  + renderMaintSection('🟡 قادم — للتحضير المسبق', j.upcoming||[], '#B45309', '#FEF3C7');
+      if((!j.urgent||!j.urgent.length)&&(!j.upcoming||!j.upcoming.length)){
+        c.innerHTML='<div style="text-align:center;color:#16A34A;padding:40px;font-size:15px;font-weight:800">✓ لا توجد صيانات مستحقة قريباً<br><span style="font-size:12px;color:#888;font-weight:400">كل المحطات ضمن الحدود الآمنة</span></div>';
+      }
+    })
+    .catch(e=>{s.textContent='❌ تعذر التحميل: '+e;});
+}
+function renderMaintSection(title, items, color, bg){
+  if(!items.length) return '';
+  let html='<div style="margin-bottom:18px">';
+  html+='<div style="background:'+color+';color:#fff;padding:10px 14px;border-radius:10px 10px 0 0;font-weight:800;font-size:14px">'+title+' ('+items.length+')</div>';
+  html+='<div style="background:#fff;border-radius:0 0 10px 10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)">';
+  items.forEach((it,i)=>{
+    const remTxt = it.unit==='يوم' ? (it.rem<=0?'متأخر!':it.rem+' يوم') : (it.rem<=0?'متأخر!':it.rem.toLocaleString('en-US')+' ساعة');
+    const remColor = it.rem<=0 ? '#B71C1C' : color;
+    const typeIcon = it.type==='فحص أمان'?'🛡️':(it.type==='تشحيم'?'🛢️':(it.type==='صيانة محرك'?'⚙️':'🔧'));
+    html+='<div style="padding:11px 14px;border-bottom:1px solid #F1F1F1;'+(i%2?'background:'+bg+'55':'')+'">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">';
+    html+='<div style="flex:1">';
+    html+='<div style="font-weight:800;font-size:14px;color:#1a1a1a">'+typeIcon+' '+it.name+' <span style="color:#888;font-size:12px">('+it.code+')</span></div>';
+    html+='<div style="font-size:12px;color:#555;margin-top:3px">'+it.type+' — '+it.comp+(it.next&&it.next!==it.type?' — <b>'+it.next+'</b>':'')+'</div>';
+    html+='</div>';
+    html+='<div style="text-align:left;flex-shrink:0"><div style="font-size:11px;color:#999">متبقّى</div><div style="font-weight:800;font-size:15px;color:'+remColor+';direction:ltr">'+remTxt+'</div></div>';
+    html+='</div></div>';
+  });
+  html+='</div></div>';
+  return html;
+}
+
 function showMgr(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('mgr-screen').style.display='block';
@@ -2661,7 +2727,7 @@ function renderMgrDay(j){
 }
 
 function resetToLogin(){
-  ['form-screen','dashboard-screen','mgr-screen'].forEach(id=>document.getElementById(id).style.display='none');
+  ['form-screen','dashboard-screen','mgr-screen','maint-screen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('station-code').value='';
   currentStation=null;faultCount=0;activeComps=[];hmMode={};
