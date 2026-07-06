@@ -382,7 +382,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="section-body">
       <div class="form-group" style="margin-bottom:12px">
         <label><span class="req">*</span> سعر المتر المكعب الحالى (جنيه)</label>
-        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="" oninput="checkSalesTotal()" style="direction:ltr">
+        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" oninput="saveGasPrice(this.value);checkSalesTotal()" style="direction:ltr">
         <div class="validation-msg">إلزامى</div>
       </div>
       <div class="form-grid">
@@ -488,7 +488,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
 
   <div id="validation-summary"></div>
-  <button class="btn-submit" onclick="submitForm()">إرسال بيانات اليوم</button>
+  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم</button>
 </div>
 </div>
 
@@ -620,6 +620,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <th class="mg-h mg-fz1">الكود</th>
           <th class="mg-h mg-fz2">المحطة</th>
           <th class="mg-h">الحالة</th>
+          <th class="mg-h">وقت الإرسال</th>
           <th class="mg-h">مبيعات م³</th>
           <th class="mg-h">KWH/م³</th>
           <th class="mg-h">FR فعلى</th>
@@ -636,6 +637,15 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <button class="btn-mgr export" onclick="exportSheetXlsx('display')">📥 تصدير العرض اليومى (Excel بنفس التنسيق)</button>
   <button class="btn-mgr export" style="background:#1A6B4A" onclick="exportSheetXlsx('comp')">📥 تصدير مقارنة الضواغط (Excel)</button>
   <button class="btn-mgr send" onclick="emailDayReport()">إرسال التقرير للإيميلات</button>
+  <button class="btn-mgr" style="background:#6B21A8;color:#fff" onclick="openHolding()">📊 بيان القابضة (نصف شهري)</button>
+  <div id="holding-panel" style="display:none;background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <label style="font-weight:800;color:#6B21A8">الفترة:</label>
+      <select id="holding-period" class="form-control" style="width:auto;min-width:180px" onchange="loadHolding()"></select>
+      <button onclick="exportHoldingCSV()" style="background:#1A6B4A;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:Cairo;font-weight:800;cursor:pointer">📥 تصدير Excel</button>
+    </div>
+    <div id="holding-content" style="font-size:13px"></div>
+  </div>
   <button class="btn-mgr back" onclick="resetToLogin()">خروج</button>
 </div>
 </div>
@@ -912,6 +922,7 @@ function loadForm(){
   const mb=document.getElementById('meter-b-block');if(mb)mb.style.display=st.meters2?'block':'none';
   window.__stationHasTwo = (st.comps && st.comps.length>1);
   window.__currentStationCode = st.code;
+  loadGasPrice();
   const p2=document.getElementById('press2-block');if(p2)p2.style.display=window.__stationHasTwo?'block':'none';
   const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=window.__stationHasTwo?'block':'none';
   setTimeout(checkOilDup, 300); // فحص الزيت الموحّد بعد بناء بطاقات الضواغط
@@ -1444,6 +1455,16 @@ function calcFlowRate(sales){
   }
 }
 
+// سعر المتر — ثابت لكل المحطات، يتحفظ عند التغيير
+function saveGasPrice(v){ try{ if(v&&parseFloat(v)>0) localStorage.setItem('gastec_gas_price', v); }catch(e){} }
+function loadGasPrice(){
+  try{
+    const el=document.getElementById('f-gas-price');
+    if(!el)return;
+    const saved=localStorage.getItem('gastec_gas_price');
+    el.value = saved || '13'; // افتراضى 13
+  }catch(e){ const el=document.getElementById('f-gas-price'); if(el)el.value='13'; }
+}
 // SALES TOTAL CHECK + استحقاق الصندوق
 function checkSalesTotal(){
   const sales=parseNum(document.getElementById('f-sales')?.value)||0;
@@ -1463,11 +1484,14 @@ function checkSalesTotal(){
   if(sandoqHidden)sandoqHidden.value=sandoq;
   const el=document.getElementById('sales-check');
   if(sales>0&&price>0&&(cash+bonds+sg+sk+truck)>0){
-    const exp=sales*price,act=cash+bonds+sg+sk+truck,diff=Math.abs(exp-act);
-    if(diff<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} جنيه | صندوق: ${sandoq.toFixed(2)} جنيه`;}
-    else{el.className='sales-check err';el.textContent=`⚠ فرق: ${diff.toFixed(2)} جنيه — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)} | صندوق: ${sandoq.toFixed(2)} جنيه`;}
+    const exp=sales*price, act=cash+bonds+sg+sk+truck, diff=act-exp; // موجب = الإيداع أكبر (سليم)
+    window.__salesDiff=diff;
+    if(Math.abs(diff)<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} جنيه | صندوق: ${sandoq.toFixed(2)} جنيه`;}
+    else if(diff>0){el.className='sales-check ok';el.textContent=`✓ الإيداع أكبر بـ ${diff.toFixed(2)} جنيه (مقبول) — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
+    else{el.className='sales-check err';el.textContent=`❌ المبيعات أكبر من الإيداع بـ ${Math.abs(diff).toFixed(2)} جنيه — لا يمكن الإرسال! متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
     el.style.display='block';
   } else {
+    window.__salesDiff=null;
     if(sandoq>0){el.className='sales-check ok';el.textContent=`استحقاق الصندوق: ${sandoq.toFixed(2)} جنيه`;el.style.display='block';}
     else el.style.display='none';
   }
@@ -1988,6 +2012,12 @@ function validateAll(){
 // SUBMIT
 function submitForm(){
   window.__firstErr=null;
+  checkSalesTotal();
+  if(window.__salesDiff!==null && window.__salesDiff < -0.01){
+    alert('❌ لا يمكن الإرسال: المبيعات (× سعر المتر) أكبر من إجمالى الإيداع.\nالمفروض يكون الإيداع مساوياً أو أكبر من قيمة المبيعات.\nراجع الأرقام قبل الإرسال.');
+    document.getElementById('f-cash-int')?.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   const errors=validateAll();
   if(errors.length>0){
     const sum=document.getElementById('validation-summary');
@@ -2088,7 +2118,10 @@ function submitForm(){
     const tyEl=document.getElementById('ft-type-'+fi);
     if(tyEl&&tyEl.value)_types.push(tyEl.options[tyEl.selectedIndex].text);
   }
+  const _sentAt=new Date();
+  const _sentTime=('0'+_sentAt.getHours()).slice(-2)+':'+('0'+_sentAt.getMinutes()).slice(-2);
   const payload={
+    sent_time:_sentTime,
     stop_reason:_types.join(' | '), stop_ar:(_rAr.length?_rAr:_types).join(' | '), stop_en:(_rEn.length?_rEn:_types.map(t=>tryLocalPhrase(t)||t)).join(' | '),
     stop_from:_sF.join(' | '), stop_to:_sT.join(' | '),
     repair_dur:_rD.join(' | '), repair_from:_rF.join(' | '), repair_to:_rT.join(' | '),
@@ -2187,16 +2220,30 @@ function submitForm(){
 
   // إرسال للـ Apps Script
   try{ saveStationDefaults(st.code); }catch(e){}
+  // التحقق الفعلى من الإرسال (بدون no-cors عشان نقرا الرد)
+  const sendBtn=document.getElementById('submit-btn');
+  const oldBtnTxt=sendBtn?sendBtn.textContent:'';
+  if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='⏳ جارى الإرسال والتأكد...';}
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'text/plain'},
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
     body: JSON.stringify(payload)
-  }).then(()=>{
-    console.log('تم الإرسال للشيت');
-  }).catch(err=>{
-    void 0;
-    console.warn('تحذير إرسال:', err);
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(res && res.status==='ok'){
+      // نجاح مؤكد من السيرفر
+      if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
+      window.__sendConfirmed=true;
+    } else {
+      throw new Error(res&&res.msg?res.msg:'رد غير متوقع');
+    }
+  })
+  .catch(err=>{
+    // فشل فعلى (نت مقطوع أو خطأ) — نمنع شاشة النجاح الكاذبة
+    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
+    window.__sendConfirmed=false;
+    alert('⚠️ لم يتم تأكيد الإرسال!\nربما انقطع الإنترنت. تأكد من اتصالك وأعد المحاولة.\nلا تعتمد على شاشة النجاح إلا بعد ظهور تأكيد.\n\nتفاصيل: '+err.message);
   });
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
@@ -2426,19 +2473,73 @@ function exportSheetXlsx(kind){
   const d=document.getElementById('mgr-day')?.value;
   if(!d){alert('اختر اليوم أولاً');return;}
   const st=document.getElementById('mgr-status');
-  st.textContent='⏳ جارى تجهيز ملف يوم '+d+' ... (15-30 ثانية)';
-  fetch(APPS_SCRIPT_URL+'?date='+d)
-    .then(()=>fetch(APPS_SCRIPT_URL+'?action=exportInfo'))
+  st.textContent='⏳ جارى تجهيز الملف ... (15-30 ثانية، من فضلك انتظر)';
+  // 1) نبنى اليوم المطلوب  2) نطلب الملف جاهز base64 من صلاحية المالك
+  fetch(APPS_SCRIPT_URL+'?date='+encodeURIComponent(d))
+    .then(()=>fetch(APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind))
     .then(r=>r.json())
-    .then(info=>{
-      const gid = kind==='comp' ? info.compGid : info.displayGid;
-      if(gid==null){st.textContent='❌ التابة غير موجودة — اعمل بناء أولاً';return;}
-      const url='https://docs.google.com/spreadsheets/d/'+info.id+'/export?format=xlsx&gid='+gid;
-      st.textContent='✅ جارى التنزيل...';
-      window.open(url,'_blank');
-      setTimeout(()=>{st.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');},4000);
+    .then(res=>{
+      if(!res.file){st.textContent='❌ تعذر التجهيز — اعمل عرض أولاً';return;}
+      // نحوّل base64 لملف وننزّله مباشرة
+      const bin=atob(res.file);
+      const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      const label = kind==='comp' ? 'مقارنة_الضواغط' : 'العرض_اليومى';
+      a.download=label+'_'+d+'.xlsx';
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href);},1000);
+      st.textContent='✅ تم التنزيل — راجع مجلد Downloads';
     })
     .catch(e=>{st.textContent='❌ تعذر التصدير: '+e;});
+}
+function openHolding(){
+  const p=document.getElementById('holding-panel');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+  if(p.style.display==='block') loadHolding();
+}
+function loadHolding(){
+  const content=document.getElementById('holding-content');
+  const sel=document.getElementById('holding-period');
+  const period=sel.value||'';
+  content.innerHTML='⏳ جارى التحميل...';
+  fetch(APPS_SCRIPT_URL+'?action=holdingReport&period='+encodeURIComponent(period))
+    .then(r=>r.json())
+    .then(j=>{
+      // عمار قائمة الفترات لو فاضية
+      if(sel.options.length===0 && j.periods){
+        j.periods.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+        if(j.periods.length){sel.value=j.periods[j.periods.length-1];return loadHolding();}
+      }
+      window.__holding=j;
+      let html='<table style="width:100%;border-collapse:collapse"><tr style="background:#6B21A8;color:#fff"><th style="padding:6px">الكود</th><th style="padding:6px;text-align:right">المحطة</th><th style="padding:6px">المبيعات م³</th></tr>';
+      (j.stations||[]).sort((a,b)=>b.sales-a.sales).forEach(s=>{
+        html+='<tr style="border-bottom:1px solid #eee"><td style="padding:5px;text-align:center">'+s.code+'</td><td style="padding:5px;text-align:right">'+s.name+'</td><td style="padding:5px;text-align:center;font-weight:800;direction:ltr">'+s.sales.toLocaleString('en-US',{maximumFractionDigits:2})+'</td></tr>';
+      });
+      html+='<tr style="background:#F3E8FF;font-weight:800"><td colspan="2" style="padding:8px;text-align:center">إجمالى المنطقة</td><td style="padding:8px;text-align:center;color:#6B21A8;direction:ltr;font-size:15px">'+(j.total||0).toLocaleString('en-US',{maximumFractionDigits:2})+' م³</td></tr>';
+      html+='</table>';
+      content.innerHTML = (j.stations&&j.stations.length) ? html : '<div style="color:#888;text-align:center;padding:20px">لا توجد بيانات لهذه الفترة بعد</div>';
+    })
+    .catch(e=>{content.innerHTML='❌ تعذر التحميل: '+e;});
+}
+function exportHoldingCSV(){
+  const j=window.__holding;
+  if(!j||!j.stations||!j.stations.length){alert('لا توجد بيانات');return;}
+  const period=document.getElementById('holding-period').value||'';
+  let csv='\uFEFF';
+  csv+='بيان القابضة — مبيعات المنطقة,'+period+'\n\n';
+  csv+='الكود,المحطة,المبيعات م³\n';
+  j.stations.sort((a,b)=>b.sales-a.sales).forEach(s=>{
+    csv+='"'+s.code+'","'+s.name+'","'+s.sales.toFixed(2)+'"\n';
+  });
+  csv+='"","إجمالى المنطقة","'+(j.total||0).toFixed(2)+'"\n';
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='بيان_القابضة_'+period+'.csv';
+  document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500);
 }
 function emailDayReport(){
   const j=window.__lastDay;
@@ -2474,12 +2575,14 @@ function renderMgrDay(j){
   let html='';
   j.stations.forEach(s=>{
     const status=s.sent?'<span style="color:var(--green);font-weight:800">✔ أرسلت</span>':'<span style="color:var(--red);font-weight:800">✖ لم ترسل</span>';
+    const sentTime=s.sentTime||(s.sent?'—':'');
     const fmt=v=>(v==null||v==='—')?'—':(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:1}):v);
     const devColor=String(s.frDev).startsWith('-')?'color:#9C0006;font-weight:800':'color:#276221;font-weight:800';
     html+='<tr>'+
       '<td class="mg-fz1">'+s.code+'</td>'+
       '<td class="mg-fz2">'+s.name+'</td>'+
       '<td>'+status+'</td>'+
+      '<td style="direction:ltr;font-weight:700;color:#555">'+sentTime+'</td>'+
       '<td style="font-weight:800">'+fmt(s.sales)+'</td>'+
       '<td>'+fmt(s.kwhM3)+'</td>'+
       '<td>'+fmt(s.fr)+'</td>'+
