@@ -2023,7 +2023,8 @@ function showSendBanner(type, msg){
   const styles={
     sending:{bg:'linear-gradient(135deg,#1e3a5f,#2c5282)',icon:'⏳'},
     ok:{bg:'linear-gradient(135deg,#1B5E20,#2E7D32)',icon:'✓'},
-    error:{bg:'linear-gradient(135deg,#8B1A1A,#B71C1C)',icon:'⚠'}
+    error:{bg:'linear-gradient(135deg,#8B1A1A,#B71C1C)',icon:'⚠'},
+    warn:{bg:'linear-gradient(135deg,#B45309,#D97706)',icon:'ℹ'}
   };
   const s=styles[type]||styles.sending;
   b.style.background=s.bg;
@@ -2267,19 +2268,37 @@ function submitForm(){
     showSendBanner('ok','تم إرسال البيان بنجاح وتأكيد وصوله ✓');
     window.__showDash();
   };
+  function _softConfirm(msg){
+    if(_verifyDone)return; _verifyDone=true;
+    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent=oldBtnTxt;}
+    showSendBanner('warn', msg);
+    window.__showDash();
+  }
+  // تحقق سريع بإعادة محاولة: يسأل كل ~900ms، أول ما يلاقيه يعرض النجاح فوراً
+  function _pollVerify(attempt){
+    if(_verifyDone)return;
+    fetch(APPS_SCRIPT_URL+'?action=verify&date='+encodeURIComponent(reqDate)+'&code='+st.code)
+      .then(r=>r.json())
+      .then(v=>{
+        if(_verifyDone)return;
+        if(v&&v.found){ _ok(); }                 // وصل — نجاح فورى
+        else if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 900); } // لسه بيكتب، نعيد
+        else { _fail('لم يصل البيان للسيرفر — تأكد من الإنترنت وأعد الإرسال. (لم يُحفظ شىء)'); }
+      })
+      .catch(()=>{
+        if(_verifyDone)return;
+        if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 900); }
+        else { _softConfirm('تم الإرسال — لكن تعذّر تأكيد الوصول تلقائياً. راجع شاشة المسؤول.'); }
+      });
+  }
   fetch(APPS_SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(payload)
   }).then(()=>{
-    if(sendBtn)sendBtn.textContent='⏳ جارى التأكد من الوصول...';
-    showSendBanner('sending','جارى التأكد من وصول البيان للسيرفر...');
-    setTimeout(()=>{
-      fetch(APPS_SCRIPT_URL+'?action=verify&date='+encodeURIComponent(reqDate)+'&code='+st.code)
-        .then(r=>r.json())
-        .then(v=>{ if(v&&v.found)_ok(); else _fail('لم يصل البيان للسيرفر — تأكد من الإنترنت وأعد الإرسال. (لم يُحفظ شىء)'); })
-        .catch(()=>_fail('تعذّر تأكيد الوصول — تأكد من الإنترنت وأعد الإرسال. (لم يُحفظ شىء)'));
-    }, 2500);
+    if(sendBtn)sendBtn.textContent='⏳ جارى التأكد...';
+    showSendBanner('sending','جارى تأكيد وصول البيان...');
+    setTimeout(()=>_pollVerify(1), 700); // أول محاولة بعد 700ms بس
   }).catch(()=>_fail('فشل الاتصال بالسيرفر — تأكد من الإنترنت وأعد المحاولة. (لم يُحفظ شىء)'));
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
