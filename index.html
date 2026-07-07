@@ -692,16 +692,20 @@ document.addEventListener('DOMContentLoaded',function(){
   },true);
 });
 
+// دمج صحيح + كسر عشرى — الكسر يُقرأ حرفياً كنص (09=.09، 9=.9، 009=.009)
+function joinDec(intId, fracId){
+  const iEl=document.getElementById(intId), fEl=document.getElementById(fracId);
+  const i=parseInt(iEl?.value)||0;
+  let fs=String(fEl?.value==null?'':fEl.value).trim().replace(/[^0-9]/g,'');
+  if(fs===''||parseInt(fs)===0) return i;
+  return parseFloat(i+'.'+fs); // نص خام بعد النقطة يحافظ على الأصفار البادئة
+}
 // قراءة ضغط PLC لضاغط معيّن
 function getInletPLC(idx){
-  const i=parseNum(document.getElementById('pp-int-'+idx)?.value)||0;
-  const f=parseNum(document.getElementById('pp-frac-'+idx)?.value)||0;
-  return f>0?parseFloat(i+'.'+f):i;
+  return joinDec('pp-int-'+idx,'pp-frac-'+idx);
 }
 function getInletMod(idx){
-  const i=parseNum(document.getElementById('pm-int-'+idx)?.value)||0;
-  const f=parseNum(document.getElementById('pm-frac-'+idx)?.value)||0;
-  return f>0?parseFloat(i+'.'+f):i;
+  return joinDec('pm-int-'+idx,'pm-frac-'+idx);
 }
 // ── أدوات الأرقام: قراءة بأمان + فواصل آلاف ──
 function parseNum(v){if(v==null)return 0;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:n;}
@@ -1349,9 +1353,7 @@ function calcLive(){
   const kwhInd = parseNum(document.getElementById('f-kwh-ind')?.value)||0;
   const kwhCom = parseNum(document.getElementById('f-kwh-com')?.value)||0;
   const kvarh  = parseNum(document.getElementById('f-kvarh')?.value)||0;
-  const salesI = parseInt(document.getElementById('f-sales-int')?.value)||0;
-  const salesF = parseInt(document.getElementById('f-sales-frac')?.value)||0;
-  const sales  = salesF>0 ? parseFloat(salesI+'.'+String(salesF).padStart(String(salesF).length,'0')) : salesI;
+  const sales  = joinDec('f-sales-int','f-sales-frac');
 
   // تحديث الحقل المخفى
   const salesHidden = document.getElementById('f-sales');
@@ -1488,9 +1490,7 @@ function loadGasPrice(){
 function checkSalesTotal(){
   const sales=parseNum(document.getElementById('f-sales')?.value)||0;
   const price=parseNum(document.getElementById('f-gas-price')?.value)||0;
-  const cashI=parseInt(document.getElementById('f-cash-int')?.value)||0;
-  const cashF=parseInt(document.getElementById('f-cash-frac')?.value)||0;
-  const cash=cashF>0?parseFloat(cashI+'.'+String(cashF).padStart(2,'0')):cashI;
+  const cash=joinDec('f-cash-int','f-cash-frac');
   const bonds=parseNum(document.getElementById('f-bonds')?.value)||0;
   const sg=parseNum(document.getElementById('f-smart-g')?.value)||0;
   const sk=parseNum(document.getElementById('f-smart-k')?.value)||0;
@@ -1900,18 +1900,14 @@ function updateTotalDT(){
 }
 function validatePositive(el){if(el.value<0)el.value=0;}
 function calcSalesTotal(){
-  const i=parseInt(document.getElementById('f-sales-int')?.value)||0;
-  const f=parseInt(document.getElementById('f-sales-frac')?.value)||0;
-  const total=f>0?parseFloat(i+'.'+String(f).padStart(String(f).length,'0')):i;
+  const total=joinDec('f-sales-int','f-sales-frac');
   const hidden=document.getElementById('f-sales');
   if(hidden)hidden.value=total||0;
   calcLive();
   checkSalesTotal();
 }
 function calcCashTotal(){
-  const i=parseInt(document.getElementById('f-cash-int')?.value)||0;
-  const f=parseInt(document.getElementById('f-cash-frac')?.value)||0;
-  const total=f>0?parseFloat(i+'.'+String(f).padStart(2,'0')):i;
+  const total=joinDec('f-cash-int','f-cash-frac');
   const hidden=document.getElementById('f-cash');
   if(hidden)hidden.value=total;
   checkSalesTotal();
@@ -1928,9 +1924,7 @@ function validateAll(){
   // Date
   if(!document.getElementById('f-date')?.value){errors.push('تاريخ المبيعات');markErr('f-date','إلزامى');}
   // المبيعات — مسموح بالصفر لو المحطة واقفة
-  const salesIntVal=parseInt(document.getElementById('f-sales-int')?.value)||0;
-  const salesFracVal=parseInt(document.getElementById('f-sales-frac')?.value)||0;
-  const totalSales=salesFracVal>0?parseFloat(salesIntVal+'.'+String(salesFracVal)):salesIntVal;
+  const totalSales=joinDec('f-sales-int','f-sales-frac');
   // لو المبيعات فارغة (مش مدخلة خالص) → error
   if(document.getElementById('f-sales-int')?.value===''&&document.getElementById('f-sales-frac')?.value===''){
     errors.push('المبيعات اليومية (أدخل 0 لو المحطة واقفة)');
