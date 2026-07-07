@@ -702,10 +702,18 @@ function joinDec(intId, fracId){
 }
 // قراءة ضغط PLC لضاغط معيّن
 function getInletPLC(idx){
-  return joinDec('pp-int-'+idx,'pp-frac-'+idx);
+  var v = joinDec('pp-int-'+idx,'pp-frac-'+idx);
+  return toBar(v, idx);
 }
 function getInletMod(idx){
-  return joinDec('pm-int-'+idx,'pm-frac-'+idx);
+  var v = joinDec('pm-int-'+idx,'pm-frac-'+idx);
+  return toBar(v, idx);
+}
+// تحويل الضغط لبار لو المشرف اختار PSI (فيصل 29 فقط)
+function toBar(val, idx){
+  var sel = document.getElementById('pressure-unit-'+idx);
+  if(sel && sel.value==='psi') return val / 14.5038; // PSI → بار
+  return val; // بار كما هو
 }
 // ── أدوات الأرقام: قراءة بأمان + فواصل آلاف ──
 function parseNum(v){if(v==null)return 0;const n=parseFloat(String(v).replace(/,/g,''));return isNaN(n)?0:n;}
@@ -1110,7 +1118,13 @@ function buildCompSections(indices){
           <div class="validation-msg">إلزامى</div>
         </div>
         <div class="divider"></div>
-        <div class="sub-title" style="background:#E8F5E9;color:#1B5E20">⚙️ ضغط دخول الغاز — ${compLabel}</div>
+        <div class="sub-title" style="background:#E8F5E9;color:#1B5E20;display:flex;justify-content:space-between;align-items:center">
+          <span>⚙️ ضغط دخول الغاز — ${compLabel}</span>
+          ${window.__currentStationCode==='29'?`<span style="font-size:11px;font-weight:700">الوحدة:
+            <select id="pressure-unit-${idx}" onchange="calcLive()" style="font-family:Cairo;padding:2px 6px;border-radius:6px;border:1px solid #1B5E20;font-weight:700">
+              <option value="bar">بار</option><option value="psi">PSI</option>
+            </select></span>`:''}
+        </div>
         <div class="form-grid">
           <div class="form-group">
             <label><span class="req">*</span> من الموديول (bar)</label>
