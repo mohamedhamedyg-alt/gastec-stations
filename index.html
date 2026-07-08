@@ -576,7 +576,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
 
   <div id="validation-summary"></div>
-  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم (v974)</button>
+  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم</button>
 </div>
 </div>
 
@@ -756,20 +756,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 </div>
 
 <script>
-window.addEventListener('error', function(ev){
-  try {
-    var m = ev.message || (ev.error && ev.error.message) || 'خطأ غير معروف';
-    var banner = document.getElementById('global-err-banner');
-    if(!banner){
-      banner = document.createElement('div');
-      banner.id='global-err-banner';
-      banner.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#B91C1C;color:#fff;padding:10px;font-size:12px;z-index:99999;font-family:Cairo,sans-serif;text-align:center';
-      document.body.appendChild(banner);
-    }
-    banner.textContent = '⚠️ خطأ: ' + m + ' (' + (ev.lineno||'?') + ')';
-  } catch(e){}
-});
-
 // Block non-numeric input on number fields
 document.addEventListener('DOMContentLoaded',function(){
   document.addEventListener('input',function(e){
@@ -2149,7 +2135,8 @@ function validateAll(){
     const c=st.comps[idx];const label=`${c.name} — ${c.model}`;
     const th=getH(idx,'th'),tf=getH(idx,'tf');
     // الساعات مسموح بالصفر لو المحطة واقفة (المبيعات = 0)
-    const stationStopped = totalSales === 0;
+    const _totalSalesV = (document.getElementById('f-has-truck')?.value==='yes') ? (getIndivSalesM3()+getTruckSalesM3()) : joinDec('f-sales-int','f-sales-frac');
+    const stationStopped = _totalSalesV === 0;
     if(!stationStopped){
       if(th<=0){errors.push(`ساعات الضاغط ${label} الكلية`);}
       if(tf<=0){errors.push(`ساعات الضاغط ${label} الفعلية`);}
@@ -2306,7 +2293,6 @@ function niceConfirm(title, body, yesText, noText){
   });
 }
 async function submitForm(){
-  console.log('submitForm بدأت v974');
   window.__firstErr=null;
   checkSalesTotal();
   const isStopped = checkStationStopped();
