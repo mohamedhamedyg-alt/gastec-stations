@@ -2419,7 +2419,7 @@ async function submitForm(){
   const pressModInt=_m0;
 
   // تجميع بيانات التوقفات من كل البطاقات
-  const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[];
+  const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[],_mA=[],_acA=[];
   for(let fi=1;fi<=faultCount;fi++){
     if(!document.getElementById('fault-'+fi))continue;
     const gv=s=>document.getElementById('ft-'+s+'-'+fi)?.value||'';
@@ -2430,6 +2430,8 @@ async function submitForm(){
     const rd=gv('rdur'); if(rd&&rd!=='—'&&rd.indexOf('تحقق')<0)_rD.push(rd);
     const ra=gv('reason'); if(ra)_rAr.push(ra);
     const re=gv('reason-en'); if(re)_rEn.push(re);
+    const ma=gv('maint'); if(ma)_mA.push(ma);
+    const ac=gv('action'); if(ac)_acA.push(ac);
     const tyEl=document.getElementById('ft-type-'+fi);
     if(tyEl&&tyEl.value)_types.push(tyEl.options[tyEl.selectedIndex].text);
   }
@@ -2440,6 +2442,7 @@ async function submitForm(){
     stop_reason:_types.join(' | '), stop_ar:(_rAr.length?_rAr:_types).join(' | '), stop_en:(_rEn.length?_rEn:_types.map(t=>tryLocalPhrase(t)||t)).join(' | '),
     stop_from:_sF.join(' | '), stop_to:_sT.join(' | '),
     repair_dur:_rD.join(' | '), repair_from:_rF.join(' | '), repair_to:_rT.join(' | '),
+    maint_action:_mA.join(' | '), supervisor_action:_acA.join(' | '),
     hoses_stopped: collectHoses().join(', '),
     hoses_count: collectHoses().length,
     kwh_ind_b: parseNum(document.getElementById('f-kwh-ind-b')?.value),
