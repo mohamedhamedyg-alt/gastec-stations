@@ -273,7 +273,32 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <input type="date" class="form-control" id="f-date" style="font-size:14px;font-weight:700;direction:ltr">
         <div class="validation-msg">هذا الحقل إلزامى</div>
       </div>
-      <div class="form-group">
+      <!-- المحطة فيها Truck؟ -->
+      <div class="form-group" style="margin-bottom:12px;background:#F0F9FF;border-radius:8px;padding:10px 12px">
+        <label style="font-weight:800;color:#0369A1">المحطة فيها سيارة ناقلة للغاز المضغوط (Truck)؟</label>
+        <select class="form-control" id="f-has-truck" onchange="onTruckChange()" style="margin-top:4px">
+          <option value="no">لا</option>
+          <option value="yes">نعم</option>
+        </select>
+      </div>
+      <!-- خانات الترك (تظهر لو نعم) -->
+      <div id="truck-fields" style="display:none;background:#F0F9FF;border-radius:8px;padding:12px;margin-bottom:12px">
+        <div class="form-group" style="margin-bottom:10px">
+          <label><span class="req">*</span> مبيعات الأفراد (م³)</label>
+          <input type="number" class="form-control" id="f-indiv-sales" min="0" step="0.01" inputmode="decimal" placeholder="متر مكعب" oninput="calcTruckSales()" style="direction:ltr">
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label><span class="req">*</span> مبيعات الترك — السيارة الناقلة (م³)</label>
+          <input type="number" class="form-control" id="f-truck-sales" min="0" step="0.01" inputmode="decimal" placeholder="متر مكعب" oninput="calcTruckSales()" style="direction:ltr">
+        </div>
+        <div style="background:#0369A1;color:#fff;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:12px;opacity:.9">المبيعات الإجمالية (أفراد + ترك)</div>
+          <div style="font-size:20px;font-weight:800;direction:ltr" id="truck-total-display">0.00</div>
+          <div style="font-size:11px;opacity:.85">م³</div>
+        </div>
+      </div>
+      <!-- إجمالى المبيعات (للمحطات بدون ترك — إدخال يدوى) -->
+      <div class="form-group" id="normal-sales-wrap">
         <label><span class="req">*</span> إجمالى المبيعات (م³)</label>
         <div class="dual-input" style="direction:ltr">
           <input type="number" class="form-control" id="f-sales-int" min="0" max="99999" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center;font-size:16px;font-weight:800" oninput="if(this.value<0)this.value=0;calcSalesTotal()">
@@ -439,22 +464,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <label><span class="req">*</span> سعر المتر المكعب الحالى (جنيه)</label>
         <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" oninput="saveGasPrice(this.value);checkSalesTotal()" style="direction:ltr">
         <div class="validation-msg">إلزامى</div>
-      </div>
-      <!-- يوجد سيارة ناقلة للغاز (Truck)؟ -->
-      <div class="form-group" style="margin-bottom:12px;background:#F0F9FF;border-radius:8px;padding:10px 12px">
-        <label style="font-weight:800;color:#0369A1">هل يوجد سيارة ناقلة للغاز المضغوط (Truck)؟</label>
-        <select class="form-control" id="f-has-truck" onchange="onTruckChange()" style="margin-top:4px">
-          <option value="no">لا</option>
-          <option value="yes">نعم</option>
-        </select>
-      </div>
-      <div id="truck-fields" style="display:none;background:#F0F9FF;border-radius:8px;padding:12px;margin-bottom:12px">
-        <div class="form-group" style="margin-bottom:0">
-          <label><span class="req">*</span> مبيعات السيارة الناقلة (م³)</label>
-          <input type="number" class="form-control" id="f-truck-sales" min="0" step="0.01" inputmode="decimal" placeholder="متر مكعب" oninput="calcTruckBonus();checkSalesTotal()" style="direction:ltr">
-          <div style="font-size:12px;color:#0369A1;margin-top:6px;font-weight:700">بونات الـTruck (تلقائى): <span id="truck-bonus-display" style="direction:ltr;display:inline-block">0.00</span> جنيه</div>
-          <div style="font-size:11px;color:#64748B;margin-top:2px">= مبيعات السيارة الناقلة × سعر المتر — تُضاف تلقائياً للبونات الإجمالية</div>
-        </div>
       </div>
       <div class="form-grid">
         <div class="form-group">
@@ -1583,17 +1592,32 @@ function loadGasPrice(){
 // ══════════ الترك (السيارة الناقلة للغاز المضغوط) ══════════
 function onTruckChange(){
   const has=document.getElementById('f-has-truck')?.value==='yes';
-  const fields=document.getElementById('truck-fields');
-  if(fields) fields.style.display = has ? 'block' : 'none';
-  const hint=document.getElementById('bonds-total-hint');
-  const label=document.getElementById('bonds-label');
-  if(label) label.innerHTML = has ? 'بونات الأفراد (جنيه)' : 'البونات (جنيه)';
-  if(!has){ // لو رجّعها لا، نصفّر بونات الترك
+  const truckFields=document.getElementById('truck-fields');
+  const normalWrap=document.getElementById('normal-sales-wrap');
+  if(truckFields) truckFields.style.display = has ? 'block' : 'none';
+  if(normalWrap) normalWrap.style.display = has ? 'none' : 'block';
+  if(!has){
+    const iv=document.getElementById('f-indiv-sales'); if(iv) iv.value='';
     const ts=document.getElementById('f-truck-sales'); if(ts) ts.value='';
   }
-  calcTruckBonus();
+  calcTruckSales();
+}
+// حساب المبيعات الإجمالية للترك (أفراد + ترك) وتحديث f-sales
+function calcTruckSales(){
+  const has=document.getElementById('f-has-truck')?.value==='yes';
+  if(!has){ checkSalesTotal(); return; }
+  const indiv=parseNum(document.getElementById('f-indiv-sales')?.value)||0;
+  const truck=parseNum(document.getElementById('f-truck-sales')?.value)||0;
+  const total=indiv+truck;
+  const disp=document.getElementById('truck-total-display');
+  if(disp) disp.textContent=total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // نحدّث f-sales المخفى بالإجمالية
+  const hidden=document.getElementById('f-sales');
+  if(hidden) hidden.value=total;
+  calcLive();
   checkSalesTotal();
 }
+// بونات الترك = مبيعات الترك × سعر المتر
 function getTruckBonus(){
   const has=document.getElementById('f-has-truck')?.value==='yes';
   if(!has) return 0;
@@ -1601,42 +1625,31 @@ function getTruckBonus(){
   const price=parseNum(document.getElementById('f-gas-price')?.value)||13;
   return tSales*price;
 }
-function calcTruckBonus(){
-  const bonus=getTruckBonus();
-  const disp=document.getElementById('truck-bonus-display');
-  if(disp) disp.textContent=bonus.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  // نعرض البونات الإجمالية كتلميح
-  const hint=document.getElementById('bonds-total-hint');
+function getTruckSalesM3(){
   const has=document.getElementById('f-has-truck')?.value==='yes';
-  if(hint){
-    if(has){
-      const base=parseNum(document.getElementById('f-bonds')?.value)||0;
-      hint.style.display='block';
-      hint.textContent='البونات الإجمالية (أفراد + ترك): '+(base+bonus).toLocaleString('en-US',{minimumFractionDigits:2})+' جنيه';
-    } else hint.style.display='none';
-  }
+  if(!has) return 0;
+  return parseNum(document.getElementById('f-truck-sales')?.value)||0;
 }
 function checkSalesTotal(){
   const sales=parseNum(document.getElementById('f-sales')?.value)||0;
   const price=parseNum(document.getElementById('f-gas-price')?.value)||0;
   const cash=joinDec('f-cash-int','f-cash-frac');
-  const bondsBase=parseNum(document.getElementById('f-bonds')?.value)||0;
-  const truckBonus=getTruckBonus();
-  const bonds=bondsBase+truckBonus; // البونات الإجمالية = بونات الأفراد + بونات الترك
+  const bonds=parseNum(document.getElementById('f-bonds')?.value)||0;
   const sg=parseNum(document.getElementById('f-smart-g')?.value)||0;
   const sk=parseNum(document.getElementById('f-smart-k')?.value)||0;
-  // استحقاق الصندوق = مبيعات الأفراد (الشاملة − الترك) / 1000 * 100
-  const truckSalesM3=(document.getElementById('f-has-truck')?.value==='yes')?(parseNum(document.getElementById('f-truck-sales')?.value)||0):0;
+  const truckSalesM3=getTruckSalesM3();
+  const truckValue=truckSalesM3*price; // قيمة مبيعات الترك بالجنيه
+  // استحقاق الصندوق = مبيعات الأفراد (الإجمالية − الترك) / 1000 * 100
   const salesIndividual=Math.max(0, sales - truckSalesM3);
   const sandoq=salesIndividual>0?(salesIndividual/1000*100):0;
   const sandoqEl=document.getElementById('f-sandoq-display');
   const sandoqHidden=document.getElementById('f-sandoq');
   if(sandoqEl)sandoqEl.textContent=sandoq>0?sandoq.toFixed(2)+' جنيه':'—';
   if(sandoqHidden)sandoqHidden.value=sandoq;
-  calcTruckBonus();
   const el=document.getElementById('sales-check');
-  if(sales>0&&price>0&&(cash+bonds+sg+sk)>0){
-    const exp=sales*price, act=cash+bonds+sg+sk, diff=act-exp; // موجب = الإيداع أكبر (سليم)
+  if(sales>0&&price>0&&(cash+bonds+sg+sk+truckValue)>0){
+    // الفعلى = نقدى + بونات + سمارت غازتك + سمارت كارجاس + (مبيعات الترك × سعر)
+    const exp=sales*price, act=cash+bonds+sg+sk+truckValue, diff=act-exp;
     window.__salesDiff=diff;
     if(Math.abs(diff)<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} جنيه | صندوق: ${sandoq.toFixed(2)} جنيه`;}
     else if(diff>0){el.className='sales-check ok';el.textContent=`✓ الإيداع أكبر بـ ${diff.toFixed(2)} جنيه (مقبول) — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
@@ -2406,11 +2419,11 @@ async function submitForm(){
     stop_other_note: document.getElementById('f-stop-other-note')?.value||'',
     sales, gas_price: parseNum(document.getElementById('f-gas-price')?.value)||0,
     cash: parseNum(document.getElementById('f-cash')?.value)||0,
-    bonds: (parseNum(document.getElementById('f-bonds')?.value)||0)+getTruckBonus(), // البونات الإجمالية
-    bonds_individual: parseNum(document.getElementById('f-bonds')?.value)||0, // بونات الأفراد فقط
+    bonds: parseNum(document.getElementById('f-bonds')?.value)||0, // بونات الأفراد (البونات العادية)
     has_truck: document.getElementById('f-has-truck')?.value==='yes'?1:0,
-    truck_sales: parseNum(document.getElementById('f-truck-sales')?.value)||0,
-    truck_bonus: getTruckBonus(),
+    truck_sales: getTruckSalesM3(), // مبيعات الترك (م³)
+    individual_sales: (document.getElementById('f-has-truck')?.value==='yes')?(parseNum(document.getElementById('f-indiv-sales')?.value)||0):0, // مبيعات الأفراد (م³)
+    truck_bonus: getTruckBonus(), // قيمة الترك بالجنيه (مبيعات الترك × السعر)
     smart_g: parseNum(document.getElementById('f-smart-g')?.value)||0,
     smart_k: parseNum(document.getElementById('f-smart-k')?.value)||0,
     sandoq: parseNum(document.getElementById('f-sandoq')?.value)||0,
