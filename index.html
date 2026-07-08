@@ -2133,7 +2133,23 @@ function showSendBanner(type, msg){
   }
 }
 
-function submitForm(){
+// نافذة تأكيد أنيقة بدل confirm — ترجع Promise
+function niceConfirm(title, body, yesText, noText){
+  return new Promise(resolve=>{
+    const modal=document.getElementById('confirm-modal');
+    document.getElementById('confirm-modal-title').textContent=title;
+    document.getElementById('confirm-modal-body').innerHTML=body;
+    const yesBtn=document.getElementById('confirm-modal-yes');
+    const noBtn=document.getElementById('confirm-modal-no');
+    if(yesText) yesBtn.textContent=yesText;
+    if(noText) noBtn.textContent=noText;
+    modal.style.display='flex';
+    const cleanup=()=>{modal.style.display='none';yesBtn.onclick=null;noBtn.onclick=null;};
+    yesBtn.onclick=()=>{cleanup();resolve(true);};
+    noBtn.onclick=()=>{cleanup();resolve(false);};
+  });
+}
+async function submitForm(){
   window.__firstErr=null;
   checkSalesTotal();
   const isStopped = checkStationStopped();
@@ -2141,7 +2157,7 @@ function submitForm(){
   if(isStopped){
     // تأكيد التوقف
     if(!window.__stopConfirmed){
-      const ok = confirm('⚠️ المبيعات = صفر.\nهل المحطة متوقفة اليوم؟\n\nاضغط "موافق" لتأكيد التوقف، أو "إلغاء" للرجوع وإدخال المبيعات.');
+      const ok = await niceConfirm('المحطة متوقفة اليوم؟', 'المبيعات = <b>صفر</b>.<br>هل تريد تسجيل المحطة كـ<b>متوقفة</b> اليوم؟<br><span style="font-size:12px;color:#94A3B8">اختر "رجوع" لو نسيت إدخال المبيعات</span>', 'نعم، متوقفة', 'رجوع');
       if(!ok){ document.getElementById('f-sales-int')?.focus(); return; }
       window.__stopConfirmed = true;
     }
@@ -2870,5 +2886,22 @@ function resetToLogin(){
   setTariff('ind');clearVal();
 }
 </script>
+
+  <!-- نافذة التأكيد الأنيقة -->
+  <div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:18px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden;font-family:Cairo,sans-serif">
+      <div id="confirm-modal-head" style="background:linear-gradient(135deg,#B45309,#D97706);color:#fff;padding:18px 20px;text-align:center">
+        <div style="font-size:34px;margin-bottom:4px">⏸️</div>
+        <div id="confirm-modal-title" style="font-size:17px;font-weight:800">المحطة متوقفة؟</div>
+      </div>
+      <div style="padding:20px">
+        <div id="confirm-modal-body" style="font-size:14px;color:#334155;text-align:center;line-height:1.7;margin-bottom:20px"></div>
+        <div style="display:flex;gap:10px">
+          <button id="confirm-modal-yes" style="flex:1;background:linear-gradient(135deg,#B45309,#D97706);color:#fff;border:none;border-radius:12px;padding:13px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer">نعم، متوقفة</button>
+          <button id="confirm-modal-no" style="flex:1;background:#F1F5F9;color:#475569;border:none;border-radius:12px;padding:13px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer">رجوع</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
