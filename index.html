@@ -1625,8 +1625,10 @@ function checkSalesTotal(){
   const bonds=bondsBase+truckBonus; // البونات الإجمالية = بونات الأفراد + بونات الترك
   const sg=parseNum(document.getElementById('f-smart-g')?.value)||0;
   const sk=parseNum(document.getElementById('f-smart-k')?.value)||0;
-  // استحقاق الصندوق = المبيعات / 1000 * 100
-  const sandoq=sales>0?(sales/1000*100):0;
+  // استحقاق الصندوق = مبيعات الأفراد (الشاملة − الترك) / 1000 * 100
+  const truckSalesM3=(document.getElementById('f-has-truck')?.value==='yes')?(parseNum(document.getElementById('f-truck-sales')?.value)||0):0;
+  const salesIndividual=Math.max(0, sales - truckSalesM3);
+  const sandoq=salesIndividual>0?(salesIndividual/1000*100):0;
   const sandoqEl=document.getElementById('f-sandoq-display');
   const sandoqHidden=document.getElementById('f-sandoq');
   if(sandoqEl)sandoqEl.textContent=sandoq>0?sandoq.toFixed(2)+' جنيه':'—';
