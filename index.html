@@ -2801,18 +2801,27 @@ function exportHoldingCSV(){
   const j=window.__holding;
   if(!j||!j.stations||!j.stations.length){alert('لا توجد بيانات');return;}
   const period=document.getElementById('holding-period').value||'';
-  let csv='\uFEFF';
-  csv+='بيان القابضة — مبيعات المنطقة,'+period+'\n\n';
-  csv+='الكود,المحطة,المبيعات م³\n';
-  j.stations.sort((a,b)=>b.sales-a.sales).forEach(s=>{
-    csv+='"'+s.code+'","'+s.name+'","'+s.sales.toFixed(2)+'"\n';
-  });
-  csv+='"","إجمالى المنطقة","'+(j.total||0).toFixed(2)+'"\n';
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='بيان_القابضة_'+period+'.csv';
-  document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500);
+  const content=document.getElementById('holding-content');
+  const oldHtml=content.innerHTML;
+  // مؤشر تحميل بسيط
+  const st=document.querySelector('#holding-panel .holding-exporting');
+  const btn=event&&event.target; if(btn){btn.disabled=true;btn.textContent='⏳ جارى التجهيز...';}
+  fetch(APPS_SCRIPT_URL+'?action=exportHolding&period='+encodeURIComponent(period))
+    .then(r=>r.json())
+    .then(res=>{
+      if(btn){btn.disabled=false;btn.textContent='📥 تصدير Excel';}
+      if(res.error){alert('❌ '+res.error);return;}
+      if(!res.file){alert('❌ تعذر التجهيز');return;}
+      const bin=atob(res.file);
+      const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='بيان_القابضة_'+period+'.xlsx';
+      document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href);},600);
+    })
+    .catch(e=>{ if(btn){btn.disabled=false;btn.textContent='📥 تصدير Excel';} alert('❌ تعذر التصدير: '+e); });
 }
 function emailDayReport(){
   const j=window.__lastDay;
