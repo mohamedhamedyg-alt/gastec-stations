@@ -484,11 +484,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <input type="number" class="form-control" id="f-smart-k" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
           <div class="validation-msg">إلزامى</div>
         </div>
-        <div class="form-group">
-          <label>شاحنة نقل الغاز (جنيه)</label>
-          <input type="number" class="form-control" id="f-truck" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
-          <div class="validation-msg">إلزامى</div>
-        </div>
       </div>
       <!-- استحقاق الصندوق -->
       <div style="background:var(--amber-pale);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between">
@@ -1630,7 +1625,6 @@ function checkSalesTotal(){
   const bonds=bondsBase+truckBonus; // البونات الإجمالية = بونات الأفراد + بونات الترك
   const sg=parseNum(document.getElementById('f-smart-g')?.value)||0;
   const sk=parseNum(document.getElementById('f-smart-k')?.value)||0;
-  const truck=parseNum(document.getElementById('f-truck')?.value)||0;
   // استحقاق الصندوق = المبيعات / 1000 * 100
   const sandoq=sales>0?(sales/1000*100):0;
   const sandoqEl=document.getElementById('f-sandoq-display');
@@ -1639,8 +1633,8 @@ function checkSalesTotal(){
   if(sandoqHidden)sandoqHidden.value=sandoq;
   calcTruckBonus();
   const el=document.getElementById('sales-check');
-  if(sales>0&&price>0&&(cash+bonds+sg+sk+truck)>0){
-    const exp=sales*price, act=cash+bonds+sg+sk+truck, diff=act-exp; // موجب = الإيداع أكبر (سليم)
+  if(sales>0&&price>0&&(cash+bonds+sg+sk)>0){
+    const exp=sales*price, act=cash+bonds+sg+sk, diff=act-exp; // موجب = الإيداع أكبر (سليم)
     window.__salesDiff=diff;
     if(Math.abs(diff)<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} جنيه | صندوق: ${sandoq.toFixed(2)} جنيه`;}
     else if(diff>0){el.className='sales-check ok';el.textContent=`✓ الإيداع أكبر بـ ${diff.toFixed(2)} جنيه (مقبول) — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
@@ -2389,7 +2383,6 @@ async function submitForm(){
     truck_bonus: getTruckBonus(),
     smart_g: parseNum(document.getElementById('f-smart-g')?.value)||0,
     smart_k: parseNum(document.getElementById('f-smart-k')?.value)||0,
-    truck: parseNum(document.getElementById('f-truck')?.value)||0,
     sandoq: parseNum(document.getElementById('f-sandoq')?.value)||0,
     press_mod: _m0,
     press_plc: pressPlcVal,
