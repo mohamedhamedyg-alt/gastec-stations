@@ -275,7 +275,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       </div>
       <!-- المحطة فيها Truck؟ -->
       <div class="form-group" style="margin-bottom:12px;background:#F0F9FF;border-radius:8px;padding:10px 12px">
-        <label style="font-weight:800;color:#0369A1">المحطة فيها سيارة ناقلة للغاز المضغوط (Truck)؟</label>
+        <label style="font-weight:800;color:#0369A1">المحطة فيها Truck (سيارة ناقلة للغاز المضغوط)؟</label>
         <select class="form-control" id="f-has-truck" onchange="onTruckChange()" style="margin-top:4px">
           <option value="no">لا</option>
           <option value="yes">نعم</option>
@@ -293,7 +293,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <div class="dual-label" style="direction:ltr"><span style="text-align:right">الجزء الصحيح</span><span>الكسر (3 أرقام)</span></div>
         </div>
         <div class="form-group" style="margin-bottom:10px">
-          <label><span class="req">*</span> مبيعات الترك — السيارة الناقلة (م³)</label>
+          <label><span class="req">*</span> مبيعات Truck — السيارة الناقلة (م³)</label>
           <div class="dual-input" style="direction:ltr">
             <input type="number" class="form-control" id="f-truck-int" min="0" max="99999" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center;font-size:16px;font-weight:800" oninput="if(this.value<0)this.value=0;calcTruckSales()">
             <div class="sep">.</div>
@@ -302,7 +302,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <div class="dual-label" style="direction:ltr"><span style="text-align:right">الجزء الصحيح</span><span>الكسر (3 أرقام)</span></div>
         </div>
         <div style="background:#0369A1;color:#fff;border-radius:8px;padding:10px;text-align:center">
-          <div style="font-size:12px;opacity:.9">المبيعات الإجمالية (أفراد + ترك)</div>
+          <div style="font-size:12px;opacity:.9">المبيعات الإجمالية (أفراد + Truck)</div>
           <div style="font-size:20px;font-weight:800;direction:ltr" id="truck-total-display">0.00</div>
           <div style="font-size:11px;opacity:.85">م³</div>
         </div>
@@ -1469,7 +1469,9 @@ function calcLive(){
   const kwhInd = parseNum(document.getElementById('f-kwh-ind')?.value)||0;
   const kwhCom = parseNum(document.getElementById('f-kwh-com')?.value)||0;
   const kvarh  = parseNum(document.getElementById('f-kvarh')?.value)||0;
-  const sales  = joinDec('f-sales-int','f-sales-frac');
+  // المبيعات: فى وضع الترك = الإجمالية (أفراد+ترك)، العادى = الخانة العادية
+  const hasTruckLC = document.getElementById('f-has-truck')?.value==='yes';
+  const sales = hasTruckLC ? (getIndivSalesM3()+getTruckSalesM3()) : joinDec('f-sales-int','f-sales-frac');
 
   // تحديث الحقل المخفى
   const salesHidden = document.getElementById('f-sales');
@@ -1628,7 +1630,7 @@ function getTruckSalesM3(){
   if(!has) return 0;
   return joinDec('f-truck-int','f-truck-frac');
 }
-// حساب المبيعات الإجمالية (أفراد + ترك) وتحديث f-sales
+// حساب المبيعات الإجمالية (أفراد + Truck) وتحديث f-sales
 function calcTruckSales(){
   const has=document.getElementById('f-has-truck')?.value==='yes';
   if(!has){ checkSalesTotal(); return; }
@@ -2104,12 +2106,20 @@ function validateAll(){
   // Date
   if(!document.getElementById('f-date')?.value){errors.push('تاريخ المبيعات');markErr('f-date','إلزامى');}
   // المبيعات — مسموح بالصفر لو المحطة واقفة
-  const totalSales=joinDec('f-sales-int','f-sales-frac');
-  // لو المبيعات فارغة (مش مدخلة خالص) → error
-  if(document.getElementById('f-sales-int')?.value===''&&document.getElementById('f-sales-frac')?.value===''){
-    errors.push('المبيعات اليومية (أدخل 0 لو المحطة واقفة)');
-    const errEl=document.getElementById('sales-err');
-    if(errEl)errEl.style.display='block';
+  const hasTruckV=document.getElementById('f-has-truck')?.value==='yes';
+  if(hasTruckV){
+    // فى وضع الترك: نتحقق من خانتى الأفراد والترك
+    const iInt=document.getElementById('f-indiv-int')?.value, iFrac=document.getElementById('f-indiv-frac')?.value;
+    const tInt=document.getElementById('f-truck-int')?.value, tFrac=document.getElementById('f-truck-frac')?.value;
+    if(iInt===''&&iFrac===''){ errors.push('مبيعات الأفراد'); markErr('f-indiv-int','إلزامى'); }
+    if(tInt===''&&tFrac===''){ errors.push('مبيعات Truck'); markErr('f-truck-int','إلزامى'); }
+  } else {
+    // الوضع العادى
+    if(document.getElementById('f-sales-int')?.value===''&&document.getElementById('f-sales-frac')?.value===''){
+      errors.push('المبيعات اليومية (أدخل 0 لو المحطة واقفة)');
+      const errEl=document.getElementById('sales-err');
+      if(errEl)errEl.style.display='block';
+    }
   }
   // Per comp validation
   activeComps.forEach(idx=>{
