@@ -576,7 +576,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
 
   <div id="validation-summary"></div>
-  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم</button>
+  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم (v974)</button>
 </div>
 </div>
 
@@ -2306,6 +2306,7 @@ function niceConfirm(title, body, yesText, noText){
   });
 }
 async function submitForm(){
+  console.log('submitForm بدأت v974');
   window.__firstErr=null;
   checkSalesTotal();
   const isStopped = checkStationStopped();
