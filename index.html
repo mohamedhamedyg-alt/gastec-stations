@@ -737,7 +737,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <tbody id="mgr-table"></tbody>
     </table>
   </div>
-  <button class="btn-mgr export" onclick="exportSheetXlsx('display')">📥 تصدير العرض اليومى (Excel بنفس التنسيق)</button>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+    <button class="btn-mgr export" style="margin-bottom:0;width:auto" onclick="exportSheetXlsx('display')">📥 تحميل ملخص البيان اليومى للمحطات</button>
+    <span id="display-dl-status" style="font-size:12px;color:#1A6B4A;font-weight:700"></span>
+  </div>
   <button class="btn-mgr export" style="background:#1A6B4A" onclick="exportSheetXlsx('comp')">📥 تصدير مقارنة الضواغط (Excel)</button>
   <button class="btn-mgr" style="background:#6B21A8;color:#fff" onclick="openHolding()">📊 بيان القابضة (نصف شهري)</button>
   <div id="holding-panel" style="display:none;background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.1)">
@@ -2856,8 +2859,8 @@ function showMgr(){
 function exportSheetXlsx(kind){
   const d=document.getElementById('mgr-day')?.value;
   if(!d){alert('اختر اليوم أولاً');return;}
-  const st=document.getElementById('mgr-status');
-  st.textContent='⏳ جارى تجهيز الملف ...';
+  const st=(kind==='display') ? document.getElementById('display-dl-status') : document.getElementById('mgr-status');
+  st.textContent='⏳ جارى التحميل...';
   // نداء واحد فقط: التصدير يبنى داخلياً لو محتاج (أسرع)
   fetch(APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind+'&date='+encodeURIComponent(d))
     .then(r=>r.json())
@@ -2871,7 +2874,7 @@ function exportSheetXlsx(kind){
       const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
       const a=document.createElement('a');
       a.href=URL.createObjectURL(blob);
-      const label = kind==='comp' ? 'مقارنة_الضواغط' : 'العرض_اليومى';
+      const label = kind==='comp' ? 'مقارنة_الضواغط' : 'ملخص_البيان_اليومى';
       a.download=label+'_'+d+'.xlsx';
       document.body.appendChild(a); a.click();
       setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href);},1000);
