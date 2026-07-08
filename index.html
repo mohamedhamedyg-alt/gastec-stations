@@ -2419,21 +2419,36 @@ async function submitForm(){
   const pressModInt=_m0;
 
   // تجميع بيانات التوقفات من كل البطاقات
+  // نجمّع كل توقف كوحدة كاملة (سطر لكل توقف — كل الحقول متوازية ولا يُهمل أى توقف)
   const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[],_mA=[],_acA=[];
   for(let fi=1;fi<=faultCount;fi++){
     if(!document.getElementById('fault-'+fi))continue;
     const gv=s=>document.getElementById('ft-'+s+'-'+fi)?.value||'';
     const tmS=p=>{const hh=gv(p+'h');if(!hh)return '';const mm=('0'+(gv(p+'m')||0)).slice(-2);return hh+':'+mm+' '+(gv(p+'a')==='pm'?'م':'ص');};
     const tmR=n=>{const hh=gv('rh'+n);if(!hh)return '';const mm=('0'+(gv('rm'+n)||0)).slice(-2);return hh+':'+mm+' '+(gv('ra'+n)==='pm'?'م':'ص');};
-    const a=tmS('f'),b=tmS('t'),c=tmR(1),d=tmR(2);
-    if(a)_sF.push(a); if(b)_sT.push(b); if(c)_rF.push(c); if(d)_rT.push(d);
-    const rd=gv('rdur'); if(rd&&rd!=='—'&&rd.indexOf('تحقق')<0)_rD.push(rd);
-    const ra=gv('reason'); if(ra)_rAr.push(ra);
-    const re=gv('reason-en'); if(re)_rEn.push(re);
-    const ma=gv('maint'); if(ma)_mA.push(ma);
-    const ac=gv('action'); if(ac)_acA.push(ac);
+    // اسم الضاغط (للربط) — نوع التوقف
     const tyEl=document.getElementById('ft-type-'+fi);
-    if(tyEl&&tyEl.value)_types.push(tyEl.options[tyEl.selectedIndex].text);
+    const compName = (tyEl&&tyEl.value) ? tyEl.options[tyEl.selectedIndex].text : '';
+    const stopReason = gv('stop-reason'); // عطل / صيانة دورية / تفريغ بنزين / أخرى
+    // تفريغ البنزين مرتبط بالمحطة كلها (مش ضاغط)، الباقى مربوط بالضاغط
+    const isStationWide = (stopReason==='تفريغ بنزين');
+    const prefix = isStationWide ? (stopReason) : (compName ? compName : stopReason);
+    // نبنى نص السبب العربى: "الضاغط: التفاصيل" أو "تفريغ بنزين"
+    const raRaw = gv('reason').trim();
+    const arText = isStationWide ? 'تفريغ بنزين' : (prefix + (raRaw ? ': '+raRaw : (stopReason?': '+stopReason:'')));
+    const reRaw = gv('reason-en').trim();
+    const enText = isStationWide ? 'Fuel Discharge' : ((compName||'')+(reRaw?': '+reRaw:''));
+    // كل توقف يدفع عنصر لكل مصفوفة (حتى لو فاضى — نحافظ على التوازى)
+    _sF.push(tmS('f')||'—');
+    _sT.push(tmS('t')||'—');
+    _rF.push(tmR(1)||'—');
+    _rT.push(tmR(2)||'—');
+    const rd=gv('rdur'); _rD.push((rd&&rd!=='—'&&rd.indexOf('تحقق')<0)?rd:'—');
+    _rAr.push(arText||'—');
+    _rEn.push(enText||'—');
+    _mA.push(gv('maint')||'—');
+    _acA.push(gv('action')||'—');
+    _types.push(compName||stopReason||'—');
   }
   const _sentAt=new Date();
   const _sentTime=('0'+_sentAt.getHours()).slice(-2)+':'+('0'+_sentAt.getMinutes()).slice(-2);
