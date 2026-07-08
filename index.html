@@ -285,11 +285,21 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div id="truck-fields" style="display:none;background:#F0F9FF;border-radius:8px;padding:12px;margin-bottom:12px">
         <div class="form-group" style="margin-bottom:10px">
           <label><span class="req">*</span> مبيعات الأفراد (م³)</label>
-          <input type="number" class="form-control" id="f-indiv-sales" min="0" step="0.01" inputmode="decimal" placeholder="متر مكعب" oninput="calcTruckSales()" style="direction:ltr">
+          <div class="dual-input" style="direction:ltr">
+            <input type="number" class="form-control" id="f-indiv-int" min="0" max="99999" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center;font-size:16px;font-weight:800" oninput="if(this.value<0)this.value=0;calcTruckSales()">
+            <div class="sep">.</div>
+            <input type="number" class="form-control" id="f-indiv-frac" min="0" max="999" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center;font-size:16px;font-weight:800;max-width:90px" oninput="if(this.value>999)this.value=999;if(this.value<0)this.value=0;calcTruckSales()">
+          </div>
+          <div class="dual-label" style="direction:ltr"><span style="text-align:right">الجزء الصحيح</span><span>الكسر (3 أرقام)</span></div>
         </div>
         <div class="form-group" style="margin-bottom:10px">
           <label><span class="req">*</span> مبيعات الترك — السيارة الناقلة (م³)</label>
-          <input type="number" class="form-control" id="f-truck-sales" min="0" step="0.01" inputmode="decimal" placeholder="متر مكعب" oninput="calcTruckSales()" style="direction:ltr">
+          <div class="dual-input" style="direction:ltr">
+            <input type="number" class="form-control" id="f-truck-int" min="0" max="99999" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center;font-size:16px;font-weight:800" oninput="if(this.value<0)this.value=0;calcTruckSales()">
+            <div class="sep">.</div>
+            <input type="number" class="form-control" id="f-truck-frac" min="0" max="999" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center;font-size:16px;font-weight:800;max-width:90px" oninput="if(this.value>999)this.value=999;if(this.value<0)this.value=0;calcTruckSales()">
+          </div>
+          <div class="dual-label" style="direction:ltr"><span style="text-align:right">الجزء الصحيح</span><span>الكسر (3 أرقام)</span></div>
         </div>
         <div style="background:#0369A1;color:#fff;border-radius:8px;padding:10px;text-align:center">
           <div style="font-size:12px;opacity:.9">المبيعات الإجمالية (أفراد + ترك)</div>
@@ -371,6 +381,53 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <div id="comps-container"></div>
 
   <!-- ② الكهرباء -->
+  <div class="section-card sec-sales">
+    <div class="section-head"><div class="dot"></div>المبيعات المالية</div>
+    <div class="section-body">
+      <div class="form-group" style="margin-bottom:12px">
+        <label><span class="req">*</span> سعر المتر المكعب الحالى (جنيه)</label>
+        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" oninput="saveGasPrice(this.value);checkSalesTotal()" style="direction:ltr">
+        <div class="validation-msg">إلزامى</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>الإيداع النقدى (جنيه)</label>
+          <div class="dual-input" style="direction:ltr">
+            <input type="number" class="form-control" id="f-cash-int" min="0" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="if(this.value<0)this.value=0;calcCashTotal()">
+            <div class="sep">.</div>
+            <input type="number" class="form-control" id="f-cash-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center;max-width:70px" oninput="if(this.value>99)this.value=99;if(this.value<0)this.value=0;calcCashTotal()">
+          </div>
+          <div class="dual-label" style="direction:ltr"><span style="text-align:right">جنيه</span><span>قرش</span></div>
+          <input type="hidden" id="f-cash" value="0">
+          <div class="validation-msg">إلزامى</div>
+        </div>
+        <div class="form-group">
+          <label id="bonds-label">البونات (جنيه)</label>
+          <input type="number" class="form-control" id="f-bonds" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
+          <div id="bonds-total-hint" style="display:none;font-size:11px;color:#6B21A8;margin-top:4px;font-weight:700"></div>
+          <div class="validation-msg">إلزامى</div>
+        </div>
+        <div class="form-group">
+          <label>سمارت غازتك (جنيه)</label>
+          <input type="number" class="form-control" id="f-smart-g" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
+          <div class="validation-msg">إلزامى</div>
+        </div>
+        <div class="form-group">
+          <label>سمارت كارجاس (جنيه)</label>
+          <input type="number" class="form-control" id="f-smart-k" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
+          <div class="validation-msg">إلزامى</div>
+        </div>
+      </div>
+      <!-- استحقاق الصندوق -->
+      <div style="background:var(--amber-pale);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;font-weight:800;color:var(--amber)">استحقاق الصندوق (10 جنيه / 1000 م³ — أفراد)</span>
+        <span style="font-size:18px;font-weight:800;color:var(--amber);direction:ltr" id="f-sandoq-display">—</span>
+        <input type="hidden" id="f-sandoq" value="0">
+      </div>
+      <div class="sales-check" id="sales-check"></div>
+    </div>
+  </div>
+
   <div class="section-card sec-elec">
     <div class="section-head"><div class="dot"></div>الكهرباء</div>
     <div class="section-body">
@@ -457,52 +514,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
 
   <!-- ⑤ المبيعات المالية -->
-  <div class="section-card sec-sales">
-    <div class="section-head"><div class="dot"></div>المبيعات المالية</div>
-    <div class="section-body">
-      <div class="form-group" style="margin-bottom:12px">
-        <label><span class="req">*</span> سعر المتر المكعب الحالى (جنيه)</label>
-        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" oninput="saveGasPrice(this.value);checkSalesTotal()" style="direction:ltr">
-        <div class="validation-msg">إلزامى</div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>الإيداع النقدى (جنيه)</label>
-          <div class="dual-input" style="direction:ltr">
-            <input type="number" class="form-control" id="f-cash-int" min="0" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="if(this.value<0)this.value=0;calcCashTotal()">
-            <div class="sep">.</div>
-            <input type="number" class="form-control" id="f-cash-frac" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center;max-width:70px" oninput="if(this.value>99)this.value=99;if(this.value<0)this.value=0;calcCashTotal()">
-          </div>
-          <div class="dual-label" style="direction:ltr"><span style="text-align:right">جنيه</span><span>قرش</span></div>
-          <input type="hidden" id="f-cash" value="0">
-          <div class="validation-msg">إلزامى</div>
-        </div>
-        <div class="form-group">
-          <label id="bonds-label">البونات (جنيه)</label>
-          <input type="number" class="form-control" id="f-bonds" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
-          <div id="bonds-total-hint" style="display:none;font-size:11px;color:#6B21A8;margin-top:4px;font-weight:700"></div>
-          <div class="validation-msg">إلزامى</div>
-        </div>
-        <div class="form-group">
-          <label>سمارت غازتك (جنيه)</label>
-          <input type="number" class="form-control" id="f-smart-g" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
-          <div class="validation-msg">إلزامى</div>
-        </div>
-        <div class="form-group">
-          <label>سمارت كارجاس (جنيه)</label>
-          <input type="number" class="form-control" id="f-smart-k" min="0" step="0.01" inputmode="decimal" oninput="checkSalesTotal()" style="direction:ltr">
-          <div class="validation-msg">إلزامى</div>
-        </div>
-      </div>
-      <!-- استحقاق الصندوق -->
-      <div style="background:var(--amber-pale);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:12px;font-weight:800;color:var(--amber)">استحقاق الصندوق (100 جنيه / 1000 م³)</span>
-        <span style="font-size:18px;font-weight:800;color:var(--amber);direction:ltr" id="f-sandoq-display">—</span>
-        <input type="hidden" id="f-sandoq" value="0">
-      </div>
-      <div class="sales-check" id="sales-check"></div>
-    </div>
-  </div>
+
 
   <!-- ⑥ التوقفات -->
   <div class="section-card sec-stop">
@@ -1039,7 +1051,7 @@ function loadForm(){
   loadGasPrice();
   // تصفير الترك (افتراضى: لا)
   const htEl=document.getElementById('f-has-truck'); if(htEl) htEl.value='no';
-  const tsEl=document.getElementById('f-truck-sales'); if(tsEl) tsEl.value='';
+  ['f-indiv-int','f-indiv-frac','f-truck-int','f-truck-frac'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   if(typeof onTruckChange==='function') onTruckChange();
   const p2=document.getElementById('press2-block');if(p2)p2.style.display=window.__stationHasTwo?'block':'none';
   const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=window.__stationHasTwo?'block':'none';
@@ -1597,38 +1609,40 @@ function onTruckChange(){
   if(truckFields) truckFields.style.display = has ? 'block' : 'none';
   if(normalWrap) normalWrap.style.display = has ? 'none' : 'block';
   if(!has){
-    const iv=document.getElementById('f-indiv-sales'); if(iv) iv.value='';
-    const ts=document.getElementById('f-truck-sales'); if(ts) ts.value='';
+    ['f-indiv-int','f-indiv-frac','f-truck-int','f-truck-frac'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   }
   calcTruckSales();
 }
-// حساب المبيعات الإجمالية للترك (أفراد + ترك) وتحديث f-sales
+// مبيعات الأفراد (م³) — من خانتى الترك
+function getIndivSalesM3(){
+  const has=document.getElementById('f-has-truck')?.value==='yes';
+  if(!has) return 0;
+  return joinDec('f-indiv-int','f-indiv-frac');
+}
+// مبيعات الترك (م³)
+function getTruckSalesM3(){
+  const has=document.getElementById('f-has-truck')?.value==='yes';
+  if(!has) return 0;
+  return joinDec('f-truck-int','f-truck-frac');
+}
+// حساب المبيعات الإجمالية (أفراد + ترك) وتحديث f-sales
 function calcTruckSales(){
   const has=document.getElementById('f-has-truck')?.value==='yes';
   if(!has){ checkSalesTotal(); return; }
-  const indiv=parseNum(document.getElementById('f-indiv-sales')?.value)||0;
-  const truck=parseNum(document.getElementById('f-truck-sales')?.value)||0;
+  const indiv=getIndivSalesM3();
+  const truck=getTruckSalesM3();
   const total=indiv+truck;
   const disp=document.getElementById('truck-total-display');
   if(disp) disp.textContent=total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  // نحدّث f-sales المخفى بالإجمالية
   const hidden=document.getElementById('f-sales');
   if(hidden) hidden.value=total;
   calcLive();
   checkSalesTotal();
 }
-// بونات الترك = مبيعات الترك × سعر المتر
+// قيمة الترك بالجنيه (مبيعات الترك × السعر) — للعرض فقط (Bones)
 function getTruckBonus(){
-  const has=document.getElementById('f-has-truck')?.value==='yes';
-  if(!has) return 0;
-  const tSales=parseNum(document.getElementById('f-truck-sales')?.value)||0;
   const price=parseNum(document.getElementById('f-gas-price')?.value)||13;
-  return tSales*price;
-}
-function getTruckSalesM3(){
-  const has=document.getElementById('f-has-truck')?.value==='yes';
-  if(!has) return 0;
-  return parseNum(document.getElementById('f-truck-sales')?.value)||0;
+  return getTruckSalesM3()*price;
 }
 function checkSalesTotal(){
   const sales=parseNum(document.getElementById('f-sales')?.value)||0;
@@ -1637,19 +1651,20 @@ function checkSalesTotal(){
   const bonds=parseNum(document.getElementById('f-bonds')?.value)||0;
   const sg=parseNum(document.getElementById('f-smart-g')?.value)||0;
   const sk=parseNum(document.getElementById('f-smart-k')?.value)||0;
-  const truckSalesM3=getTruckSalesM3();
-  const truckValue=truckSalesM3*price; // قيمة مبيعات الترك بالجنيه
-  // استحقاق الصندوق = مبيعات الأفراد (الإجمالية − الترك) / 1000 * 100
-  const salesIndividual=Math.max(0, sales - truckSalesM3);
-  const sandoq=salesIndividual>0?(salesIndividual/1000*100):0;
+  const hasTruck=document.getElementById('f-has-truck')?.value==='yes';
+  // مبيعات الأفراد: لو ترك = خانة الأفراد، لو لا = المبيعات الإجمالية نفسها
+  const salesIndividual = hasTruck ? getIndivSalesM3() : sales;
+  // استحقاق الصندوق = 10 جنيه لكل 1000 م³ من مبيعات الأفراد فقط
+  const sandoq=salesIndividual>0?(salesIndividual/1000*10):0;
   const sandoqEl=document.getElementById('f-sandoq-display');
   const sandoqHidden=document.getElementById('f-sandoq');
   if(sandoqEl)sandoqEl.textContent=sandoq>0?sandoq.toFixed(2)+' جنيه':'—';
   if(sandoqHidden)sandoqHidden.value=sandoq;
   const el=document.getElementById('sales-check');
-  if(sales>0&&price>0&&(cash+bonds+sg+sk+truckValue)>0){
-    // الفعلى = نقدى + بونات + سمارت غازتك + سمارت كارجاس + (مبيعات الترك × سعر)
-    const exp=sales*price, act=cash+bonds+sg+sk+truckValue, diff=act-exp;
+  if(salesIndividual>0&&price>0&&(cash+bonds+sg+sk)>0){
+    // الفعلى = نقدى + بونات + سمارت غازتك + سمارت كارجاس
+    // المتوقع = مبيعات الأفراد × السعر (الترك خارج التحقق — مبيعات بلا إيداع)
+    const exp=salesIndividual*price, act=cash+bonds+sg+sk, diff=act-exp;
     window.__salesDiff=diff;
     if(Math.abs(diff)<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} جنيه | صندوق: ${sandoq.toFixed(2)} جنيه`;}
     else if(diff>0){el.className='sales-check ok';el.textContent=`✓ الإيداع أكبر بـ ${diff.toFixed(2)} جنيه (مقبول) — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
@@ -2422,7 +2437,7 @@ async function submitForm(){
     bonds: parseNum(document.getElementById('f-bonds')?.value)||0, // بونات الأفراد (البونات العادية)
     has_truck: document.getElementById('f-has-truck')?.value==='yes'?1:0,
     truck_sales: getTruckSalesM3(), // مبيعات الترك (م³)
-    individual_sales: (document.getElementById('f-has-truck')?.value==='yes')?(parseNum(document.getElementById('f-indiv-sales')?.value)||0):0, // مبيعات الأفراد (م³)
+    individual_sales: getIndivSalesM3(), // مبيعات الأفراد (م³)
     truck_bonus: getTruckBonus(), // قيمة الترك بالجنيه (مبيعات الترك × السعر)
     smart_g: parseNum(document.getElementById('f-smart-g')?.value)||0,
     smart_k: parseNum(document.getElementById('f-smart-k')?.value)||0,
