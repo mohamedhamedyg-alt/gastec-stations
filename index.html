@@ -2488,7 +2488,8 @@ async function submitForm(){
   const flowAdj=flow&&adjRefFlow?((flow-adjRefFlow)/adjRefFlow*100):null;
   // Flow rate display
   document.getElementById('d-flow-ref-label').textContent='عند ضغط الدخول المعيارى';
-  const actualLbl=document.getElementById('d-flow-actual-label');if(actualLbl)actualLbl.textContent=pressPlc>0?`عند ضغط الدخول الفعلى (${pressPlc} bar)`:'عند ضغط الدخول الفعلى';
+  const pressPlcShow=pressPlc>0?parseFloat(pressPlc.toFixed(1)):pressPlc; // رقم عشرى واحد
+  const actualLbl=document.getElementById('d-flow-actual-label');if(actualLbl)actualLbl.textContent=pressPlc>0?`عند ضغط الدخول الفعلى (${pressPlcShow} bar)`:'عند ضغط الدخول الفعلى';
   document.getElementById('d-flow-ref-val').textContent=adjRefFlow?fmtEn(adjRefFlow,0):'—';
   document.getElementById('d-flow-actual').textContent=flow?fmtEn(flow,0):'—';
   const flowDevEl=document.getElementById('d-flow-dev-val');
