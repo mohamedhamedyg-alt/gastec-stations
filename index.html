@@ -2179,11 +2179,11 @@ function validateAll(){
     const hasType=document.getElementById('ft-type-'+fid)?.value||'';
     // بطاقة فاضية تماماً (لا فترة ولا سبب ولا نوع) — نتجاهلها
     if(!hasPeriod && !reason && !hasType) return;
-    // لو فيها أى إدخال، الفترة إلزامية
-    if(!hasPeriod){ errors.push('توقف #'+fid+': فترة التوقف (من/إلى)'); markErr('ft-fh-'+fid,'حدد فترة التوقف'); return; }
-    // 1) سبب التوقف إلزامى لأى توقف بفترة
-    if(!reason){ errors.push('توقف #'+fid+': سبب التوقف'); markErr('ft-stop-reason-'+fid,'إلزامى'); return; }
-    // 2) عطل أو صيانة دورية → تفاصيل + إجراء الصيانة (+ فترة الإصلاح لو تم الإصلاح)
+    // (1) الفترة إلزامية — لكن نكمّل باقى الفحوصات (لا نخرج بـ return)
+    if(!hasPeriod){ errors.push('توقف #'+fid+': فترة التوقف (من/إلى)'); markErr('ft-fh-'+fid,'حدد فترة التوقف'); }
+    // (2) سبب التوقف إلزامى
+    if(!reason){ errors.push('توقف #'+fid+': سبب التوقف'); markErr('ft-stop-reason-'+fid,'إلزامى'); }
+    // (3) عطل أو صيانة دورية → تفاصيل + إجراء الصيانة (+ فترة الإصلاح لو تم الإصلاح)
     if(reason==='عطل' || reason==='صيانة دورية'){
       if(!document.getElementById('ft-reason-'+fid)?.value?.trim()){ errors.push('توقف #'+fid+': تفاصيل '+reason); markErr('ft-reason-'+fid,'إلزامى'); }
       if(!document.getElementById('ft-maint-'+fid)?.value?.trim()){ errors.push('توقف #'+fid+': إجراء إدارة الصيانة'); markErr('ft-maint-'+fid,'إلزامى'); }
@@ -2195,8 +2195,6 @@ function validateAll(){
         if(rh1===''||rh2===''||rh1==null||rh2==null){ errors.push('توقف #'+fid+': فترة الإصلاح (تم الإصلاح)'); markErr('ft-rh1-'+fid,'أدخل فترة الإصلاح'); }
       }
     }
-    // 3) تفريغ بنزين → فترة التوقف إلزامية (already ensured hasPeriod، لكن نؤكد)
-    // (فترة التوقف مضمونة بـ hasPeriod)
   });
   return errors;
 }
