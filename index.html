@@ -278,6 +278,51 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
   </div>
 
+  <!-- سبب التوقف (يظهر عند المبيعات = 0) -->
+  <div id="stop-reason-wrap" style="display:none">
+    <div class="section-card" style="border-color:#F59E0B">
+      <div class="section-head" style="background:#FEF3C7;color:#92400E;font-size:13px;font-weight:800"><div class="dot" style="background:#F59E0B"></div>⚠️ المحطة متوقفة اليوم — سبب التوقف</div>
+      <div class="section-body">
+        <div class="form-group">
+          <label><span class="req">*</span> سبب التوقف</label>
+          <select class="form-control" id="f-stop-reason" onchange="onStopReasonChange()">
+            <option value="">— اختر —</option>
+            <option value="عطل">عطل فني</option>
+            <option value="أخرى">أخرى (تطوير / تسويقي / خلافه)</option>
+          </select>
+          <div class="validation-msg" id="stop-reason-err">إلزامى</div>
+        </div>
+        <div id="stop-fault-fields" style="display:none">
+          <div class="form-group">
+            <label><span class="req">*</span> نوع العطل</label>
+            <input type="text" class="form-control" id="f-stop-fault-type" placeholder="مثال: عطل في الضاغط، مشكلة كهرباء...">
+            <div class="validation-msg" id="stop-fault-type-err">إلزامى</div>
+          </div>
+          <div class="form-group">
+            <label><span class="req">*</span> وصف سبب التوقف</label>
+            <textarea class="form-control" id="f-stop-fault-desc" rows="2" placeholder="اشرح سبب التوقف بالتفصيل" style="resize:vertical;font-family:Cairo"></textarea>
+            <div class="validation-msg" id="stop-fault-desc-err">إلزامى</div>
+          </div>
+          <div class="form-group">
+            <label><span class="req">*</span> حالة العطل</label>
+            <select class="form-control" id="f-stop-fault-status">
+              <option value="">— اختر —</option>
+              <option value="قيد الإصلاح">قيد الإصلاح (مستمر)</option>
+              <option value="تم الإصلاح">تم الإصلاح</option>
+            </select>
+            <div class="validation-msg" id="stop-fault-status-err">إلزامى</div>
+          </div>
+        </div>
+        <div id="stop-other-field" style="display:none">
+          <div class="form-group">
+            <label>ملاحظة (اختياري)</label>
+            <input type="text" class="form-control" id="f-stop-other-note" placeholder="سبب التوقف (اختياري)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- اختيار الضاغط الشغال (للمحطات ذات الضاغطين) -->
   <div id="comp-selector-wrap" style="display:none">
     <div class="section-card" style="border-color:var(--blue-light)">
@@ -1381,6 +1426,7 @@ function calcLive(){
   // تحديث الحقل المخفى
   const salesHidden = document.getElementById('f-sales');
   if(salesHidden) salesHidden.value = sales;
+  checkStationStopped();
 
   const lc = document.getElementById('live-calc');
   if(kwhInd<=0 && kwhCom<=0){ lc.className='live-calc'; return; }
@@ -1922,6 +1968,22 @@ function updateTotalDT(){
   if(el)el.value=txt;
 }
 function validatePositive(el){if(el.value<0)el.value=0;}
+function onStopReasonChange(){
+  const r=document.getElementById('f-stop-reason')?.value;
+  const fault=document.getElementById('stop-fault-fields');
+  const other=document.getElementById('stop-other-field');
+  if(fault) fault.style.display = r==='عطل' ? 'block' : 'none';
+  if(other) other.style.display = r==='أخرى' ? 'block' : 'none';
+}
+// إظهار/إخفاء قسم التوقف حسب المبيعات
+function checkStationStopped(){
+  const sales=joinDec('f-sales-int','f-sales-frac');
+  const wrap=document.getElementById('stop-reason-wrap');
+  const isStopped = (sales===0) && (document.getElementById('f-sales-int')?.value!==''||document.getElementById('f-sales-frac')?.value!=='');
+  if(wrap) wrap.style.display = isStopped ? 'block' : 'none';
+  window.__stationStopped = isStopped;
+  return isStopped;
+}
 function calcSalesTotal(){
   const total=joinDec('f-sales-int','f-sales-frac');
   const hidden=document.getElementById('f-sales');
@@ -2074,6 +2136,38 @@ function showSendBanner(type, msg){
 function submitForm(){
   window.__firstErr=null;
   checkSalesTotal();
+  const isStopped = checkStationStopped();
+  // ── محطة متوقفة (مبيعات = 0) ──
+  if(isStopped){
+    // تأكيد التوقف
+    if(!window.__stopConfirmed){
+      const ok = confirm('⚠️ المبيعات = صفر.\nهل المحطة متوقفة اليوم؟\n\nاضغط "موافق" لتأكيد التوقف، أو "إلغاء" للرجوع وإدخال المبيعات.');
+      if(!ok){ document.getElementById('f-sales-int')?.focus(); return; }
+      window.__stopConfirmed = true;
+    }
+    // فحص حقول التوقف
+    const reason = document.getElementById('f-stop-reason')?.value;
+    const stopErrors = [];
+    if(!reason){ stopErrors.push('سبب التوقف'); markErr('f-stop-reason','إلزامى'); }
+    if(reason==='عطل'){
+      if(!document.getElementById('f-stop-fault-type')?.value){ stopErrors.push('نوع العطل'); markErr('f-stop-fault-type','إلزامى'); }
+      if(!document.getElementById('f-stop-fault-desc')?.value){ stopErrors.push('وصف سبب التوقف'); markErr('f-stop-fault-desc','إلزامى'); }
+      if(!document.getElementById('f-stop-fault-status')?.value){ stopErrors.push('حالة العطل'); markErr('f-stop-fault-status','إلزامى'); }
+    }
+    // فحص أساسى: التاريخ + الإيداع فقط
+    if(!document.getElementById('f-date')?.value){ stopErrors.push('تاريخ المبيعات'); markErr('f-date','إلزامى'); }
+    if(stopErrors.length>0){
+      const sum=document.getElementById('validation-summary');
+      sum.innerHTML=`<div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:7px">أكمل بيانات التوقف (${stopErrors.length}):</div>`+stopErrors.map(e=>`<div style="font-size:11px;color:#7F1D1D;padding:2px 0">• ${e}</div>`).join('');
+      sum.style.display='block';
+      sum.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    // متوقفة وكل حقول التوقف مكتملة → تخطّى فحص الفرق والفاليديشن الكامل
+    window.__isStoppedSubmit = true;
+  } else {
+  window.__isStoppedSubmit = false;
+  window.__stopConfirmed = false;
   if(window.__salesDiff!==null && window.__salesDiff < -0.01){
     alert('❌ لا يمكن الإرسال: المبيعات (× سعر المتر) أكبر من إجمالى الإيداع.\nالمفروض يكون الإيداع مساوياً أو أكبر من قيمة المبيعات.\nراجع الأرقام قبل الإرسال.');
     document.getElementById('f-cash-int')?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -2089,6 +2183,7 @@ function submitForm(){
     window.__firstErr=null;
     return;
   }
+  } // نهاية else (محطة شغّالة)
   clearVal();
   const st=currentStation;
   const sales=parseNum(document.getElementById('f-sales').value)||0;
@@ -2195,6 +2290,12 @@ function submitForm(){
 
     date: document.getElementById('f-date')?.value||'',
     code: st.code, name: st.name, region: st.region,
+    is_stopped: window.__isStoppedSubmit ? 1 : 0,
+    stop_reason: window.__isStoppedSubmit ? (document.getElementById('f-stop-reason')?.value||'') : '',
+    stop_fault_type: document.getElementById('f-stop-fault-type')?.value||'',
+    stop_fault_desc: document.getElementById('f-stop-fault-desc')?.value||'',
+    stop_fault_status: document.getElementById('f-stop-fault-status')?.value||'',
+    stop_other_note: document.getElementById('f-stop-other-note')?.value||'',
     sales, gas_price: parseNum(document.getElementById('f-gas-price')?.value)||0,
     cash: parseNum(document.getElementById('f-cash')?.value)||0,
     bonds: parseNum(document.getElementById('f-bonds')?.value)||0,
@@ -2621,7 +2722,8 @@ function exportSheetXlsx(kind){
   fetch(APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind+'&date='+encodeURIComponent(d))
     .then(r=>r.json())
     .then(res=>{
-      if(!res.file){st.textContent='❌ تعذر التجهيز — اعمل عرض أولاً';return;}
+      if(res.error){st.textContent='❌ '+res.error;return;}
+      if(!res.file){st.textContent='❌ تعذر التجهيز — أعد المحاولة بعد لحظات';return;}
       // نحوّل base64 لملف وننزّله مباشرة
       const bin=atob(res.file);
       const bytes=new Uint8Array(bin.length);
@@ -2728,7 +2830,7 @@ function renderMgrDay(j){
   const tb=document.getElementById('mgr-table');
   let html='';
   j.stations.forEach(s=>{
-    const status=s.sent?'<span style="color:var(--green);font-weight:800">✔ أرسلت</span>':'<span style="color:var(--red);font-weight:800">✖ لم ترسل</span>';
+    const status=s.sent?(s.stopped?'<span style="color:#B45309;font-weight:800">⏸ متوقفة</span>':'<span style="color:var(--green);font-weight:800">✔ أرسلت</span>'):'<span style="color:var(--red);font-weight:800">✖ لم ترسل</span>';
     const sentTime=s.sentTime||(s.sent?'—':'');
     const fmt=v=>(v==null||v==='—')?'—':(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:1}):v);
     const devColor=String(s.frDev).startsWith('-')?'color:#9C0006;font-weight:800':'color:#276221;font-weight:800';
