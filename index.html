@@ -361,7 +361,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       </div>
       <!-- استحقاق الصندوق -->
       <div style="background:var(--amber-pale);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:12px;font-weight:800;color:var(--amber)">استحقاق الصندوق (10 جنيه / 1000 م³ — أفراد)</span>
+        <span style="font-size:12px;font-weight:800;color:var(--amber)">استحقاق الصندوق (10 جنيه / 100 م³ — أفراد)</span>
         <span style="font-size:18px;font-weight:800;color:var(--amber);direction:ltr" id="f-sandoq-display">—</span>
         <input type="hidden" id="f-sandoq" value="0">
       </div>
@@ -1659,8 +1659,8 @@ function checkSalesTotal(){
   const hasTruck=document.getElementById('f-has-truck')?.value==='yes';
   // مبيعات الأفراد: لو ترك = خانة الأفراد، لو لا = المبيعات الإجمالية نفسها
   const salesIndividual = hasTruck ? getIndivSalesM3() : sales;
-  // استحقاق الصندوق = 10 جنيه لكل 1000 م³ من مبيعات الأفراد فقط
-  const sandoq=salesIndividual>0?(salesIndividual/1000*10):0;
+  // استحقاق الصندوق = 10 جنيه لكل 100 م³ من مبيعات الأفراد فقط
+  const sandoq=salesIndividual>0?(salesIndividual/100*10):0;
   const sandoqEl=document.getElementById('f-sandoq-display');
   const sandoqHidden=document.getElementById('f-sandoq');
   if(sandoqEl)sandoqEl.textContent=sandoq>0?sandoq.toFixed(2)+' جنيه':'—';
