@@ -43,6 +43,17 @@ body{font-family:'Cairo',sans-serif;background:#EEF3F9;color:var(--gray-dark);mi
 .container{max-width:860px;margin:0 auto;padding:14px 12px 40px}
 /* STATION BAR */
 .station-bar{background:var(--blue-dark);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;color:white}
+.sup-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.sup-tab{flex:1;min-width:90px;white-space:nowrap;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:11px 10px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;color:#64748B;transition:all .15s;text-align:center}
+.sup-tab.active{color:#fff;border-color:transparent}
+.sup-tab[data-tab="daily"].active{background:linear-gradient(135deg,var(--blue-dark),var(--blue-light))}
+.sup-tab[data-tab="fire"].active{background:linear-gradient(135deg,#B91C1C,#DC2626)}
+.sup-tab[data-tab="holding"].active{background:linear-gradient(135deg,#6B21A8,#9333EA)}
+.sup-tab[data-tab="tadamon"].active{background:linear-gradient(135deg,#0369A1,#0EA5E9)}
+.sup-tab-content{display:none}
+.sup-tab-content.active{display:block}
+.back-hub-btn{display:inline-flex;align-items:center;gap:6px;background:#F1F5F9;border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;color:#475569;margin-bottom:14px}
+.back-hub-btn:hover{background:#E2E8F0}
 .s-label{font-size:9px;color:#90B8D8;margin-bottom:2px}
 .s-val{font-size:13px;font-weight:700}
 .s-val.sm{font-size:10px;font-weight:600}
@@ -255,6 +266,33 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
   <div class="safety-alert" id="safety-alert-top"></div>
 
+  <!-- ══════ القائمة الرئيسية (hub) — تظهر أول ما يدخل الكود ══════ -->
+  <div id="sup-hub">
+    <div style="text-align:center;font-size:15px;font-weight:800;color:var(--blue-dark);margin-bottom:14px">اختر القسم المطلوب</div>
+    <div onclick="openSupSection('daily')" style="background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">📋 البيان اليومى</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">إدخال بيانات اليوم — المبيعات والكهرباء والمياه والتوقفات</div>
+    </div>
+    <div onclick="openSupSection('fire')" style="background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">🧯 منظومة الحريق</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">بلاغ أسبوعى (الأحد) عن حالة منظومات مكافحة الحريق</div>
+    </div>
+    <div onclick="openSupSection('holding')" style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">📊 بيان القابضة</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">إجمالى مبيعات محطتك خلال الفترة نصف الشهرية</div>
+    </div>
+    <div onclick="openSupSection('tadamon')" style="background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">⚡ محضر التضامن</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">تسجيل قراءة عداد الكهرباء عند زيارة المندوب</div>
+    </div>
+  </div>
+
+  <!-- ══════ منطقة الأقسام (مخفية حتى يختار من القائمة) ══════ -->
+  <div id="sup-tabs-area" style="display:none">
+
+  <!-- تاب القابضة -->
+  <div class="sup-tab-content" id="tab-holding">
+  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
   <button onclick="toggleMyHolding()" style="width:100%;background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">📊 بيان القابضة لمحطتى (نصف شهرى)</button>
   <div id="my-holding-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
@@ -263,7 +301,11 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
     <div id="my-holding-content" style="font-size:13px"></div>
   </div>
+  </div><!-- /tab-holding -->
 
+  <!-- تاب منظومة الحريق -->
+  <div class="sup-tab-content" id="tab-fire">
+  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
   <!-- زر بيان منظومات الحريق -->
   <button onclick="toggleFireSafety()" style="width:100%;background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">🧯 بيان منظومات الحريق (أسبوعى — الأحد)</button>
   <div id="fire-safety-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #FCA5A5">
@@ -278,7 +320,59 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <button onclick="submitFireSafety()" style="width:100%;background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px">إرسال بيان منظومات الحريق</button>
     <div id="fire-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
   </div>
+  </div><!-- /tab-fire -->
 
+  <!-- تاب محضر التضامن -->
+  <div class="sup-tab-content" id="tab-tadamon">
+  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
+  <!-- زر محضر التضامن (الكهرباء الشهرية) -->
+  <button onclick="toggleTadamon()" style="width:100%;background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">⚡ تسجيل محضر تضامن (قراءة عداد الكهرباء)</button>
+  <div id="tadamon-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #7DD3FC">
+    <div style="background:#F0F9FF;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#075985;font-weight:700">
+      يُسجّل عند زيارة مندوب الكهرباء. النظام يحسب الفترة والاستهلاك والمبيعات و KWH/م³ تلقائياً.
+      <div id="tadamon-type-hint" style="margin-top:4px;font-weight:800"></div>
+    </div>
+    <!-- أول محضر: القراءة السابقة يدوياً -->
+    <div id="tadamon-first" style="display:none;background:#FEF9C3;border-radius:8px;padding:12px;margin-bottom:12px">
+      <div style="font-weight:800;color:#854D0E;font-size:13px;margin-bottom:8px">⚠️ أول محضر لهذه المحطة — أدخل القراءة السابقة مرة واحدة</div>
+      <div class="form-group" style="margin-bottom:8px">
+        <label style="font-size:12px">تاريخ القراءة السابقة</label>
+        <input type="date" class="form-control" id="tadamon-prev-date" style="direction:ltr;font-size:13px">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label style="font-size:12px">قراءة العداد السابقة</label>
+        <input type="number" class="form-control" id="tadamon-prev-reading" min="0" step="0.01" inputmode="decimal" style="direction:ltr;font-size:13px" placeholder="قراءة العداد">
+      </div>
+    </div>
+    <!-- بيانات القراءة الحالية -->
+    <div class="form-group" style="margin-bottom:10px">
+      <label style="font-size:13px"><span class="req">*</span> تاريخ زيارة المندوب</label>
+      <input type="date" class="form-control" id="tadamon-date" style="direction:ltr;font-weight:700" onchange="calcTadamon()">
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label style="font-size:13px"><span class="req">*</span> قراءة العداد الحالية</label>
+      <input type="number" class="form-control" id="tadamon-reading" min="0" step="0.01" inputmode="decimal" style="direction:ltr" placeholder="قراءة العداد" oninput="calcTadamon()">
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label style="font-size:13px">ثابت العداد (المضروب)</label>
+      <input type="number" class="form-control" id="tadamon-factor" min="0" step="0.01" inputmode="decimal" style="direction:ltr" value="1" placeholder="1" oninput="calcTadamon()">
+      <div style="font-size:11px;color:#64748B;margin-top:2px">افتراضى 1. لو العداد له معامل ضرب أدخله هنا.</div>
+    </div>
+    <!-- النتائج المحسوبة -->
+    <div id="tadamon-result" style="display:none;background:#0369A1;color:#fff;border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>الفترة:</span><span id="tad-period" style="font-weight:800">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>عدد الأيام:</span><span id="tad-days" style="font-weight:800">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>الاستهلاك (KWH):</span><span id="tad-cons" style="font-weight:800;direction:ltr">—</span></div>
+    </div>
+    <div style="font-size:11px;color:#64748B;margin-bottom:10px">ملاحظة: المبيعات و KWH/م³ يُحسبان تلقائياً من سجل المبيعات عند الإرسال.</div>
+    <button onclick="submitTadamon()" style="width:100%;background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer">إرسال محضر التضامن</button>
+    <div id="tadamon-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
+  </div>
+  </div><!-- /tab-tadamon -->
+
+  <!-- تاب البيان اليومى -->
+  <div class="sup-tab-content active" id="tab-daily">
+  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
   <!-- ① تاريخ البيان + المبيعات (دائماً أول) -->
   <div class="section-card sec-sales-top">
     <div class="section-head"><div class="dot"></div>تاريخ البيان والمبيعات اليومية</div>
@@ -507,7 +601,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         </div>
       </div>
     </div>
-  </div>
 
   <!-- ③ المياه -->
   <div class="section-card sec-water">
@@ -592,6 +685,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 
   <div id="validation-summary"></div>
   <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم</button>
+  </div><!-- /tab-daily -->
+  </div><!-- /sup-tabs-area -->
 </div>
 </div>
 
@@ -693,6 +788,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <h3>مبيعات الأسبوع (م³)</h3>
     <div class="week-bars" id="week-bars"></div>
   </div>
+  <button onclick="dashboardBackToHub()" style="width:100%;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;margin-top:14px">← رجوع للقائمة الرئيسية</button>
 </div>
 </div>
 
@@ -773,6 +869,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <span id="fire-dl-status" style="font-size:12px;color:#1A6B4A;font-weight:700"></span>
     </div>
     <div id="fire-issues-content" style="font-size:13px"></div>
+  </div>
+  <button class="btn-mgr" style="background:#0369A1;color:#fff" onclick="openTadamon()">⚡ بيان محاضر التضامن (الكهرباء الشهرية)</button>
+  <div id="tadamon-mgr-panel" style="display:none;background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <button onclick="exportTadamonXlsx()" style="background:#1A6B4A;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:Cairo;font-weight:800;cursor:pointer">📥 تحميل بيان المحاضر (Excel)</button>
+      <span id="tadamon-dl-status" style="font-size:12px;color:#1A6B4A;font-weight:700"></span>
+    </div>
+    <div id="tadamon-mgr-content" style="font-size:13px"></div>
   </div>
   <button class="btn-mgr back" onclick="resetToLogin()">خروج</button>
 </div>
@@ -1083,6 +1187,14 @@ function loadForm(){
   const fireItems=document.getElementById('fire-items'); if(fireItems) fireItems.innerHTML='';
   const firePanel=document.getElementById('fire-safety-panel'); if(firePanel) firePanel.style.display='none';
   const fireDate=document.getElementById('fire-date'); if(fireDate) fireDate.value='';
+  // تصفير محضر التضامن
+  const tadPanel=document.getElementById('tadamon-panel'); if(tadPanel) tadPanel.style.display='none';
+  _tadamonPrev=null;
+  ['tadamon-date','tadamon-reading','tadamon-prev-date','tadamon-prev-reading'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const tadFactor=document.getElementById('tadamon-factor'); if(tadFactor) tadFactor.value='1';
+  // نرجّع للقائمة الرئيسية (hub)
+  if(typeof backToHub==='function') backToHub();
+  if(typeof switchSupTab==='function') switchSupTab('daily');
   const p2=document.getElementById('press2-block');if(p2)p2.style.display=window.__stationHasTwo?'block':'none';
   const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=window.__stationHasTwo?'block':'none';
   setTimeout(checkOilDup, 300); // فحص الزيت الموحّد بعد بناء بطاقات الضواغط
@@ -3014,6 +3126,149 @@ function exportHoldingCSV(){
     })
     .catch(e=>{ if(btn){btn.disabled=false;btn.textContent='📥 تصدير Excel';} alert('❌ تعذر التصدير: '+e); });
 }
+// ══════════ تبديل تابات المشرف ══════════
+function switchSupTab(tab){
+  document.querySelectorAll('.sup-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.sup-tab-content').forEach(c=>c.classList.remove('active'));
+  const el=document.getElementById('tab-'+tab);
+  if(el) el.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+// فتح قسم من القائمة الرئيسية
+function openSupSection(tab){
+  const hub=document.getElementById('sup-hub');
+  const area=document.getElementById('sup-tabs-area');
+  if(hub) hub.style.display='none';
+  if(area) area.style.display='block';
+  switchSupTab(tab);
+  // نفتح الأقسام اللى محتاجة تحميل تلقائى
+  if(tab==='holding'){ const p=document.getElementById('my-holding-panel'); if(p&&p.style.display==='none') toggleMyHolding(); }
+  if(tab==='fire'){ const p=document.getElementById('fire-safety-panel'); if(p&&p.style.display==='none') toggleFireSafety(); }
+  if(tab==='tadamon'){ const p=document.getElementById('tadamon-panel'); if(p&&p.style.display==='none') toggleTadamon(); }
+}
+// الرجوع للقائمة الرئيسية
+function backToHub(){
+  const hub=document.getElementById('sup-hub');
+  const area=document.getElementById('sup-tabs-area');
+  if(area) area.style.display='none';
+  if(hub) hub.style.display='block';
+  // نخفى أى شاشة نجاح
+  const ov=document.getElementById('section-success');
+  if(ov) ov.style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+// الرجوع من داشبورد البيان اليومى للقائمة الرئيسية
+function dashboardBackToHub(){
+  document.getElementById('dashboard-screen').style.display='none';
+  document.getElementById('form-screen').style.display='block';
+  backToHub();
+}
+// شاشة نجاح داخل القسم مع زر رجوع
+function showSectionSuccess(tab, msg){
+  let ov=document.getElementById('section-success');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='section-success';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center';
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML='<div style="font-size:60px;margin-bottom:16px">✅</div>'
+    +'<div style="font-size:20px;font-weight:800;color:#166534;margin-bottom:8px">'+msg+'</div>'
+    +'<div style="font-size:13px;color:#64748B;margin-bottom:28px">تم الحفظ بنجاح</div>'
+    +'<button onclick="backToHub()" style="background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:14px 40px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer">← رجوع للقائمة الرئيسية</button>';
+  ov.style.display='flex';
+}
+// ══════════ محضر التضامن (الكهرباء الشهرية) ══════════
+let _tadamonPrev = null; // {date, reading} آخر محضر سابق
+function toggleTadamon(){
+  const p=document.getElementById('tadamon-panel');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+  if(p.style.display==='block'){
+    const st=currentStation;
+    // نحدد نوع القراءة (صناعى/تجارى) حسب التعريفة
+    const t = st?.tariff || tariff;
+    const readType = (t==='com') ? 'التجارى' : 'الصناعى';
+    const hint=document.getElementById('tadamon-type-hint');
+    if(hint) hint.textContent='📊 قراءة العداد المطلوبة لهذه المحطة: '+readType;
+    // تاريخ اليوم افتراضياً
+    const dEl=document.getElementById('tadamon-date');
+    if(dEl && !dEl.value){ const t2=new Date(); dEl.value=t2.getFullYear()+'-'+('0'+(t2.getMonth()+1)).slice(-2)+'-'+('0'+t2.getDate()).slice(-2); }
+    // نجيب آخر محضر سابق
+    loadTadamonPrev();
+  }
+}
+function loadTadamonPrev(){
+  const st=currentStation;
+  if(!st) return;
+  const firstBox=document.getElementById('tadamon-first');
+  fetch(APPS_SCRIPT_URL+'?action=tadamonPrev&code='+encodeURIComponent(st.code))
+    .then(r=>r.json())
+    .then(j=>{
+      if(j.found){
+        _tadamonPrev={date:j.date, reading:parseFloat(j.reading)||0};
+        firstBox.style.display='none'; // مش أول محضر
+      } else {
+        _tadamonPrev=null;
+        firstBox.style.display='block'; // أول محضر — يدخل السابقة يدوياً
+      }
+      calcTadamon();
+    })
+    .catch(()=>{ _tadamonPrev=null; firstBox.style.display='block'; });
+}
+function getTadamonPrev(){
+  // السابقة: من آخر محضر، أو من الإدخال اليدوى (أول محضر)
+  if(_tadamonPrev) return _tadamonPrev;
+  const pd=document.getElementById('tadamon-prev-date')?.value;
+  const pr=parseFloat(document.getElementById('tadamon-prev-reading')?.value)||0;
+  if(pd) return {date:pd, reading:pr};
+  return null;
+}
+function calcTadamon(){
+  const prev=getTadamonPrev();
+  const curDate=document.getElementById('tadamon-date')?.value;
+  const curReading=parseFloat(document.getElementById('tadamon-reading')?.value)||0;
+  const factor=parseFloat(document.getElementById('tadamon-factor')?.value)||1;
+  const resBox=document.getElementById('tadamon-result');
+  if(!prev||!curDate||!curReading){ resBox.style.display='none'; return; }
+  // الفترة والأيام
+  const d1=new Date(prev.date), d2=new Date(curDate);
+  const days=Math.round((d2-d1)/(1000*60*60*24));
+  // الاستهلاك = (الحالية − السابقة) × الثابت
+  const cons=(curReading - prev.reading)*factor;
+  resBox.style.display='block';
+  document.getElementById('tad-period').textContent=prev.date+' ← '+curDate;
+  document.getElementById('tad-days').textContent=days+' يوم';
+  document.getElementById('tad-cons').textContent=cons.toLocaleString('en-US',{maximumFractionDigits:2})+' KWH';
+}
+function submitTadamon(){
+  const st=currentStation;
+  if(!st) return;
+  const statusEl=document.getElementById('tadamon-status');
+  const prev=getTadamonPrev();
+  const curDate=document.getElementById('tadamon-date')?.value;
+  const curReading=parseFloat(document.getElementById('tadamon-reading')?.value)||0;
+  const factor=parseFloat(document.getElementById('tadamon-factor')?.value)||1;
+  if(!prev){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل القراءة السابقة (أول محضر)'; return; }
+  if(!curDate){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل تاريخ الزيارة'; return; }
+  if(!curReading){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل قراءة العداد'; return; }
+  if(curReading<prev.reading){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ القراءة الحالية أقل من السابقة'; return; }
+  const t=st?.tariff||tariff;
+  const readType=(t==='com')?'تجارى':'صناعى';
+  statusEl.style.color='#0369A1'; statusEl.textContent='⏳ جارى الإرسال...';
+  const payload={
+    type:'tadamon',
+    code:st.code, name:st.name, region:st.region,
+    read_type:readType,
+    prev_date:prev.date, prev_reading:prev.reading,
+    cur_date:curDate, cur_reading:curReading,
+    factor:factor
+  };
+  fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
+    .then(()=>{
+      showSectionSuccess('tadamon', 'تم إرسال محضر التضامن بنجاح');
+    })
+    .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
+}
 // ══════════ بيان منظومات الحريق ══════════
 const FIRE_ITEMS = [
   {id:'ext',    label:'الطفايات'},
@@ -3091,9 +3346,7 @@ function submitFireSafety(){
   };
   fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(()=>{
-      statusEl.style.color='#1A6B4A';
-      statusEl.textContent='✅ تم إرسال بيان منظومات الحريق بنجاح';
-      setTimeout(()=>{ document.getElementById('fire-safety-panel').style.display='none'; statusEl.textContent=''; },2500);
+      showSectionSuccess('fire', 'تم إرسال بيان منظومات الحريق بنجاح');
     })
     .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
 }
@@ -3185,6 +3438,70 @@ function renderMgrDay(j){
   buildOilPanel(j.oils||{});
 }
 
+// ══════════ بيان محاضر التضامن (المسؤول) ══════════
+function openTadamon(){
+  const p=document.getElementById('tadamon-mgr-panel');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+  if(p.style.display==='block') loadTadamonMgr();
+}
+function loadTadamonMgr(){
+  const c=document.getElementById('tadamon-mgr-content');
+  c.innerHTML='<div style="text-align:center;padding:30px;color:#0369A1;font-weight:800">⏳ جارى تحميل محاضر التضامن...</div>';
+  fetch(APPS_SCRIPT_URL+'?action=tadamonList')
+    .then(r=>r.json())
+    .then(j=>{
+      const recs=j.records||[];
+      let html='<div style="background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center">';
+      html+='<div style="font-size:15px;font-weight:800">⚡ محاضر التضامن — الكهرباء الشهرية</div>';
+      html+='<div style="font-size:12px;opacity:.9;margin-top:3px">'+recs.length+' محضر</div></div>';
+      if(recs.length===0){
+        html+='<div style="text-align:center;color:#888;padding:40px;font-size:14px">لا توجد محاضر مسجّلة بعد</div>';
+      } else {
+        html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+        html+='<tr style="background:#E0F2FE;font-weight:800">';
+        ['المحطة','التاريخ','الفترة','أيام','الاستهلاك KWH','المبيعات م³','KWH/م³'].forEach(h=>{
+          html+='<th style="padding:7px 6px;border:1px solid #BAE6FD;white-space:nowrap">'+h+'</th>';
+        });
+        html+='</tr>';
+        recs.forEach(r=>{
+          html+='<tr>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;font-weight:700">'+r.name+'<br><span style="color:#999;font-size:10px">'+r.code+' — '+r.region+'</span></td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+r.curDate+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-size:10px">'+r.prevDate+' ←<br>'+r.curDate+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center">'+r.days+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:700">'+Number(r.cons).toLocaleString('en-US',{maximumFractionDigits:1})+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+Number(r.sales).toLocaleString('en-US',{maximumFractionDigits:1})+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:#0369A1">'+Number(r.kwhM3).toFixed(3)+'</td>';
+          html+='</tr>';
+        });
+        html+='</table></div>';
+      }
+      c.innerHTML=html;
+    })
+    .catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+}
+function exportTadamonXlsx(){
+  const st=document.getElementById('tadamon-dl-status');
+  st.textContent='⏳ جارى التحميل...';
+  fetch(APPS_SCRIPT_URL+'?action=exportTadamonXlsx')
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.error){st.textContent='❌ '+res.error;return;}
+      if(!res.file){st.textContent='❌ تعذر التجهيز';return;}
+      const bin=atob(res.file);
+      const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download=res.name||'بيان_محاضر_التضامن.xlsx';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      st.textContent='✅ تم التحميل';
+      setTimeout(()=>{st.textContent='';},2500);
+    })
+    .catch(e=>{st.textContent='❌ تعذر التحميل: '+e;});
+}
 function exportFireXlsx(){
   const st=document.getElementById('fire-dl-status');
   st.textContent='⏳ جارى التحميل...';
