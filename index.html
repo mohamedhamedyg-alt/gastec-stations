@@ -264,6 +264,21 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div id="my-holding-content" style="font-size:13px"></div>
   </div>
 
+  <!-- زر بيان منظومات الحريق -->
+  <button onclick="toggleFireSafety()" style="width:100%;background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">🧯 بيان منظومات الحريق (أسبوعى — الأحد)</button>
+  <div id="fire-safety-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #FCA5A5">
+    <div style="background:#FEF2F2;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#7F1D1D;font-weight:700">
+      يُدخَل أسبوعياً (يوم الأحد) أو عند حدوث أى عطل. لكل بند: سليم أو يوجد عطل مع الوصف والإجراء.
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label><span class="req">*</span> تاريخ البلاغ</label>
+      <input type="date" class="form-control" id="fire-date" style="direction:ltr;font-weight:700">
+    </div>
+    <div id="fire-items"></div>
+    <button onclick="submitFireSafety()" style="width:100%;background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px">إرسال بيان منظومات الحريق</button>
+    <div id="fire-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
+  </div>
+
   <!-- ① تاريخ البيان + المبيعات (دائماً أول) -->
   <div class="section-card sec-sales-top">
     <div class="section-head"><div class="dot"></div>تاريخ البيان والمبيعات اليومية</div>
@@ -751,6 +766,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
     <div id="holding-content" style="font-size:13px"></div>
   </div>
+  <button class="btn-mgr" style="background:#B91C1C;color:#fff" onclick="openFireIssues()">🧯 ملخص أعطال منظومات الحريق بالمنطقة</button>
+  <div id="fire-issues-panel" style="display:none;background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+    <div id="fire-issues-content" style="font-size:13px"></div>
+  </div>
   <button class="btn-mgr back" onclick="resetToLogin()">خروج</button>
 </div>
 </div>
@@ -1056,6 +1075,10 @@ function loadForm(){
   const htEl=document.getElementById('f-has-truck'); if(htEl) htEl.value='no';
   ['f-indiv-int','f-indiv-frac','f-truck-int','f-truck-frac'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   if(typeof onTruckChange==='function') onTruckChange();
+  // تصفير بيان الحريق (يُعاد بناؤه للمحطة الجديدة)
+  const fireItems=document.getElementById('fire-items'); if(fireItems) fireItems.innerHTML='';
+  const firePanel=document.getElementById('fire-safety-panel'); if(firePanel) firePanel.style.display='none';
+  const fireDate=document.getElementById('fire-date'); if(fireDate) fireDate.value='';
   const p2=document.getElementById('press2-block');if(p2)p2.style.display=window.__stationHasTwo?'block':'none';
   const p1t=document.getElementById('press1-title');if(p1t)p1t.style.display=window.__stationHasTwo?'block':'none';
   setTimeout(checkOilDup, 300); // فحص الزيت الموحّد بعد بناء بطاقات الضواغط
@@ -2987,6 +3010,89 @@ function exportHoldingCSV(){
     })
     .catch(e=>{ if(btn){btn.disabled=false;btn.textContent='📥 تصدير Excel';} alert('❌ تعذر التصدير: '+e); });
 }
+// ══════════ بيان منظومات الحريق ══════════
+const FIRE_ITEMS = [
+  {id:'ext',    label:'الطفايات'},
+  {id:'boxes',  label:'صناديق الحريق'},
+  {id:'search', label:'طفايات الفاير سيرش (Fire Search)'},
+  {id:'systems',label:'منظومات الحريق'},
+  {id:'alarm',  label:'أجهزة إنذار الحريق'}
+];
+function toggleFireSafety(){
+  const p=document.getElementById('fire-safety-panel');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+  if(p.style.display==='block'){
+    // تاريخ اليوم افتراضياً
+    const dEl=document.getElementById('fire-date');
+    if(dEl && !dEl.value){ const t=new Date(); dEl.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2); }
+    buildFireItems();
+  }
+}
+function buildFireItems(){
+  const wrap=document.getElementById('fire-items');
+  if(wrap.children.length>0) return; // مبنى بالفعل
+  wrap.innerHTML = FIRE_ITEMS.map(it=>`
+    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:11px;margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:800;font-size:13px;color:#1F2937">${it.label}</span>
+        <select class="form-control" id="fire-${it.id}-status" style="width:auto;min-width:130px;font-size:13px" onchange="onFireStatusChange('${it.id}')">
+          <option value="ok">✅ سليم</option>
+          <option value="fault">⚠️ يوجد عطل</option>
+        </select>
+      </div>
+      <div id="fire-${it.id}-fields" style="display:none;margin-top:9px">
+        <div class="form-group" style="margin-bottom:8px">
+          <label style="font-size:12px">وصف العطل</label>
+          <textarea class="form-control" id="fire-${it.id}-desc" style="min-height:50px;font-size:13px" placeholder="اكتب وصف العطل..."></textarea>
+        </div>
+        <div class="form-group">
+          <label style="font-size:12px">الإجراء المتخذ</label>
+          <textarea class="form-control" id="fire-${it.id}-action" style="min-height:50px;font-size:13px" placeholder="اكتب الإجراء..."></textarea>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function onFireStatusChange(id){
+  const status=document.getElementById('fire-'+id+'-status')?.value;
+  const fields=document.getElementById('fire-'+id+'-fields');
+  if(fields) fields.style.display = status==='fault' ? 'block' : 'none';
+}
+function submitFireSafety(){
+  const st=currentStation;
+  if(!st){ return; }
+  const dateEl=document.getElementById('fire-date');
+  const statusEl=document.getElementById('fire-status');
+  if(!dateEl?.value){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل تاريخ البلاغ'; return; }
+  // نتحقق: أى بند فيه عطل لازم وصف + إجراء
+  const items=[];
+  let faultCount=0, missing=false;
+  FIRE_ITEMS.forEach(it=>{
+    const status=document.getElementById('fire-'+it.id+'-status')?.value||'ok';
+    const desc=document.getElementById('fire-'+it.id+'-desc')?.value?.trim()||'';
+    const action=document.getElementById('fire-'+it.id+'-action')?.value?.trim()||'';
+    if(status==='fault'){
+      faultCount++;
+      if(!desc){ missing=true; }
+    }
+    items.push({id:it.id,label:it.label,status,desc,action});
+  });
+  if(missing){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ كل بند فيه عطل لازم وصف'; return; }
+  statusEl.style.color='#1A6B4A'; statusEl.textContent='⏳ جارى الإرسال...';
+  const payload={
+    type:'fire_safety',
+    date:dateEl.value,
+    code:st.code, name:st.name, region:st.region,
+    fault_count:faultCount,
+    items:JSON.stringify(items)
+  };
+  fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
+    .then(()=>{
+      statusEl.style.color='#1A6B4A';
+      statusEl.textContent='✅ تم إرسال بيان منظومات الحريق بنجاح';
+      setTimeout(()=>{ document.getElementById('fire-safety-panel').style.display='none'; statusEl.textContent=''; },2500);
+    })
+    .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
+}
 function toggleMyHolding(){
   const p=document.getElementById('my-holding-panel');
   p.style.display = p.style.display==='none' ? 'block' : 'none';
@@ -3075,6 +3181,49 @@ function renderMgrDay(j){
   buildOilPanel(j.oils||{});
 }
 
+// ══════════ ملخص أعطال الحريق (المسؤول) ══════════
+function openFireIssues(){
+  const p=document.getElementById('fire-issues-panel');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+  if(p.style.display==='block') loadFireIssues();
+}
+function loadFireIssues(){
+  const c=document.getElementById('fire-issues-content');
+  c.innerHTML='<div style="text-align:center;padding:30px;color:#B91C1C;font-weight:800">⏳ جارى تحميل أعطال الحريق...</div>';
+  fetch(APPS_SCRIPT_URL+'?action=fireIssues')
+    .then(r=>r.json())
+    .then(j=>{
+      const issues=j.issues||[];
+      const stations=j.stations||[];
+      let html='<div style="background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center">';
+      html+='<div style="font-size:15px;font-weight:800">🧯 أعطال منظومات الحريق المفتوحة</div>';
+      html+='<div style="font-size:12px;opacity:.9;margin-top:3px">'+issues.length+' عطل فى '+stations.filter(s=>s.faultCount>0).length+' محطة — بلّغت '+stations.length+' محطة</div></div>';
+      if(issues.length===0){
+        html+='<div style="text-align:center;color:#16A34A;padding:40px;font-size:15px;font-weight:800">✓ لا توجد أعطال حريق مفتوحة<br><span style="font-size:12px;color:#888;font-weight:400">كل المحطات المُبلّغة سليمة</span></div>';
+      } else {
+        // نجمّع حسب المحطة
+        const byStation={};
+        issues.forEach(it=>{ if(!byStation[it.code])byStation[it.code]={name:it.name,region:it.region,date:it.date,list:[]}; byStation[it.code].list.push(it); });
+        html+='<div style="padding:4px">';
+        Object.keys(byStation).forEach(code=>{
+          const s=byStation[code];
+          html+='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:8px 0;overflow:hidden">';
+          html+='<div style="background:#FEF2F2;padding:9px 12px;font-weight:800;color:#7F1D1D;font-size:13px">'+s.name+' <span style="color:#999;font-size:11px">('+code+') — '+s.region+' — '+s.date+'</span></div>';
+          s.list.forEach(it=>{
+            html+='<div style="padding:9px 12px;border-top:1px solid #FEE2E2">';
+            html+='<div style="font-weight:800;font-size:13px;color:#B91C1C">⚠️ '+it.item+'</div>';
+            if(it.desc)html+='<div style="font-size:12px;color:#444;margin-top:3px"><b>الوصف:</b> '+it.desc+'</div>';
+            if(it.action)html+='<div style="font-size:12px;color:#1A6B4A;margin-top:2px"><b>الإجراء:</b> '+it.action+'</div>';
+            html+='</div>';
+          });
+          html+='</div>';
+        });
+        html+='</div>';
+      }
+      c.innerHTML=html;
+    })
+    .catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+}
 function resetToLogin(){
   ['form-screen','dashboard-screen','mgr-screen','maint-screen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('login-screen').style.display='flex';
