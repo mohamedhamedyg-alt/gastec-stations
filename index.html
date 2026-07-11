@@ -768,6 +768,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
   <button class="btn-mgr" style="background:#B91C1C;color:#fff" onclick="openFireIssues()">🧯 ملخص أعطال منظومات الحريق بالمنطقة</button>
   <div id="fire-issues-panel" style="display:none;background:white;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <button onclick="exportFireXlsx()" style="background:#1A6B4A;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:Cairo;font-weight:800;cursor:pointer">📥 تحميل ملخص أعطال الحريق (Excel)</button>
+      <span id="fire-dl-status" style="font-size:12px;color:#1A6B4A;font-weight:700"></span>
+    </div>
     <div id="fire-issues-content" style="font-size:13px"></div>
   </div>
   <button class="btn-mgr back" onclick="resetToLogin()">خروج</button>
@@ -3181,6 +3185,28 @@ function renderMgrDay(j){
   buildOilPanel(j.oils||{});
 }
 
+function exportFireXlsx(){
+  const st=document.getElementById('fire-dl-status');
+  st.textContent='⏳ جارى التحميل...';
+  fetch(APPS_SCRIPT_URL+'?action=exportFireXlsx')
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.error){st.textContent='❌ '+res.error;return;}
+      if(!res.file){st.textContent='❌ تعذر التجهيز';return;}
+      const bin=atob(res.file);
+      const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download=res.name||'ملخص_أعطال_الحريق.xlsx';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      st.textContent='✅ تم التحميل';
+      setTimeout(()=>{st.textContent='';},2500);
+    })
+    .catch(e=>{st.textContent='❌ تعذر التحميل: '+e;});
+}
 // ══════════ ملخص أعطال الحريق (المسؤول) ══════════
 function openFireIssues(){
   const p=document.getElementById('fire-issues-panel');
