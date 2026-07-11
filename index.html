@@ -3201,17 +3201,23 @@ function loadFireIssues(){
       if(issues.length===0){
         html+='<div style="text-align:center;color:#16A34A;padding:40px;font-size:15px;font-weight:800">✓ لا توجد أعطال حريق مفتوحة<br><span style="font-size:12px;color:#888;font-weight:400">كل المحطات المُبلّغة سليمة</span></div>';
       } else {
-        // نجمّع حسب المحطة
-        const byStation={};
-        issues.forEach(it=>{ if(!byStation[it.code])byStation[it.code]={name:it.name,region:it.region,date:it.date,list:[]}; byStation[it.code].list.push(it); });
+        // نجمّع حسب البند (كل بند تحته محطاته)
+        const byItem={};
+        issues.forEach(it=>{ if(!byItem[it.item])byItem[it.item]=[]; byItem[it.item].push(it); });
+        // ترتيب البنود ثابت
+        const itemOrder=['الطفايات','صناديق الحريق','طفايات الفاير سيرش (Fire Search)','منظومات الحريق','أجهزة إنذار الحريق'];
+        const sortedItems=Object.keys(byItem).sort((a,b)=>{
+          const ia=itemOrder.indexOf(a), ib=itemOrder.indexOf(b);
+          return (ia<0?99:ia)-(ib<0?99:ib);
+        });
         html+='<div style="padding:4px">';
-        Object.keys(byStation).forEach(code=>{
-          const s=byStation[code];
-          html+='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:8px 0;overflow:hidden">';
-          html+='<div style="background:#FEF2F2;padding:9px 12px;font-weight:800;color:#7F1D1D;font-size:13px">'+s.name+' <span style="color:#999;font-size:11px">('+code+') — '+s.region+' — '+s.date+'</span></div>';
-          s.list.forEach(it=>{
+        sortedItems.forEach(item=>{
+          const list=byItem[item];
+          html+='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:10px 0;overflow:hidden">';
+          html+='<div style="background:linear-gradient(135deg,#7F1D1D,#B91C1C);color:#fff;padding:10px 12px;font-weight:800;font-size:14px">🧯 '+item+' <span style="opacity:.8;font-size:12px;font-weight:400">('+list.length+' محطة)</span></div>';
+          list.forEach(it=>{
             html+='<div style="padding:9px 12px;border-top:1px solid #FEE2E2">';
-            html+='<div style="font-weight:800;font-size:13px;color:#B91C1C">⚠️ '+it.item+'</div>';
+            html+='<div style="font-weight:800;font-size:13px;color:#1F2937">'+it.name+' <span style="color:#999;font-size:11px">('+it.code+') — '+it.region+' — '+it.date+'</span></div>';
             if(it.desc)html+='<div style="font-size:12px;color:#444;margin-top:3px"><b>الوصف:</b> '+it.desc+'</div>';
             if(it.action)html+='<div style="font-size:12px;color:#1A6B4A;margin-top:2px"><b>الإجراء:</b> '+it.action+'</div>';
             html+='</div>';
