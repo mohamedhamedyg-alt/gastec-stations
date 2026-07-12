@@ -1273,7 +1273,8 @@ function loadForm(){
   ['f-indiv-int','f-indiv-frac','f-truck-int','f-truck-frac'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   if(typeof onTruckChange==='function') onTruckChange();
   // تصفير بيان الحريق (يُعاد بناؤه للمحطة الجديدة)
-  const fireItems=document.getElementById('fire-items'); if(fireItems) fireItems.innerHTML='';
+  const fireItems=document.getElementById('fire-items'); if(fireItems){ fireItems.innerHTML=''; fireItems.dataset.built=''; }
+  fireFaultCounters={ext:0, boxes:0, systems:0, alarm:0};
   const firePanel=document.getElementById('fire-safety-panel'); if(firePanel) firePanel.style.display='none';
   const fireDate=document.getElementById('fire-date'); if(fireDate) fireDate.value='';
   // تصفير محضر التضامن
@@ -3563,83 +3564,218 @@ function submitTadamon(){
     .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
 }
 // ══════════ بيان منظومات الحريق ══════════
-const FIRE_ITEMS = [
-  {id:'ext',    label:'الطفايات'},
-  {id:'boxes',  label:'صناديق الحريق'},
-  {id:'search', label:'طفايات الفاير سيرش (Fire Search)'},
-  {id:'systems',label:'منظومات الحريق'},
-  {id:'alarm',  label:'أجهزة إنذار الحريق'}
-];
+// ══════════ بيان منظومات الحريق التفصيلى ══════════
+// قوائم الأعطال لكل بند
+const FIRE_FAULT_LISTS = {
+  ext: ['انخفاض الضغط','مسمار الأمان مكسور أو مفقود','تيلة الأمان مقطوعة أو غير موجودة','حزام الأسطوانة غير مثبت جيداً','تشقق أو قطع فى الخرطوم','أخرى'],
+  boxes: ['ثقب فى الخرطوم','تشقق أو قطع فى الخرطوم','تلف فى البكرة','القاذف أو الباشبورى مكسور أو به عطل','تسريب من المحبس الخارجى أو عطل به','تسريب من المحبس الداخلى أو عطل به','الجسم الخارجى للصندوق به تآكل أو صدأ','مفصلات الصندوق تالفة','القفل تالف','أخرى'],
+  systems: ['طلمبة الديزل','طلمبة الكهرباء','الطلمبة الجوكى','لوحة تحكم المنظومة','البطاريات','شبكة مياه الحريق الظاهرية','شبكة مياه الحريق المدفونة'],
+  alarm: ['لوحة','كاشف دخان','كاشف حرارة','كاسر يدوى','سارينة']
+};
+const FIRE_EXT_TYPES = ['طفاية بودرة يدوى','طفاية CO2','طفاية Fire Search'];
+// عدّادات الأعطال لكل بند
+let fireFaultCounters = {ext:0, boxes:0, systems:0, alarm:0};
+
 function toggleFireSafety(){
   const p=document.getElementById('fire-safety-panel');
   p.style.display = p.style.display==='none' ? 'block' : 'none';
   if(p.style.display==='block'){
-    // تاريخ اليوم افتراضياً
     const dEl=document.getElementById('fire-date');
     if(dEl && !dEl.value){ const t=new Date(); dEl.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2); }
     buildFireItems();
   }
 }
+const FIRE_ITEMS_DEF = [
+  {id:'ext',     label:'🧯 الطفايات',          oneAction:true},
+  {id:'boxes',   label:'📦 صناديق الحريق',       oneAction:true},
+  {id:'systems', label:'💧 منظومات الحريق',      oneAction:false},
+  {id:'alarm',   label:'🔔 نظام إنذار الحريق',   oneAction:false}
+];
 function buildFireItems(){
   const wrap=document.getElementById('fire-items');
-  if(wrap.children.length>0) return; // مبنى بالفعل
-  wrap.innerHTML = FIRE_ITEMS.map(it=>`
-    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:11px;margin-bottom:9px">
+  if(wrap.dataset.built==='1') return;
+  wrap.dataset.built='1';
+  wrap.innerHTML = FIRE_ITEMS_DEF.map(it=>`
+    <div style="background:#fff;border:1px solid #FCA5A5;border-radius:10px;padding:12px;margin-bottom:11px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <span style="font-weight:800;font-size:13px;color:#1F2937">${it.label}</span>
+        <span style="font-weight:800;font-size:14px;color:#7F1D1D">${it.label}</span>
         <select class="form-control" id="fire-${it.id}-status" style="width:auto;min-width:130px;font-size:13px" onchange="onFireStatusChange('${it.id}')">
           <option value="ok">✅ سليم</option>
           <option value="fault">⚠️ يوجد عطل</option>
         </select>
       </div>
-      <div id="fire-${it.id}-fields" style="display:none;margin-top:9px">
-        <div class="form-group" style="margin-bottom:8px">
-          <label style="font-size:12px">وصف العطل</label>
-          <textarea class="form-control" id="fire-${it.id}-desc" style="min-height:50px;font-size:13px" placeholder="اكتب وصف العطل..."></textarea>
-        </div>
-        <div class="form-group">
-          <label style="font-size:12px">الإجراء المتخذ</label>
-          <textarea class="form-control" id="fire-${it.id}-action" style="min-height:50px;font-size:13px" placeholder="اكتب الإجراء..."></textarea>
-        </div>
+      <div id="fire-${it.id}-fields" style="display:none;margin-top:10px">
+        <div id="fire-${it.id}-faults"></div>
+        <button type="button" onclick="addFireFault('${it.id}')" style="background:#FEE2E2;color:#B91C1C;border:1px dashed #F87171;border-radius:8px;padding:8px 14px;font-family:Cairo;font-weight:800;font-size:12px;cursor:pointer;width:100%;margin-top:4px">➕ أضف عطل</button>
+        ${it.oneAction?`
+        <div class="form-group" style="margin-top:12px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;padding:10px">
+          <label style="font-size:12px;font-weight:800;color:#166534">الإجراء المتخذ (للبند كله)</label>
+          ${fireActionTemplate(it.id)}
+        </div>`:''}
       </div>
     </div>`).join('');
+}
+// نموذج الإجراء الموحّد
+function fireActionTemplate(prefix){
+  return `
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;line-height:2">
+      <span>تم التواصل مع السيد/</span>
+      <input type="text" id="${prefix}-act-person" class="form-control" style="width:120px;display:inline-block;font-size:12px" placeholder="الاسم">
+      <select id="${prefix}-act-partytype" class="form-control" style="width:auto;font-size:12px" onchange="onFirePartyType('${prefix}')">
+        <option value="internal">بإدارة (داخلى)</option>
+        <option value="external">بشركة (خارجى)</option>
+      </select>
+      <input type="text" id="${prefix}-act-party" class="form-control" style="width:140px;display:inline-block;font-size:12px" placeholder="الإدارة/الشركة">
+      <span>تليفونياً بتاريخ</span>
+      <input type="date" id="${prefix}-act-date" class="form-control" style="width:150px;display:inline-block;font-size:12px;direction:ltr">
+      <span>وتم الترتيب على</span>
+      <input type="text" id="${prefix}-act-arrange" class="form-control" style="width:150px;display:inline-block;font-size:12px" placeholder="ما تم الترتيب عليه">
+      <span>وجارى المتابعة.</span>
+    </div>`;
+}
+function onFirePartyType(prefix){
+  const t=document.getElementById(prefix+'-act-partytype')?.value;
+  const el=document.getElementById(prefix+'-act-party');
+  if(el) el.placeholder = t==='external' ? 'اسم الشركة' : 'اسم الإدارة';
 }
 function onFireStatusChange(id){
   const status=document.getElementById('fire-'+id+'-status')?.value;
   const fields=document.getElementById('fire-'+id+'-fields');
   if(fields) fields.style.display = status==='fault' ? 'block' : 'none';
+  // أول عطل تلقائياً
+  if(status==='fault'){
+    const faultsWrap=document.getElementById('fire-'+id+'-faults');
+    if(faultsWrap && faultsWrap.children.length===0) addFireFault(id);
+  }
+}
+// إضافة عطل لبند
+function addFireFault(itemId){
+  const wrap=document.getElementById('fire-'+itemId+'-faults');
+  if(!wrap) return;
+  const n=++fireFaultCounters[itemId];
+  const fid=itemId+'-f'+n;
+  const def=FIRE_ITEMS_DEF.find(x=>x.id===itemId);
+  const faultOpts=FIRE_FAULT_LISTS[itemId].map(f=>`<option value="${f}">${f}</option>`).join('');
+  let inner='';
+  // الطفايات: النوع + البيانات
+  if(itemId==='ext'){
+    inner=`
+      <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">نوع الطفاية</label>
+        <select class="form-control" id="${fid}-exttype" style="font-size:12px">${FIRE_EXT_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">السعة (كجم)</label><input type="text" class="form-control" id="${fid}-cap" style="font-size:12px;direction:ltr"></div>
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">الماركة</label><input type="text" class="form-control" id="${fid}-brand" style="font-size:12px"></div>
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">رقم الجهاز</label><input type="text" class="form-control" id="${fid}-serial" style="font-size:12px;direction:ltr"></div>
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">سنة الصنع</label><input type="text" class="form-control" id="${fid}-year" style="font-size:12px;direction:ltr"></div>
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">رقم الطفاية</label><input type="text" class="form-control" id="${fid}-num" style="font-size:12px;direction:ltr"></div>
+      </div>`;
+  }
+  // صناديق الحريق: البيانات
+  if(itemId==='boxes'){
+    inner=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">رقم الصندوق</label><input type="text" class="form-control" id="${fid}-num" style="font-size:12px;direction:ltr"></div>
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">السعة (بوصة)</label><input type="text" class="form-control" id="${fid}-cap" style="font-size:12px;direction:ltr"></div>
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">الماركة</label><input type="text" class="form-control" id="${fid}-brand" style="font-size:12px"></div>
+        <div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">سنة الصنع</label><input type="text" class="form-control" id="${fid}-year" style="font-size:12px;direction:ltr"></div>
+      </div>`;
+  }
+  // العطل (قائمة)
+  inner+=`<div class="form-group" style="margin-bottom:7px"><label style="font-size:11px">العطل</label>
+    <select class="form-control" id="${fid}-fault" style="font-size:12px" onchange="onFireFaultChange('${itemId}','${fid}')">${faultOpts}</select></div>`;
+  // خانة نص (لأخرى/طلمبة/شبكة/إنذار)
+  inner+=`<div class="form-group" id="${fid}-textwrap" style="margin-bottom:7px;display:none"><label style="font-size:11px" id="${fid}-textlabel">تفاصيل</label>
+    <textarea class="form-control" id="${fid}-text" style="min-height:44px;font-size:12px"></textarea></div>`;
+  // خانة المكان (للشبكة)
+  inner+=`<div class="form-group" id="${fid}-placewrap" style="margin-bottom:7px;display:none"><label style="font-size:11px">المكان تفصيلاً</label>
+    <textarea class="form-control" id="${fid}-place" style="min-height:44px;font-size:12px" placeholder="حدد مكان التسريب تفصيلاً"></textarea></div>`;
+  // إجراء لكل عطل (للمنظومات والإنذار فقط)
+  if(!def.oneAction){
+    inner+=`<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;padding:9px;margin-top:6px">
+      <label style="font-size:11px;font-weight:800;color:#166534">الإجراء المتخذ</label>${fireActionTemplate(fid)}</div>`;
+  }
+  const div=document.createElement('div');
+  div.id=fid+'-box';
+  div.style.cssText='border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:8px;background:#FAFAFA';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+    <span style="font-weight:800;font-size:12px;color:#7F1D1D">عطل ${n}</span>
+    <button type="button" onclick="removeFireFault('${fid}')" style="background:#FEE2E2;color:#B91C1C;border:none;border-radius:6px;padding:3px 10px;font-family:Cairo;font-weight:800;font-size:11px;cursor:pointer">حذف</button>
+  </div>${inner}`;
+  wrap.appendChild(div);
+  onFireFaultChange(itemId, fid); // ضبط الخانات النصية
+}
+function removeFireFault(fid){
+  const box=document.getElementById(fid+'-box');
+  if(box) box.remove();
+}
+// عند تغيير العطل — نظهر/نخفى الخانات النصية
+function onFireFaultChange(itemId, fid){
+  const fault=document.getElementById(fid+'-fault')?.value||'';
+  const textWrap=document.getElementById(fid+'-textwrap');
+  const textLabel=document.getElementById(fid+'-textlabel');
+  const placeWrap=document.getElementById(fid+'-placewrap');
+  let showText=false, showPlace=false, textLabelTxt='تفاصيل';
+  if(itemId==='ext' || itemId==='boxes'){
+    if(fault==='أخرى'){ showText=true; textLabelTxt='وصف العطل'; }
+  } else if(itemId==='systems'){
+    // طلمبات/لوحة/بطاريات → نص، شبكة → تسريب + مكان
+    if(fault.indexOf('شبكة')>=0){ showPlace=true; }
+    else { showText=true; textLabelTxt='تفاصيل العطل'; }
+  } else if(itemId==='alarm'){
+    showText=true; textLabelTxt='تفاصيل العطل';
+  }
+  if(textWrap) textWrap.style.display=showText?'block':'none';
+  if(textLabel) textLabel.textContent=textLabelTxt;
+  if(placeWrap) placeWrap.style.display=showPlace?'block':'none';
+}
+// جمع الإجراء من الحقول
+function collectFireAction(prefix){
+  const g=id=>document.getElementById(prefix+'-'+id)?.value?.trim()||'';
+  const person=g('act-person'), partyType=document.getElementById(prefix+'-act-partytype')?.value||'internal';
+  const party=g('act-party'), date=g('act-date'), arrange=g('act-arrange');
+  if(!person && !party && !date && !arrange) return '';
+  const partyLabel = partyType==='external' ? ('بشركة '+party) : ('بإدارة '+party);
+  return 'تم التواصل مع السيد/ '+person+' '+partyLabel+' تليفونياً بتاريخ '+date+' وتم الترتيب على '+arrange+' وجارى المتابعة';
 }
 function submitFireSafety(){
   const st=currentStation;
-  if(!st){ return; }
+  if(!st) return;
   const dateEl=document.getElementById('fire-date');
   const statusEl=document.getElementById('fire-status');
   if(!dateEl?.value){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل تاريخ البلاغ'; return; }
-  // نتحقق: أى بند فيه عطل لازم وصف + إجراء
-  const items=[];
-  let faultCount=0, missing=false;
-  FIRE_ITEMS.forEach(it=>{
-    const status=document.getElementById('fire-'+it.id+'-status')?.value||'ok';
-    const desc=document.getElementById('fire-'+it.id+'-desc')?.value?.trim()||'';
-    const action=document.getElementById('fire-'+it.id+'-action')?.value?.trim()||'';
+  const items=[]; let faultCount=0, missing=false;
+  FIRE_ITEMS_DEF.forEach(def=>{
+    const status=document.getElementById('fire-'+def.id+'-status')?.value||'ok';
+    const item={id:def.id, label:def.label, status, faults:[], action:''};
     if(status==='fault'){
-      faultCount++;
-      if(!desc){ missing=true; }
+      const wrap=document.getElementById('fire-'+def.id+'-faults');
+      const boxes=wrap?wrap.querySelectorAll('[id$="-box"]'):[];
+      boxes.forEach(box=>{
+        const fid=box.id.replace('-box','');
+        const g=id=>document.getElementById(fid+'-'+id)?.value?.trim()||'';
+        const fault=g('fault');
+        if(!fault) return;
+        faultCount++;
+        const f={fault};
+        if(def.id==='ext'){ f.extType=g('exttype'); f.cap=g('cap'); f.brand=g('brand'); f.serial=g('serial'); f.year=g('year'); f.num=g('num'); }
+        if(def.id==='boxes'){ f.num=g('num'); f.cap=g('cap'); f.brand=g('brand'); f.year=g('year'); }
+        const textEl=document.getElementById(fid+'-text'); if(textEl && textEl.closest('.form-group').style.display!=='none') f.text=textEl.value.trim();
+        const placeEl=document.getElementById(fid+'-place'); if(placeEl && placeEl.closest('.form-group').style.display!=='none') f.place=placeEl.value.trim();
+        // إجراء لكل عطل (منظومات/إنذار)
+        if(!def.oneAction){ f.action=collectFireAction(fid); }
+        item.faults.push(f);
+      });
+      if(item.faults.length===0) missing=true;
+      // إجراء واحد للبند (طفايات/صناديق)
+      if(def.oneAction){ item.action=collectFireAction(def.id); }
     }
-    items.push({id:it.id,label:it.label,status,desc,action});
+    items.push(item);
   });
-  if(missing){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ كل بند فيه عطل لازم وصف'; return; }
+  if(missing){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ كل بند فيه عطل لازم تحدد عطل واحد على الأقل'; return; }
   statusEl.style.color='#1A6B4A'; statusEl.textContent='⏳ جارى الإرسال...';
-  const payload={
-    type:'fire_safety',
-    date:dateEl.value,
-    code:st.code, name:st.name, region:st.region,
-    fault_count:faultCount,
-    items:JSON.stringify(items)
-  };
+  const payload={ type:'fire_safety', date:dateEl.value, code:st.code, name:st.name, region:st.region, fault_count:faultCount, items:JSON.stringify(items) };
   fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(()=>{
-      // تأكيد الإرسال قبل رسالة النجاح (نفس آلية البيان اليومى)
       let done=false;
       function pollFire(attempt){
         fetch(APPS_SCRIPT_URL+'?action=verifyFire&date='+encodeURIComponent(dateEl.value)+'&code='+st.code)
