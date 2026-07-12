@@ -4061,7 +4061,6 @@ function loadFireIssues(){
         // نجمّع حسب البند (جدول منفصل لكل بند)
         const byItem={};
         issues.forEach(it=>{ if(!byItem[it.item])byItem[it.item]=[]; byItem[it.item].push(it); });
-        // ترتيب البنود ثابت (بالإيموجى زى الإدخال)
         const itemOrder=['🧯 الطفايات','📦 صناديق الحريق','💧 منظومة مكافحة الحريق بالمياه','🌫️ منظومة الغمر الكلى','🔔 نظام إنذار الحريق'];
         const sortedItems=Object.keys(byItem).sort((a,b)=>{
           const ia=itemOrder.indexOf(a), ib=itemOrder.indexOf(b);
@@ -4069,26 +4068,90 @@ function loadFireIssues(){
         });
         html+='<div style="padding:4px">';
         sortedItems.forEach(item=>{
-          const list=byItem[item];
-          html+='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:12px 0;overflow:hidden">';
-          html+='<div style="background:linear-gradient(135deg,#7F1D1D,#B91C1C);color:#fff;padding:10px 12px;font-weight:800;font-size:14px">'+item+' <span style="opacity:.8;font-size:12px;font-weight:400">('+list.length+' عطل)</span></div>';
-          html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
-          html+='<tr style="background:#FEE2E2;font-weight:800"><th style="padding:7px 6px;border:1px solid #FCA5A5;white-space:nowrap">المحطة</th><th style="padding:7px 6px;border:1px solid #FCA5A5">تفاصيل العطل</th><th style="padding:7px 6px;border:1px solid #FCA5A5">الإجراء المتخذ</th><th style="padding:7px 6px;border:1px solid #FCA5A5;white-space:nowrap">التاريخ</th></tr>';
-          list.forEach(it=>{
-            html+='<tr>';
-            html+='<td style="padding:6px;border:1px solid #E5E7EB;font-weight:700;white-space:nowrap">'+it.name+'<br><span style="color:#999;font-size:10px">'+it.code+' — '+it.region+'</span></td>';
-            html+='<td style="padding:6px;border:1px solid #E5E7EB">'+(it.desc||'—')+'</td>';
-            html+='<td style="padding:6px;border:1px solid #E5E7EB;color:#166534">'+(it.action||'—')+'</td>';
-            html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;white-space:nowrap">'+it.date+'</td>';
-            html+='</tr>';
-          });
-          html+='</table></div></div>';
+          html+=renderFireItemTable(item, byItem[item]);
         });
         html+='</div>';
       }
       c.innerHTML=html;
     })
     .catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+}
+// أعمدة كل بند
+function fireTableCols(itemId){
+  if(itemId==='ext') return [
+    {h:'المحطة',f:it=>stCell(it)},
+    {h:'نوع الطفاية',f:it=>it.extType||'—'},
+    {h:'رقم الطفاية',f:it=>it.num||'—'},
+    {h:'السعة (كجم)',f:it=>it.cap||'—'},
+    {h:'الماركة',f:it=>it.brand||'—'},
+    {h:'سنة الصنع',f:it=>it.year||'—'},
+    {h:'العطل',f:it=>(it.fault||'—')+(it.text?' — '+it.text:'')}
+  ];
+  if(itemId==='boxes') return [
+    {h:'المحطة',f:it=>stCell(it)},
+    {h:'رقم الصندوق',f:it=>it.num||'—'},
+    {h:'السعة (بوصة)',f:it=>it.cap||'—'},
+    {h:'الماركة',f:it=>it.brand||'—'},
+    {h:'سنة الصنع',f:it=>it.year||'—'},
+    {h:'العطل',f:it=>(it.fault||'—')+(it.text?' — '+it.text:'')}
+  ];
+  if(itemId==='flood') return [
+    {h:'المحطة',f:it=>stCell(it)},
+    {h:'عدد الأسطوانات',f:it=>it.cyl||'—'},
+    {h:'الشركة',f:it=>it.brand||'—'},
+    {h:'العطل',f:it=>(it.fault||'—')+(it.text?' — '+it.text:'')}
+  ];
+  if(itemId==='systems') return [
+    {h:'المحطة',f:it=>stCell(it)},
+    {h:'العطل',f:it=>it.fault||'—'},
+    {h:'التفاصيل / المكان',f:it=>it.place?('المكان: '+it.place):(it.text||'—')}
+  ];
+  // alarm
+  return [
+    {h:'المحطة',f:it=>stCell(it)},
+    {h:'العطل',f:it=>it.fault||'—'},
+    {h:'التفاصيل',f:it=>it.text||'—'}
+  ];
+}
+function stCell(it){ return it.name+'<br><span style="color:#999;font-size:10px">'+it.code+' — '+it.region+' — '+it.date+'</span>'; }
+function renderFireItemTable(item, list){
+  const itemId=list[0].itemId;
+  const oneAction=list[0].oneAction;
+  const cols=fireTableCols(itemId);
+  let html='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:12px 0;overflow:hidden">';
+  html+='<div style="background:linear-gradient(135deg,#7F1D1D,#B91C1C);color:#fff;padding:10px 12px;font-weight:800;font-size:14px">'+item+' <span style="opacity:.8;font-size:12px;font-weight:400">('+list.length+' عطل)</span></div>';
+  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+  // رأس الأعمدة + عمود الإجراء
+  html+='<tr style="background:#FEE2E2;font-weight:800">';
+  cols.forEach(c=>{ html+='<th style="padding:7px 6px;border:1px solid #FCA5A5;white-space:nowrap">'+c.h+'</th>'; });
+  html+='<th style="padding:7px 6px;border:1px solid #FCA5A5">الإجراء المتخذ</th></tr>';
+  if(oneAction){
+    // نجمّع بالمحطة عشان ندمج الإجراء
+    const byStation={};
+    list.forEach(it=>{ if(!byStation[it.code])byStation[it.code]=[]; byStation[it.code].push(it); });
+    Object.keys(byStation).forEach(code=>{
+      const rows=byStation[code];
+      rows.forEach((it,ri)=>{
+        html+='<tr>';
+        cols.forEach(c=>{ html+='<td style="padding:6px;border:1px solid #E5E7EB;'+(c.h==='المحطة'?'font-weight:700;white-space:nowrap':'')+'">'+c.f(it)+'</td>'; });
+        // الإجراء مدموج لأول صف فقط (rowspan)
+        if(ri===0){
+          html+='<td rowspan="'+rows.length+'" style="padding:6px;border:1px solid #E5E7EB;color:#166534;background:#F0FDF4;vertical-align:middle">'+(rows[0].action||'—')+'</td>';
+        }
+        html+='</tr>';
+      });
+    });
+  } else {
+    // إجراء لكل عطل (بدون دمج)
+    list.forEach(it=>{
+      html+='<tr>';
+      cols.forEach(c=>{ html+='<td style="padding:6px;border:1px solid #E5E7EB;'+(c.h==='المحطة'?'font-weight:700;white-space:nowrap':'')+'">'+c.f(it)+'</td>'; });
+      html+='<td style="padding:6px;border:1px solid #E5E7EB;color:#166534">'+(it.action||'—')+'</td>';
+      html+='</tr>';
+    });
+  }
+  html+='</table></div></div>';
+  return html;
 }
 function resetToLogin(){
   ['form-screen','dashboard-screen','mgr-screen','maint-screen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
