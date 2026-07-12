@@ -1397,7 +1397,7 @@ function buildCompSections(indices){
           </div>
           <div class="form-group">
             <label>الاستهلاك (لتر)</label>
-            <input type="number" class="form-control" id="oil-cons-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr">
+            <input type="number" class="form-control" id="oil-cons-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr" oninput="calcOilRate(${idx})">
             <div class="validation-msg">إلزامى</div>
           </div>
           <div class="form-group">
@@ -1405,6 +1405,17 @@ function buildCompSections(indices){
             <input type="number" class="form-control" id="oil-bal-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr">
             <div class="validation-msg">إلزامى</div>
           </div>
+          <div class="form-group" style="grid-column:1/4">
+            <label>نوع الاستهلاك</label>
+            <select class="form-control" id="oil-cons-type-${idx}" onchange="calcOilRate(${idx})">
+              <option value="تعويض">تعويض</option>
+              <option value="عطل">عطل</option>
+              <option value="صيانة دورية">صيانة دورية</option>
+            </select>
+          </div>
+        </div>
+        <div id="oil-rate-${idx}" style="display:none;background:#FFF7ED;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;font-weight:700;color:#9A3412;text-align:center">
+          معدل استهلاك الزيت: <span id="oil-rate-val-${idx}" style="direction:ltr;font-size:14px;font-weight:800">—</span> لتر / 100 ساعة
         </div>
         ${isGraf?`
         <div class="divider"></div>
@@ -1439,8 +1450,18 @@ function buildCompSections(indices){
         <div class="sub-title" style="background:#FFF0F5;color:#7F1D4A">زيت المحرك الغازى</div>
         <div class="form-grid cols3">
           <div class="form-group" style="grid-column:1/4"><label>نوع الزيت</label><select class="form-control" id="goil-type-${idx}"><option value="">— اختر —</option>${oilOptions}</select><div class="validation-msg">إلزامى</div></div>
-          <div class="form-group"><label>الاستهلاك (لتر)</label><input type="number" class="form-control" id="goil-cons-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group"><label>الاستهلاك (لتر)</label><input type="number" class="form-control" id="goil-cons-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr" oninput="calcGoilRate(${idx})"><div class="validation-msg">إلزامى</div></div>
           <div class="form-group"><label>الرصيد (لتر)</label><input type="number" class="form-control" id="goil-bal-${idx}" min="0" step="0.1" inputmode="decimal" style="direction:ltr"><div class="validation-msg">إلزامى</div></div>
+          <div class="form-group" style="grid-column:1/4"><label>نوع الاستهلاك</label>
+            <select class="form-control" id="goil-cons-type-${idx}" onchange="calcGoilRate(${idx})">
+              <option value="تعويض">تعويض</option>
+              <option value="عطل">عطل</option>
+              <option value="صيانة دورية">صيانة دورية</option>
+            </select>
+          </div>
+        </div>
+        <div id="goil-rate-${idx}" style="display:none;background:#FDF2F8;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;font-weight:700;color:#9D174D;text-align:center">
+          معدل استهلاك زيت المحرك: <span id="goil-rate-val-${idx}" style="direction:ltr;font-size:14px;font-weight:800">—</span> لتر / 100 ساعة
         </div>
         <div class="divider"></div>
         <div class="form-grid">
@@ -1501,11 +1522,48 @@ function valH(idx){
     const err=document.getElementById(p+idx);
     if(err){ if(msg)err.textContent=msg; err.style.display=msg?'block':'none'; }
   });
+  // نعيد حساب معدل الزيت (يعتمد على الساعات الكلية)
+  if(typeof calcOilRate==='function') calcOilRate(idx);
+  if(typeof calcGoilRate==='function') calcGoilRate(idx);
 }
 function getH(idx,prefix){
   const mode=hmMode[idx]||'hm';
   if(mode==='hm'){const h=parseInt(document.getElementById(`${prefix}-h-${idx}`)?.value)||0;const m=parseInt(document.getElementById(`${prefix}-m-${idx}`)?.value)||0;return h+m/60;}
   const i=parseInt(document.getElementById(`${prefix}-i-${idx}`)?.value)||0;const f=parseInt(document.getElementById(`${prefix}-f-${idx}`)?.value)||0;return parseFloat(`${i}.${f}`)||i;
+}
+// ══════════ معدل استهلاك الزيت (لتر / 100 ساعة) ══════════
+// المعدل = (الاستهلاك ÷ الساعات الكلية) × 100 — للتعويض والعطل فقط (مش الصيانة الدورية)
+function calcOilRate(idx){
+  const cons=parseNum(document.getElementById('oil-cons-'+idx)?.value)||0;
+  const consType=document.getElementById('oil-cons-type-'+idx)?.value||'تعويض';
+  const th=getH(idx,'th'); // الساعات الكلية للضاغط
+  const box=document.getElementById('oil-rate-'+idx);
+  const valEl=document.getElementById('oil-rate-val-'+idx);
+  if(!box||!valEl) return;
+  // يُحسب للتعويض والعطل فقط
+  if(consType==='صيانة دورية' || cons<=0 || th<=0){
+    box.style.display='none';
+    return;
+  }
+  const rate=(cons/th)*100;
+  valEl.textContent=rate.toFixed(3);
+  box.style.display='block';
+}
+// معدل زيت المحرك الغازى (ساعات المحرك = ساعات ضاغطه الكلية)
+function calcGoilRate(idx){
+  const cons=parseNum(document.getElementById('goil-cons-'+idx)?.value)||0;
+  const consType=document.getElementById('goil-cons-type-'+idx)?.value||'تعويض';
+  const th=getH(idx,'th'); // ساعات الضاغط الكلية = ساعات المحرك
+  const box=document.getElementById('goil-rate-'+idx);
+  const valEl=document.getElementById('goil-rate-val-'+idx);
+  if(!box||!valEl) return;
+  if(consType==='صيانة دورية' || cons<=0 || th<=0){
+    box.style.display='none';
+    return;
+  }
+  const rate=(cons/th)*100;
+  valEl.textContent=rate.toFixed(3);
+  box.style.display='block';
 }
 // خيارات الصيانة لموديل معيّن (ضاغط)
 function maintOptsForModel(model){
@@ -2656,11 +2714,14 @@ async function submitForm(){
     payload[pre+'_name']=c.name;
     payload[pre+'_model']=c.model;
     payload[pre+'_th']=getH(idx,'th');
+    payload[pre+'_motor_name']=c.motor_name||'';
     payload[pre+'_tf']=getH(idx,'tf');
     payload[pre+'_starts']=parseNum(document.getElementById('starts-'+idx)?.value)||0;
     payload[pre+'_oil_type']=document.getElementById('oil-type-'+idx)?.value||'';
     payload[pre+'_oil_cons']=parseNum(document.getElementById('oil-cons-'+idx)?.value)||0;
     payload[pre+'_oil_bal']=parseNum(document.getElementById('oil-bal-'+idx)?.value)||0;
+    payload[pre+'_oil_cons_type']=document.getElementById('oil-cons-type-'+idx)?.value||'تعويض';
+    payload[pre+'_oil_rate']=(function(){var el=document.getElementById('oil-rate-val-'+idx);return (el&&el.textContent!=='—')?parseFloat(el.textContent)||0:0;})();
     payload[pre+'_oil2_type']=document.getElementById('oil2-type-'+idx)?.value||'';
     payload[pre+'_oil2_cons']=parseNum(document.getElementById('oil2-cons-'+idx)?.value)||0;
     payload[pre+'_oil2_bal']=parseNum(document.getElementById('oil2-bal-'+idx)?.value)||0;
@@ -2679,6 +2740,8 @@ async function submitForm(){
       payload[pre+'_goil_type']=document.getElementById('goil-type-'+idx)?.value||'';
       payload[pre+'_goil_cons']=parseNum(document.getElementById('goil-cons-'+idx)?.value)||0;
       payload[pre+'_goil_bal']=parseNum(document.getElementById('goil-bal-'+idx)?.value)||0;
+      payload[pre+'_goil_cons_type']=document.getElementById('goil-cons-type-'+idx)?.value||'تعويض';
+      payload[pre+'_goil_rate']=(function(){var el=document.getElementById('goil-rate-val-'+idx);return (el&&el.textContent!=='—')?parseFloat(el.textContent)||0:0;})();
       payload[pre+'_gm_last']=document.getElementById('gm-last-'+idx)?.value||'';
       payload[pre+'_gm_date']=document.getElementById('gm-date-'+idx)?.value||'';
       payload[pre+'_gm_last']=document.getElementById('gm-last-'+idx)?.selectedOptions[0]?.text||'';
@@ -3265,7 +3328,19 @@ function submitTadamon(){
   };
   fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(()=>{
-      showSectionSuccess('tadamon', 'تم إرسال محضر التضامن بنجاح');
+      let done=false;
+      function pollTad(attempt){
+        fetch(APPS_SCRIPT_URL+'?action=verifyTadamon&date='+encodeURIComponent(curDate)+'&code='+st.code)
+          .then(r=>r.json())
+          .then(j=>{
+            if(done)return;
+            if(j.found){ done=true; showSectionSuccess('tadamon','تم إرسال محضر التضامن بنجاح'); }
+            else if(attempt<6){ setTimeout(()=>pollTad(attempt+1),700); }
+            else { done=true; showSectionSuccess('tadamon','تم الإرسال — تعذّر التأكيد التلقائى، راجع شاشة المسؤول'); }
+          })
+          .catch(()=>{ if(!done && attempt<6) setTimeout(()=>pollTad(attempt+1),700); });
+      }
+      setTimeout(()=>pollTad(1),500);
     })
     .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
 }
@@ -3346,7 +3421,20 @@ function submitFireSafety(){
   };
   fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(()=>{
-      showSectionSuccess('fire', 'تم إرسال بيان منظومات الحريق بنجاح');
+      // تأكيد الإرسال قبل رسالة النجاح (نفس آلية البيان اليومى)
+      let done=false;
+      function pollFire(attempt){
+        fetch(APPS_SCRIPT_URL+'?action=verifyFire&date='+encodeURIComponent(dateEl.value)+'&code='+st.code)
+          .then(r=>r.json())
+          .then(j=>{
+            if(done)return;
+            if(j.found){ done=true; showSectionSuccess('fire','تم إرسال بيان منظومات الحريق بنجاح'); }
+            else if(attempt<6){ setTimeout(()=>pollFire(attempt+1),700); }
+            else { done=true; showSectionSuccess('fire','تم الإرسال — تعذّر التأكيد التلقائى، راجع شاشة المسؤول'); }
+          })
+          .catch(()=>{ if(!done && attempt<6) setTimeout(()=>pollFire(attempt+1),700); });
+      }
+      setTimeout(()=>pollFire(1),500);
     })
     .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
 }
@@ -3447,11 +3535,13 @@ function openTadamon(){
 function loadTadamonMgr(){
   const c=document.getElementById('tadamon-mgr-content');
   c.innerHTML='<div style="text-align:center;padding:30px;color:#0369A1;font-weight:800">⏳ جارى تحميل محاضر التضامن...</div>';
-  fetch(APPS_SCRIPT_URL+'?action=tadamonList')
-    .then(r=>r.json())
-    .then(j=>{
+  Promise.all([
+    fetch(APPS_SCRIPT_URL+'?action=tadamonList').then(r=>r.json()),
+    fetch(APPS_SCRIPT_URL+'?action=submissionStatus&kind=tadamon').then(r=>r.json())
+  ]).then(([j,ss])=>{
       const recs=j.records||[];
-      let html='<div style="background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center">';
+      let html=renderSubmissionStatus(ss,'#0369A1');
+      html+='<div style="background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center;margin-top:14px">';
       html+='<div style="font-size:15px;font-weight:800">⚡ محاضر التضامن — الكهرباء الشهرية</div>';
       html+='<div style="font-size:12px;opacity:.9;margin-top:3px">'+recs.length+' محضر</div></div>';
       if(recs.length===0){
@@ -3524,6 +3614,36 @@ function exportFireXlsx(){
     })
     .catch(e=>{st.textContent='❌ تعذر التحميل: '+e;});
 }
+// عرض حالة الإرسال (مين بعت ومين لسه + آخر إرسال)
+function renderSubmissionStatus(ss, color){
+  const sent=ss.sent||[], notSent=ss.notSent||[];
+  let h='<div style="border:1px solid '+color+'33;border-radius:12px;overflow:hidden">';
+  h+='<div style="background:'+color+';color:#fff;padding:10px 14px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">';
+  h+='<span>📋 حالة الإرسال</span><span style="font-size:12px;opacity:.9">أرسلت '+sent.length+' / '+(ss.total||sent.length+notSent.length)+'</span></div>';
+  // اللى لسه (الأهم فوق)
+  if(notSent.length>0){
+    h+='<div style="padding:10px 14px;background:#FEF2F2">';
+    h+='<div style="font-weight:800;color:#B91C1C;font-size:13px;margin-bottom:6px">⚠️ لم ترسل ('+notSent.length+'):</div>';
+    h+='<div style="display:flex;flex-wrap:wrap;gap:5px">';
+    notSent.forEach(s=>{ h+='<span style="background:#FEE2E2;color:#7F1D1D;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700">'+s.name+'</span>'; });
+    h+='</div></div>';
+  } else {
+    h+='<div style="padding:12px 14px;background:#DCFCE7;color:#166534;font-weight:800;font-size:13px;text-align:center">✓ كل المحطات أرسلت</div>';
+  }
+  // اللى بعتت + آخر إرسال
+  if(sent.length>0){
+    h+='<details style="padding:8px 14px"><summary style="cursor:pointer;font-weight:800;color:#166534;font-size:12px">✅ أرسلت ('+sent.length+') — اضغط للتفاصيل</summary>';
+    h+='<div style="margin-top:8px;max-height:200px;overflow-y:auto">';
+    sent.forEach(s=>{
+      h+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #F1F5F9;font-size:12px">';
+      h+='<span style="font-weight:700">'+s.name+'</span>';
+      h+='<span style="color:#888;direction:ltr">'+(s.sentTime||s.lastDate||'')+'</span></div>';
+    });
+    h+='</div></details>';
+  }
+  h+='</div>';
+  return h;
+}
 // ══════════ ملخص أعطال الحريق (المسؤول) ══════════
 function openFireIssues(){
   const p=document.getElementById('fire-issues-panel');
@@ -3533,12 +3653,15 @@ function openFireIssues(){
 function loadFireIssues(){
   const c=document.getElementById('fire-issues-content');
   c.innerHTML='<div style="text-align:center;padding:30px;color:#B91C1C;font-weight:800">⏳ جارى تحميل أعطال الحريق...</div>';
-  fetch(APPS_SCRIPT_URL+'?action=fireIssues')
-    .then(r=>r.json())
-    .then(j=>{
+  // نجيب الأعطال وحالة الإرسال معاً
+  Promise.all([
+    fetch(APPS_SCRIPT_URL+'?action=fireIssues').then(r=>r.json()),
+    fetch(APPS_SCRIPT_URL+'?action=submissionStatus&kind=fire').then(r=>r.json())
+  ]).then(([j,ss])=>{
       const issues=j.issues||[];
       const stations=j.stations||[];
-      let html='<div style="background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center">';
+      let html=renderSubmissionStatus(ss,'#B91C1C');
+      html+='<div style="background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center;margin-top:14px">';
       html+='<div style="font-size:15px;font-weight:800">🧯 أعطال منظومات الحريق المفتوحة</div>';
       html+='<div style="font-size:12px;opacity:.9;margin-top:3px">'+issues.length+' عطل فى '+stations.filter(s=>s.faultCount>0).length+' محطة — بلّغت '+stations.length+' محطة</div></div>';
       if(issues.length===0){
