@@ -7,6 +7,7 @@
 <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22البيان اليومى لمحطات القناة%22%2C%22short_name%22%3A%22غازتك%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230D2B4E%22%2C%22theme_color%22%3A%22%230D2B4E%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox%3D'0 0 100 100'%253E%253Crect width%3D'100' height%3D'100' fill%3D'%25230D2B4E' rx%3D'20'%2F%253E%253Ctext y%3D'.9em' font-size%3D'80' x%3D'50%25' text-anchor%3D'middle'%253EG%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 <meta name="theme-color" content="#0D2B4E">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="غازتك">
 <style>
@@ -52,8 +53,9 @@ body{font-family:'Cairo',sans-serif;background:#EEF3F9;color:var(--gray-dark);mi
 .sup-tab[data-tab="tadamon"].active{background:linear-gradient(135deg,#0369A1,#0EA5E9)}
 .sup-tab-content{display:none}
 .sup-tab-content.active{display:block}
-.back-hub-btn{display:inline-flex;align-items:center;gap:6px;background:#F1F5F9;border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;color:#475569;margin-bottom:14px}
-.back-hub-btn:hover{background:#E2E8F0}
+.back-hub-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#475569,#64748B);border:none;border-radius:12px;padding:12px 22px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;color:#fff;margin-bottom:16px;box-shadow:0 2px 6px rgba(71,85,105,.3)}
+.back-hub-btn:hover{background:linear-gradient(135deg,#334155,#475569);transform:translateX(2px)}
+.back-hub-btn::before{content:"⬅";font-size:16px}
 .s-label{font-size:9px;color:#90B8D8;margin-bottom:2px}
 .s-val{font-size:13px;font-weight:700}
 .s-val.sm{font-size:10px;font-weight:600}
@@ -292,7 +294,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 
   <!-- تاب القابضة -->
   <div class="sup-tab-content" id="tab-holding">
-  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
+  <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
   <button onclick="toggleMyHolding()" style="width:100%;background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">📊 بيان القابضة لمحطتى (نصف شهرى)</button>
   <div id="my-holding-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
@@ -305,7 +307,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 
   <!-- تاب منظومة الحريق -->
   <div class="sup-tab-content" id="tab-fire">
-  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
+  <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
   <!-- زر بيان منظومات الحريق -->
   <button onclick="toggleFireSafety()" style="width:100%;background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">🧯 بيان منظومات الحريق (أسبوعى — الأحد)</button>
   <div id="fire-safety-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #FCA5A5">
@@ -324,7 +326,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 
   <!-- تاب محضر التضامن -->
   <div class="sup-tab-content" id="tab-tadamon">
-  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
+  <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
   <!-- زر محضر التضامن (الكهرباء الشهرية) -->
   <button onclick="toggleTadamon()" style="width:100%;background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">⚡ تسجيل محضر تضامن (قراءة عداد الكهرباء)</button>
   <div id="tadamon-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #7DD3FC">
@@ -372,7 +374,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 
   <!-- تاب البيان اليومى -->
   <div class="sup-tab-content active" id="tab-daily">
-  <button class="back-hub-btn" onclick="backToHub()">← رجوع للقائمة</button>
+  <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
   <!-- ① تاريخ البيان + المبيعات (دائماً أول) -->
   <div class="section-card sec-sales-top">
     <div class="section-head"><div class="dot"></div>تاريخ البيان والمبيعات اليومية</div>
@@ -788,7 +790,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <h3>مبيعات الأسبوع (م³)</h3>
     <div class="week-bars" id="week-bars"></div>
   </div>
-  <button onclick="dashboardBackToHub()" style="width:100%;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;margin-top:14px">← رجوع للقائمة الرئيسية</button>
+  <button onclick="dashboardBackToHub()" style="width:100%;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:16px;font-family:Cairo;font-weight:800;font-size:16px;cursor:pointer;margin-top:16px;box-shadow:0 3px 10px rgba(0,0,0,.15)">⬅ رجوع للقائمة الرئيسية</button>
 </div>
 </div>
 
@@ -1407,7 +1409,7 @@ function buildCompSections(indices){
           </div>
         </div>
         <div class="form-group" style="margin-top:10px">
-          <label style="font-weight:800;color:#9A3412">نوع الاستهلاك <span style="color:#16A34A;font-size:10px">(v989)</span></label>
+          <label style="font-weight:800;color:#9A3412">نوع الاستهلاك</label>
           <select class="form-control" id="oil-cons-type-${idx}" onchange="calcOilRate(${idx})" style="border:2px solid #FDBA74">
             <option value="تعويض">تعويض</option>
             <option value="عطل">عطل</option>
@@ -3239,7 +3241,7 @@ function showSectionSuccess(tab, msg){
   ov.innerHTML='<div style="font-size:60px;margin-bottom:16px">✅</div>'
     +'<div style="font-size:20px;font-weight:800;color:#166534;margin-bottom:8px">'+msg+'</div>'
     +'<div style="font-size:13px;color:#64748B;margin-bottom:28px">تم الحفظ بنجاح</div>'
-    +'<button onclick="backToHub()" style="background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:14px 40px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer">← رجوع للقائمة الرئيسية</button>';
+    +'<button onclick="backToHub()" style="background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:14px;padding:16px 48px;font-family:Cairo;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18)">⬅ رجوع للقائمة الرئيسية</button>';
   ov.style.display='flex';
 }
 // ══════════ محضر التضامن (الكهرباء الشهرية) ══════════
