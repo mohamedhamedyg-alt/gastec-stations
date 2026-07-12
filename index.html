@@ -3245,10 +3245,11 @@ function loadCompComparison(){
       if(groups.length===0){ c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد ضواغط متطابقة للمقارنة</div>'; return; }
       let html='';
       groups.forEach(g=>{
+        const matched = g.matched!==false && g.units.length>1;
         html+='<div style="border:1px solid #99F6E4;border-radius:10px;margin-bottom:12px;overflow:hidden">';
-        html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px">'+g.model+' <span style="opacity:.85;font-size:11px">('+g.units.length+' ضاغط)</span></div>';
+        html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px">'+(g.brand?g.brand+' — ':'')+g.model+' <span style="opacity:.85;font-size:11px">('+(matched?g.units.length+' ضواغط متطابقة':'ضاغط فريد')+')</span></div>';
         html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
-        html+='<tr style="background:#CCFBF1;font-weight:800"><th style="padding:6px;border:1px solid #99F6E4">المحطة</th><th style="padding:6px;border:1px solid #99F6E4">FR فعلى</th><th style="padding:6px;border:1px solid #99F6E4">حيود%</th><th style="padding:6px;border:1px solid #99F6E4">كفاءة%</th><th style="padding:6px;border:1px solid #99F6E4">KWH/م³</th><th style="padding:6px;border:1px solid #99F6E4">زيت لتر/100س</th></tr>';
+        html+='<tr style="background:#CCFBF1;font-weight:800"><th style="padding:6px;border:1px solid #99F6E4">المحطة / الضاغط</th><th style="padding:6px;border:1px solid #99F6E4">FR فعلى</th><th style="padding:6px;border:1px solid #99F6E4">حيود%</th><th style="padding:6px;border:1px solid #99F6E4">كفاءة%</th><th style="padding:6px;border:1px solid #99F6E4">KWH/م³</th><th style="padding:6px;border:1px solid #99F6E4">زيت لتر/100س</th></tr>';
         g.units.forEach(u=>{
           html+='<tr><td style="padding:5px 6px;border:1px solid #E5E7EB;font-weight:700">'+u.name+'</td>';
           html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+(u.fr||'—')+'</td>';
