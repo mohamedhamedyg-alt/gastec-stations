@@ -826,11 +826,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 <div class="container">
   <div class="mgr-header">
     <h2>لوحة متابعة المسئول — منطقة القناة وسيناء</h2>
-    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px;flex-wrap:wrap">
-      <label style="font-size:13px;font-weight:800">اليوم المطلوب:</label>
-      <input type="date" id="mgr-day" class="form-control" style="width:170px;direction:ltr" onchange="loadMgrDay()">
-      <button onclick="loadMgrDay()" style="background:var(--blue-dark);color:white;border:none;border-radius:8px;padding:7px 16px;font-family:'Cairo';font-weight:800;cursor:pointer">عرض</button>
-    </div>
     <p id="mgr-status" style="font-size:12px;color:#888;margin-top:6px"></p>
   </div>
 
@@ -870,6 +865,13 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <!-- ══════ تاب أداء المحطات اليومى ══════ -->
   <div class="mgr-tab-content active" id="mtab-perf">
   <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
+  <div style="background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+    <div style="color:#fff;font-size:13px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px">📅 اختر اليوم المطلوب عرضه</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input type="date" id="mgr-day" class="form-control" style="flex:1;min-width:150px;direction:ltr;font-weight:700;border:none" onchange="loadMgrDay()">
+      <button onclick="loadMgrDay()" style="background:#fff;color:var(--blue-dark);border:none;border-radius:8px;padding:9px 22px;font-family:'Cairo';font-weight:800;cursor:pointer;font-size:14px">عرض</button>
+    </div>
+  </div>
   <div class="mgr-sum" style="grid-template-columns:repeat(6,1fr)">
     <div class="mgr-sum-card"><div class="mgr-sum-label">التاريخ</div><div class="mgr-sum-val" id="mgr-c-date" style="color:var(--blue-dark);font-size:15px">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">مبيعات م³</div><div class="mgr-sum-val" id="mgr-c-sales" style="color:var(--blue-dark)">0</div></div>
@@ -3147,30 +3149,51 @@ function loadMaintDue(){
     .then(r=>r.json())
     .then(j=>{
       s.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');
-      c.innerHTML = renderMaintSection('🔴 عاجل — مطلوب التجهيز فوراً', j.urgent||[], '#B71C1C', '#FEE2E2')
-                  + renderMaintSection('🟡 قادم — للتحضير المسبق', j.upcoming||[], '#B45309', '#FEF3C7');
-      if((!j.urgent||!j.urgent.length)&&(!j.upcoming||!j.upcoming.length)){
+      const items=j.items||[];
+      if(items.length===0){
         c.innerHTML='<div style="text-align:center;color:#16A34A;padding:40px;font-size:15px;font-weight:800">✓ لا توجد صيانات مستحقة قريباً<br><span style="font-size:12px;color:#888;font-weight:400">كل المحطات ضمن الحدود الآمنة</span></div>';
+        return;
       }
+      // نجمّع بالنوع بالترتيب المطلوب
+      const typeGroups=[
+        {key:'صيانة دورية', alt:'صيانة', title:'🔧 الصيانات الدورية', color:'#1D4ED8', bg:'#DBEAFE'},
+        {key:'تشحيم', alt:'', title:'🛢️ التشحيم', color:'#C2410C', bg:'#FFEDD5'},
+        {key:'فحص أمان', alt:'', title:'🦺 فحص معدات الأمان', color:'#15803D', bg:'#DCFCE7'},
+        {key:'صيانة محرك', alt:'', title:'⚙️ صيانة المحركات', color:'#7C3AED', bg:'#EDE9FE'}
+      ];
+      let html='';
+      typeGroups.forEach(tg=>{
+        const groupItems=items.filter(it=>it.type===tg.key || (tg.alt && it.type===tg.alt));
+        if(groupItems.length>0) html+=renderMaintGroup(tg, groupItems);
+      });
+      c.innerHTML=html || '<div style="text-align:center;color:#16A34A;padding:40px">✓ لا توجد صيانات مستحقة</div>';
     })
     .catch(e=>{s.textContent='❌ تعذر التحميل: '+e;});
 }
-function renderMaintSection(title, items, color, bg){
-  if(!items.length) return '';
-  let html='<div style="margin-bottom:18px">';
-  html+='<div style="background:'+color+';color:#fff;padding:10px 14px;border-radius:10px 10px 0 0;font-weight:800;font-size:14px">'+title+' ('+items.length+')</div>';
+function renderMaintGroup(tg, items){
+  let html='<div style="margin-bottom:20px">';
+  html+='<div style="background:'+tg.color+';color:#fff;padding:11px 15px;border-radius:10px 10px 0 0;font-weight:800;font-size:15px">'+tg.title+' <span style="opacity:.85;font-size:12px">('+items.length+')</span></div>';
   html+='<div style="background:#fff;border-radius:0 0 10px 10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)">';
   items.forEach((it,i)=>{
-    const remTxt = it.unit==='يوم' ? (it.rem<=0?'متأخر!':it.rem+' يوم') : (it.rem<=0?'متأخر!':it.rem.toLocaleString('en-US')+' ساعة');
-    const remColor = it.rem<=0 ? '#B71C1C' : color;
-    const typeIcon = it.type==='فحص أمان'?'🛡️':(it.type==='تشحيم'?'🛢️':(it.type==='صيانة محرك'?'⚙️':'🔧'));
-    html+='<div style="padding:11px 14px;border-bottom:1px solid #F1F1F1;'+(i%2?'background:'+bg+'55':'')+'">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">';
-    html+='<div style="flex:1">';
-    html+='<div style="font-weight:800;font-size:14px;color:#1a1a1a">'+typeIcon+' '+it.name+' <span style="color:#888;font-size:12px">('+it.code+')</span></div>';
-    html+='<div style="font-size:12px;color:#555;margin-top:3px">'+it.type+' — '+it.comp+(it.next&&it.next!==it.type?' — <b>'+it.next+'</b>':'')+'</div>';
+    // حالة التأخير
+    let statusTxt, statusColor, statusBg;
+    if(it.rem<0){
+      const late=Math.abs(it.rem);
+      statusTxt = it.unit==='يوم' ? ('متأخر '+late+' يوم') : ('متأخر '+late.toLocaleString('en-US')+' ساعة');
+      statusColor='#fff'; statusBg='#B71C1C';
+    } else if(it.rem===0){
+      statusTxt='مستحق اليوم'; statusColor='#fff'; statusBg='#EA580C';
+    } else {
+      statusTxt = it.unit==='يوم' ? ('قادم بعد '+it.rem+' يوم') : ('قادم بعد '+it.rem.toLocaleString('en-US')+' ساعة');
+      statusColor='#166534'; statusBg='#DCFCE7';
+    }
+    html+='<div style="padding:11px 14px;border-bottom:1px solid #F1F1F1;'+(i%2?'background:'+tg.bg+'44':'')+'">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">';
+    html+='<div style="flex:1;min-width:160px">';
+    html+='<div style="font-weight:800;font-size:14px;color:#1a1a1a">'+it.name+' <span style="color:#888;font-size:12px">('+it.code+')</span></div>';
+    html+='<div style="font-size:12px;color:#555;margin-top:3px">'+it.comp+(it.next&&it.next!==it.type?' — <b>'+it.next+'</b>':'')+'</div>';
     html+='</div>';
-    html+='<div style="text-align:left;flex-shrink:0"><div style="font-size:11px;color:#999">متبقّى</div><div style="font-weight:800;font-size:15px;color:'+remColor+';direction:ltr">'+remTxt+'</div></div>';
+    html+='<div style="background:'+statusBg+';color:'+statusColor+';padding:5px 12px;border-radius:8px;font-weight:800;font-size:12px;direction:rtl;white-space:nowrap">'+statusTxt+'</div>';
     html+='</div></div>';
   });
   html+='</div></div>';
@@ -3242,12 +3265,11 @@ function loadCompComparison(){
     .then(r=>r.json())
     .then(j=>{
       const groups=j.groups||[];
-      if(groups.length===0){ c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد ضواغط متطابقة للمقارنة</div>'; return; }
+      if(groups.length===0){ c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد بيانات للمقارنة بعد</div>'; return; }
       let html='';
       groups.forEach(g=>{
-        const matched = g.matched!==false && g.units.length>1;
         html+='<div style="border:1px solid #99F6E4;border-radius:10px;margin-bottom:12px;overflow:hidden">';
-        html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px">'+(g.brand?g.brand+' — ':'')+g.model+' <span style="opacity:.85;font-size:11px">('+(matched?g.units.length+' ضواغط متطابقة':'ضاغط فريد')+')</span></div>';
+        html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px">'+(g.brand?g.brand+' — ':'')+g.model+(g.units.length>1?' <span style="opacity:.85;font-size:11px">('+g.units.length+')</span>':'')+'</div>';
         html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
         html+='<tr style="background:#CCFBF1;font-weight:800"><th style="padding:6px;border:1px solid #99F6E4">المحطة / الضاغط</th><th style="padding:6px;border:1px solid #99F6E4">FR فعلى</th><th style="padding:6px;border:1px solid #99F6E4">حيود%</th><th style="padding:6px;border:1px solid #99F6E4">كفاءة%</th><th style="padding:6px;border:1px solid #99F6E4">KWH/م³</th><th style="padding:6px;border:1px solid #99F6E4">زيت لتر/100س</th></tr>';
         g.units.forEach(u=>{
