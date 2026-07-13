@@ -3895,8 +3895,10 @@ function recalcGasEngine(){
   const total=sales+consumption;
   const cEl=document.getElementById('ge-consumption');
   const tEl=document.getElementById('ge-total');
+  const tbEl=document.getElementById('ge-total-bottom');
   if(cEl) cEl.textContent=consumption.toLocaleString('en-US',{maximumFractionDigits:2});
   if(tEl) tEl.textContent=total.toLocaleString('en-US',{maximumFractionDigits:2});
+  if(tbEl) tbEl.textContent=total.toLocaleString('en-US',{maximumFractionDigits:2});
 }
 function toggleMyHolding(){
   const p=document.getElementById('my-holding-panel');
@@ -3932,24 +3934,36 @@ function loadMyHolding(){
       if(cfg){
         html+='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:10px;padding:12px;margin-bottom:10px">';
         html+='<div style="font-weight:800;color:#9A3412;font-size:14px;margin-bottom:8px">⛽ استهلاك المحرك الغازى من الغاز</div>';
-        html+='<div style="font-size:11px;color:#7C2D12;background:#FFEDD5;border-radius:6px;padding:7px;margin-bottom:8px;line-height:1.7">';
-        html+='المحرك: <b>'+cfg.motor+'</b><br>';
-        html+='القدرة: <b>'+cfg.power+'</b> — الاستهلاك عند 50%: <b>'+cfg.cons50.toLocaleString('en-US')+'</b><br>';
-        html+='<span style="direction:ltr;display:inline-block">الاستهلاك = (الساعات × '+cfg.power+' × '+cfg.cons50+') ÷ (35.314667 × LHV)</span>';
-        html+='</div>';
-        // الساعات التلقائية (مجموع ساعات المحرك خلال الفترة)
+        // المشرف يدخل القيم (الساعات + LHV)
         const autoHours = (mine && mine.engineHours!=null) ? mine.engineHours : 0;
-        html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">';
+        html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
         html+='<div><label style="font-size:11px;font-weight:700">الساعات الكلية (تلقائى — قابل للتعديل)</label>';
         html+='<input type="number" id="ge-hours" class="form-control" style="font-size:13px;direction:ltr" value="'+autoHours+'" step="0.1" oninput="recalcGasEngine()"></div>';
         html+='<div><label style="font-size:11px;font-weight:700">LHV (متوسط القيمة الحرارية)</label>';
         html+='<input type="number" id="ge-lhv" class="form-control" style="font-size:13px;direction:ltr" step="0.001" placeholder="أدخل LHV" oninput="recalcGasEngine()"></div>';
         html+='</div>';
-        html+='<div style="background:#fff;border-radius:8px;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center">';
-        html+='<div><div style="font-size:11px;color:#888">استهلاك المحرك من الغاز</div><div style="font-size:18px;font-weight:800;color:#C2410C;direction:ltr"><span id="ge-consumption">0</span> م³</div></div>';
-        html+='<div><div style="font-size:11px;color:#888">الإجمالى (مبيعات + محرك)</div><div style="font-size:18px;font-weight:800;color:#166534;direction:ltr"><span id="ge-total">'+myTotal.toLocaleString('en-US',{maximumFractionDigits:2})+'</span> م³</div></div>';
+        // الحسابات الظاهرة (فوق) — مبيعات + محرك + إجمالى (الإجمالى أكبر)
+        html+='<div style="background:#fff;border-radius:8px;padding:12px">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed #E5E7EB">';
+        html+='<span style="font-size:13px;color:#555;font-weight:700">مبيعات المحطة من الغاز</span>';
+        html+='<span style="font-size:15px;font-weight:800;color:#6B21A8;direction:ltr">'+myTotal.toLocaleString('en-US',{maximumFractionDigits:2})+' م³</span></div>';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed #E5E7EB">';
+        html+='<span style="font-size:13px;color:#555;font-weight:700">استهلاك المحرك من الغاز</span>';
+        html+='<span style="font-size:15px;font-weight:800;color:#C2410C;direction:ltr"><span id="ge-consumption">0</span> م³</span></div>';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;margin-top:6px;background:linear-gradient(135deg,#166534,#22C55E);border-radius:8px">';
+        html+='<span style="font-size:15px;color:#fff;font-weight:800">إجمالى استهلاك المحطة من الغاز</span>';
+        html+='<span style="font-size:22px;font-weight:800;color:#fff;direction:ltr"><span id="ge-total">'+myTotal.toLocaleString('en-US',{maximumFractionDigits:2})+'</span> م³</span></div>';
         html+='</div>';
-        html+='<div style="font-size:11px;color:#9A3412;margin-top:6px;text-align:center">ℹ️ استهلاك المحرك يظهر فى بيان القابضة فقط</div>';
+        // القيم الثابتة والمعادلة (مرجع)
+        html+='<div style="font-size:10px;color:#9A6540;background:#FFEDD5;border-radius:6px;padding:7px;margin-top:8px;line-height:1.7">';
+        html+='المحرك: <b>'+cfg.motor+'</b> — القدرة: <b>'+cfg.power+'</b> — الاستهلاك عند 50%: <b>'+cfg.cons50.toLocaleString('en-US')+'</b><br>';
+        html+='<span style="direction:ltr;display:inline-block">المعادلة: (الساعات × '+cfg.power+' × '+cfg.cons50+') ÷ (35.314667 × LHV)</span>';
+        html+='</div>';
+        html+='</div>';
+        // إجمالى استهلاك المحطة (تحت — واضح وكبير)
+        html+='<div style="background:linear-gradient(135deg,#166534,#22C55E);color:#fff;padding:14px;border-radius:10px;text-align:center;margin-bottom:10px">';
+        html+='<div style="font-size:13px;opacity:.9">إجمالى استهلاك المحطة من الغاز (مبيعات + محرك)</div>';
+        html+='<div style="font-size:28px;font-weight:800;direction:ltr;margin-top:4px"><span id="ge-total-bottom">'+myTotal.toLocaleString('en-US',{maximumFractionDigits:2})+'</span> م³</div>';
         html+='</div>';
       }
       content.innerHTML = html;
