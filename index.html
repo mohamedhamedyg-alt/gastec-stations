@@ -3212,6 +3212,30 @@ function showMgr(){
   const area=document.getElementById('mgr-sections-area'); if(area) area.style.display='none';
   loadMgrDay();
 }
+// ══════════ تحميل ملف إكسيل (يدعم الموبايل + فتح مباشر) ══════════
+function isMobileDevice(){ return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
+function downloadXlsx(b64, filename, statusEl){
+  try{
+    const bin=atob(b64);
+    const bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    if(isMobileDevice()){
+      // على الموبايل: نفتح الملف فى تبويب جديد (التنزيل المباشر مش مضمون على iOS)
+      const w=window.open(url,'_blank');
+      if(statusEl) statusEl.innerHTML='✅ تم التجهيز — <a href="'+url+'" download="'+filename+'" style="color:#0369A1;font-weight:800">اضغط هنا للفتح/الحفظ</a>';
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+    } else {
+      // على الكمبيوتر: تنزيل مباشر + زر فتح
+      const a=document.createElement('a');
+      a.href=url; a.download=filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      if(statusEl) statusEl.innerHTML='✅ تم التنزيل — <a href="'+url+'" target="_blank" style="color:#0369A1;font-weight:800">افتح الملف</a>';
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+    }
+  }catch(e){ if(statusEl) statusEl.textContent='❌ تعذر التحميل: '+e; }
+}
 function exportSheetXlsx(kind){
   // عنصر الحالة الصحيح لكل نوع
   const st = (kind==='comp') ? document.getElementById('comp-dl-status') : document.getElementById('display-dl-status');
@@ -3225,17 +3249,8 @@ function exportSheetXlsx(kind){
     .then(res=>{
       if(res.error){ if(st)st.textContent='❌ '+res.error; return; }
       if(!res.file){ if(st)st.textContent='❌ تعذر التجهيز — أعد المحاولة بعد لحظات'; return; }
-      const bin=atob(res.file);
-      const bytes=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
       const label = kind==='comp' ? 'مقارنة_الضواغط' : 'ملخص_البيان_اليومى';
-      a.download=label+'_'+(d||new Date().toISOString().slice(0,10))+'.xlsx';
-      document.body.appendChild(a); a.click();
-      setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href);},1000);
-      if(st) st.textContent='✅ تم التنزيل — راجع مجلد Downloads';
+      downloadXlsx(res.file, label+'_'+(d||new Date().toISOString().slice(0,10))+'.xlsx', st);
     })
     .catch(e=>{ if(st)st.textContent='❌ تعذر التصدير: '+e; });
 }
@@ -3304,13 +3319,13 @@ function loadOilReport(){
         html+='<div style="font-weight:800;color:#9A3412;font-size:14px;margin-bottom:8px">📊 مقارنة الأنواع المتطابقة (للتعويض والعطل)</div>';
         byModel.forEach(m=>{
           html+='<div style="border:1px solid #FDBA74;border-radius:10px;margin-bottom:10px;overflow:hidden">';
-          html+='<div style="background:linear-gradient(135deg,#C2410C,#F97316);color:#fff;padding:9px 13px;font-weight:800;font-size:12px">'+m.model+' — '+m.unitType+' <span style="opacity:.85">(متوسط '+m.avgRate.toFixed(3)+' لتر/100س)</span></div>';
+          html+='<div style="background:linear-gradient(135deg,#C2410C,#F97316);color:#fff;padding:9px 13px;font-weight:800;font-size:12px">'+m.model+' — '+m.unitType+' <span style="opacity:.85">(متوسط '+m.avgRate.toFixed(1)+' لتر/100س)</span></div>';
           html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
           html+='<tr style="background:#FFEDD5;font-weight:800"><th style="padding:6px;border:1px solid #FED7AA">المحطة / الوحدة</th><th style="padding:6px;border:1px solid #FED7AA">متوسط المعدل</th><th style="padding:6px;border:1px solid #FED7AA">أيام</th></tr>';
           m.units.forEach(u=>{
             const high=u.avgRate>m.avgRate;
             html+='<tr><td style="padding:5px 6px;border:1px solid #E5E7EB;font-weight:700">'+u.name+' — '+u.unit+'</td>';
-            html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:'+(high?'#DC2626':'#16A34A')+'">'+u.avgRate.toFixed(3)+'</td>';
+            html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:'+(high?'#DC2626':'#16A34A')+'">'+u.avgRate.toFixed(1)+'</td>';
             html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center">'+u.days+'</td></tr>';
           });
           html+='</table></div></div>';
@@ -3321,18 +3336,18 @@ function loadOilReport(){
         html+='<div style="font-weight:800;color:#9A3412;font-size:14px;margin:14px 0 8px">📋 البيان التفصيلى</div>';
         html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
         html+='<tr style="background:#FFEDD5;font-weight:800">';
-        ['التاريخ','المحطة','الوحدة','النوع','ساعات','استهلاك','نوع الاستهلاك','معدل/100س'].forEach(h=>{ html+='<th style="padding:6px;border:1px solid #FED7AA;white-space:nowrap">'+h+'</th>'; });
+        ['التاريخ','المحطة','الوحدة','النوع','ساعات','استهلاك','نوع الاستهلاك','لتر / 100 ساعة'].forEach(h=>{ html+='<th style="padding:6px;border:1px solid #FED7AA;white-space:nowrap">'+h+'</th>'; });
         html+='</tr>';
         records.forEach(r=>{
           html+='<tr>';
           html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;direction:ltr;text-align:center">'+r.date+'</td>';
           html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;font-weight:700">'+r.name+'</td>';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB">'+r.unit+'</td>';
+          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB">'+(r.unit||'')+(r.model?' — '+r.model:'')+'</td>';
           html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center">'+r.unitType+'</td>';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+r.hours+'</td>';
+          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+(parseFloat(r.hours)>0?Number(r.hours).toFixed(2):r.hours)+'</td>';
           html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+r.cons+'</td>';
           html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center">'+r.consType+'</td>';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:#C2410C">'+(parseFloat(r.rate)>0?Number(r.rate).toFixed(3):'—')+'</td>';
+          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:#C2410C">'+(parseFloat(r.rate)>0?Number(r.rate).toFixed(1):'—')+'</td>';
           html+='</tr>';
         });
         html+='</table></div>';
@@ -3398,14 +3413,7 @@ function exportHoldingCSV(){
       if(btn){btn.disabled=false;btn.textContent='📥 تصدير Excel';}
       if(res.error){alert('❌ '+res.error);return;}
       if(!res.file){alert('❌ تعذر التجهيز');return;}
-      const bin=atob(res.file);
-      const bytes=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='بيان_القابضة_'+period+'.xlsx';
-      document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href);},600);
+      downloadXlsx(res.file, 'بيان_القابضة_'+period+'.xlsx', null);
     })
     .catch(e=>{ if(btn){btn.disabled=false;btn.textContent='📥 تصدير Excel';} alert('❌ تعذر التصدير: '+e); });
 }
@@ -3970,17 +3978,7 @@ function exportTadamonXlsx(){
     .then(res=>{
       if(res.error){st.textContent='❌ '+res.error;return;}
       if(!res.file){st.textContent='❌ تعذر التجهيز';return;}
-      const bin=atob(res.file);
-      const bytes=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download=res.name||'بيان_محاضر_التضامن.xlsx';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      st.textContent='✅ تم التحميل';
-      setTimeout(()=>{st.textContent='';},2500);
+      downloadXlsx(res.file, res.name||'بيان_محاضر_التضامن.xlsx', st);
     })
     .catch(e=>{st.textContent='❌ تعذر التحميل: '+e;});
 }
@@ -3992,19 +3990,21 @@ function exportFireXlsx(){
     .then(res=>{
       if(res.error){st.textContent='❌ '+res.error;return;}
       if(!res.file){st.textContent='❌ تعذر التجهيز';return;}
-      const bin=atob(res.file);
-      const bytes=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-      const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download=res.name||'ملخص_أعطال_الحريق.xlsx';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      st.textContent='✅ تم التحميل';
-      setTimeout(()=>{st.textContent='';},2500);
+      downloadXlsx(res.file, res.name||'ملخص_أعطال_الحريق.xlsx', st);
     })
     .catch(e=>{st.textContent='❌ تعذر التحميل: '+e;});
+}
+function exportOilXlsx(){
+  const st=document.getElementById('oil-dl-status');
+  if(st){st.style.color='#1A6B4A';st.textContent='⏳ جارى التحميل...';}
+  fetch(APPS_SCRIPT_URL+'?action=exportOilXlsx')
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.error){if(st)st.textContent='❌ '+res.error;return;}
+      if(!res.file){if(st)st.textContent='❌ تعذر التجهيز';return;}
+      downloadXlsx(res.file, res.name||'بيان_استهلاك_الزيت.xlsx', st);
+    })
+    .catch(e=>{if(st)st.textContent='❌ تعذر التحميل: '+e;});
 }
 // عرض حالة الإرسال (مين بعت ومين لسه + آخر إرسال)
 function renderSubmissionStatus(ss, color){
