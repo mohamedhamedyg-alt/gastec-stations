@@ -3213,17 +3213,18 @@ function showMgr(){
   loadMgrDay();
 }
 function exportSheetXlsx(kind){
+  // عنصر الحالة الصحيح لكل نوع
+  const st = (kind==='comp') ? document.getElementById('comp-dl-status') : document.getElementById('display-dl-status');
   const d=document.getElementById('mgr-day')?.value;
-  if(!d){alert('اختر اليوم أولاً');return;}
-  const st=(kind==='display') ? document.getElementById('display-dl-status') : document.getElementById('mgr-status');
-  st.textContent='⏳ جارى التحميل...';
-  // نداء واحد فقط: التصدير يبنى داخلياً لو محتاج (أسرع)
-  fetch(APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind+'&date='+encodeURIComponent(d))
+  // البيان اليومى يحتاج تاريخ، المقارنة لا (آخر 7 أيام)
+  if(kind==='display' && !d){ if(st){st.style.color='#B91C1C';st.textContent='❌ اختر اليوم أولاً من تاب أداء المحطات';} return; }
+  if(st){ st.style.color='#1A6B4A'; st.textContent='⏳ جارى التحميل...'; }
+  const url = APPS_SCRIPT_URL+'?action=exportXlsx&kind='+kind+(d?('&date='+encodeURIComponent(d)):'');
+  fetch(url)
     .then(r=>r.json())
     .then(res=>{
-      if(res.error){st.textContent='❌ '+res.error;return;}
-      if(!res.file){st.textContent='❌ تعذر التجهيز — أعد المحاولة بعد لحظات';return;}
-      // نحوّل base64 لملف وننزّله مباشرة
+      if(res.error){ if(st)st.textContent='❌ '+res.error; return; }
+      if(!res.file){ if(st)st.textContent='❌ تعذر التجهيز — أعد المحاولة بعد لحظات'; return; }
       const bin=atob(res.file);
       const bytes=new Uint8Array(bin.length);
       for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
@@ -3231,12 +3232,12 @@ function exportSheetXlsx(kind){
       const a=document.createElement('a');
       a.href=URL.createObjectURL(blob);
       const label = kind==='comp' ? 'مقارنة_الضواغط' : 'ملخص_البيان_اليومى';
-      a.download=label+'_'+d+'.xlsx';
+      a.download=label+'_'+(d||new Date().toISOString().slice(0,10))+'.xlsx';
       document.body.appendChild(a); a.click();
       setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href);},1000);
-      st.textContent='✅ تم التنزيل — راجع مجلد Downloads';
+      if(st) st.textContent='✅ تم التنزيل — راجع مجلد Downloads';
     })
-    .catch(e=>{st.textContent='❌ تعذر التصدير: '+e;});
+    .catch(e=>{ if(st)st.textContent='❌ تعذر التصدير: '+e; });
 }
 // ══════════ قائمة المسؤول (hub) — يفتح قسم واحد ويخفى الباقى ══════════
 function openMgrSection(tab){
