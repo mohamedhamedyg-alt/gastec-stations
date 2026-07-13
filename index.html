@@ -3955,9 +3955,10 @@ function loadMyHolding(){
         html+='<span style="font-size:22px;font-weight:800;color:#fff;direction:ltr"><span id="ge-total">'+myTotal.toLocaleString('en-US',{maximumFractionDigits:2})+'</span> م³</span></div>';
         html+='</div>';
         // القيم الثابتة والمعادلة (مرجع)
-        html+='<div style="font-size:10px;color:#9A6540;background:#FFEDD5;border-radius:6px;padding:7px;margin-top:8px;line-height:1.7">';
-        html+='المحرك: <b>'+cfg.motor+'</b> — القدرة: <b>'+cfg.power+'</b> — الاستهلاك عند 50%: <b>'+cfg.cons50.toLocaleString('en-US')+'</b><br>';
-        html+='<span style="direction:ltr;display:inline-block">المعادلة: (الساعات × '+cfg.power+' × '+cfg.cons50+') ÷ (35.314667 × LHV)</span>';
+        html+='<div style="font-size:12px;color:#7C2D12;background:#FFEDD5;border-radius:8px;padding:10px;margin-top:10px;line-height:1.9">';
+        html+='<div>المحرك: <b>'+cfg.motor+'</b></div>';
+        html+='<div>القدرة: <b>'+cfg.power+'</b> — الاستهلاك عند 50%: <b>'+cfg.cons50.toLocaleString('en-US')+'</b></div>';
+        html+='<div style="direction:ltr;text-align:right;margin-top:4px;font-weight:700;font-size:13px;color:#9A3412">(الساعات × '+cfg.power+' × '+cfg.cons50+') ÷ (35.314667 × LHV)</div>';
         html+='</div>';
         html+='</div>';
         // إجمالى استهلاك المحطة (تحت — واضح وكبير)
