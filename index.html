@@ -2148,6 +2148,18 @@ function updateStopReason(id){
 }
 // ترجمة تلقائية عربى → إنجليزى — قاموس محلى + API احتياطى
 const FAULT_TRANSLATIONS={
+  'انخفاض زمن التزييت':'Low lubrication time',
+  'زمن التزييت':'Lubrication time',
+  'انخفاض التزييت':'Low lubrication',
+  'التزييت':'Lubrication',
+  'تطوير':'Development',
+  'تطويري':'Development',
+  'تسويقي':'Marketing',
+  'تسويقى':'Marketing',
+  'أعمال تطوير':'Development works',
+  'أعمال تطويرية':'Development works',
+  'أعمال صيانة':'Maintenance works',
+  'خلافه':'Others',
   'عطل كهربائى':'Electrical fault',
   'عطل ميكانيكى':'Mechanical fault',
   'عطل في لوحة التحكم':'Control panel fault',
@@ -2273,9 +2285,14 @@ function autoTranslate(id){
     const indicator=document.getElementById('ft-translating-'+id);
     const enEl=document.getElementById('ft-reason-en-'+id);
     if(indicator)indicator.style.display='inline';
-    // أولاً: ابحث في القاموس المحلى
-    const localMatch=Object.entries(FAULT_TRANSLATIONS).find(([ar])=>text.includes(ar));
-    if(localMatch){if(enEl)enEl.value=localMatch[1];if(indicator)indicator.style.display='none';return;}
+    // أولاً: ابحث في القاموس المحلى (نطابق أطول مفتاح لأدق نتيجة)
+    const matches=Object.entries(FAULT_TRANSLATIONS).filter(([ar])=>text.includes(ar));
+    if(matches.length){
+      matches.sort((a,b)=>b[0].length-a[0].length);
+      if(enEl)enEl.value=matches[0][1];
+      if(indicator)indicator.style.display='none';
+      return;
+    }
     // ثانياً: ترجمة محلية بالتركيب
     const local=tryLocalPhrase(text);
     if(local){if(enEl)enEl.value=local;const sp=document.getElementById('ft-translating-'+id);if(sp)sp.style.display='none';return;}
@@ -2284,17 +2301,30 @@ function autoTranslate(id){
       const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ar|en&de=gastec@gmail.com`;
       const res=await fetch(url,{signal:AbortSignal.timeout(5000)});
       const data=await res.json();
-      const translated=data?.responseData?.translatedText||'';
-      if(translated&&data?.responseStatus===200){
+      let translated=data?.responseData?.translatedText||'';
+      // ننظّف الترجمة من أى أكواد HTML (زى <g id="46">D</g>)
+      translated=cleanTranslation(translated);
+      // نتجاهل ترجمات فاضية أو فيها رسائل خطأ
+      const bad = !translated || /translation|invalid|mymemory|please|query/i.test(translated);
+      if(translated && data?.responseStatus===200 && !bad){
         if(enEl)enEl.value=translated;
         if(indicator)indicator.style.display='none';
         return;
       }
     }catch(e){}
-    // ثالثاً: fallback — اكتب النص الأصلى
-    if(enEl)enEl.value='['+text+']';
+    // رابعاً: fallback — نترك النص العربى كما هو (أوضح من أقواس)
+    if(enEl)enEl.value=text;
     if(indicator)indicator.style.display='none';
   },800);
+}
+// تنظيف الترجمة من أكواد HTML والرموز الغريبة
+function cleanTranslation(s){
+  if(!s) return '';
+  return String(s)
+    .replace(/<[^>]*>/g,'')
+    .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
+    .replace(/\s+/g,' ')
+    .trim();
 }
 function setRepairStatus(id,status){
   document.getElementById('ft-repstatus-fixed-'+id).classList.toggle('active',status==='fixed');
