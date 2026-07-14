@@ -185,9 +185,15 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mgr-sum-label{font-size:10px;color:var(--gray-mid);font-weight:700;margin-bottom:4px}
 .mgr-sum-val{font-size:22px;font-weight:800}
 .mgr-table-wrap{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:14px}
-/* فريز رؤوس الجداول فى شاشة المسؤول (يثبت الرأس عند التمرير) */
-#mgr-screen table th{position:sticky;top:0;z-index:5}
+/* فريز رؤوس الجداول فى شاشة المسؤول (scroll جوة كل جدول والرأس ثابت) */
+#mgr-screen .mgr-tab-content > div[style*="overflow-x"],
+#mgr-screen table{}
+#mgr-screen th{position:sticky;top:0;z-index:5}
 .mgr-table-head{position:sticky;top:0;z-index:6}
+/* حاوية الجدول: ارتفاع محدود + scroll داخلى */
+.fire-tbl-scroll{max-height:60vh;overflow:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
+.fire-tbl-scroll table{margin:0}
+.fire-tbl-scroll thead th, .fire-tbl-scroll tr:first-child th{position:sticky;top:0;z-index:5}
 .mgr-table-head{display:grid;grid-template-columns:48px 1fr 75px 85px 75px 75px;background:var(--blue-dark);color:white;font-size:10px;font-weight:800;padding:8px 12px;gap:4px;align-items:center}
 .mgr-table-row{display:grid;grid-template-columns:48px 1fr 75px 85px 75px 75px;padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:11px;gap:4px;align-items:center}
 .mgr-table-row:last-child{border-bottom:none}
@@ -849,7 +855,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
     <div onclick="openMgrSection('oil')" style="background:linear-gradient(135deg,#C2410C,#F97316);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
       <div style="font-size:17px;font-weight:800">🛢️ استهلاك الزيت</div>
-      <div style="font-size:12px;opacity:.85;margin-top:4px">معدلات الاستهلاك (آخر 3 شهور) + مقارنة الأنواع المتطابقة</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">البيان التفصيلى لمعدلات استهلاك الزيت (آخر 3 شهور)</div>
     </div>
     <div onclick="openMgrSection('fire')" style="background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
       <div style="font-size:17px;font-weight:800">🧯 منظومات الحريق</div>
@@ -3323,7 +3329,7 @@ function loadCompComparison(){
       groups.forEach(g=>{
         html+='<div style="border:1px solid #99F6E4;border-radius:10px;margin-bottom:12px;overflow:hidden">';
         html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px">'+(g.brand?g.brand+' — ':'')+g.model+(g.units.length>1?' <span style="opacity:.85;font-size:11px">('+g.units.length+')</span>':'')+'</div>';
-        html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+        html+='<div class="fire-tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
         html+='<tr style="background:#CCFBF1;font-weight:800"><th style="padding:6px;border:1px solid #99F6E4">المحطة / الضاغط</th><th style="padding:6px;border:1px solid #99F6E4">FR فعلى</th><th style="padding:6px;border:1px solid #99F6E4">حيود%</th><th style="padding:6px;border:1px solid #99F6E4">كفاءة%</th><th style="padding:6px;border:1px solid #99F6E4">KWH/م³</th><th style="padding:6px;border:1px solid #99F6E4">زيت لتر/100س</th></tr>';
         g.units.forEach(u=>{
           html+='<tr><td style="padding:5px 6px;border:1px solid #E5E7EB;font-weight:700">'+u.name+'</td>';
@@ -3350,27 +3356,11 @@ function loadOilReport(){
       const lu=document.getElementById('oil-last-update');
       if(lu && records.length>0) lu.textContent='آخر إرسال: '+(records[0].date||'—')+' • '+records.length+' سجل';
       let html='';
-      // المقارنة بالموديل (الأهم فوق)
-      if(byModel.length>0){
-        html+='<div style="font-weight:800;color:#9A3412;font-size:14px;margin-bottom:8px">📊 مقارنة الأنواع المتطابقة (للتعويض والعطل)</div>';
-        byModel.forEach(m=>{
-          html+='<div style="border:1px solid #FDBA74;border-radius:10px;margin-bottom:10px;overflow:hidden">';
-          html+='<div style="background:linear-gradient(135deg,#C2410C,#F97316);color:#fff;padding:9px 13px;font-weight:800;font-size:12px">'+m.model+' — '+m.unitType+' <span style="opacity:.85">(متوسط '+m.avgRate.toFixed(1)+' لتر/100س)</span></div>';
-          html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
-          html+='<tr style="background:#FFEDD5;font-weight:800"><th style="padding:6px;border:1px solid #FED7AA">المحطة / الوحدة</th><th style="padding:6px;border:1px solid #FED7AA">متوسط المعدل</th><th style="padding:6px;border:1px solid #FED7AA">أيام</th></tr>';
-          m.units.forEach(u=>{
-            const high=u.avgRate>m.avgRate;
-            html+='<tr><td style="padding:5px 6px;border:1px solid #E5E7EB;font-weight:700">'+u.name+' — '+u.unit+'</td>';
-            html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:'+(high?'#DC2626':'#16A34A')+'">'+u.avgRate.toFixed(1)+'</td>';
-            html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center">'+u.days+'</td></tr>';
-          });
-          html+='</table></div></div>';
-        });
-      }
+      // ملاحظة: مقارنة الأنواع المتطابقة موجودة فى "مقارنة الضواغط" (عمود زيت لتر/100س)
       // البيان التفصيلى
       if(records.length>0){
         html+='<div style="font-weight:800;color:#9A3412;font-size:14px;margin:14px 0 8px">📋 البيان التفصيلى</div>';
-        html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+        html+='<div class="fire-tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
         html+='<tr style="background:#FFEDD5;font-weight:800">';
         ['التاريخ','المحطة','الوحدة','النوع','ساعات','استهلاك','نوع الاستهلاك','لتر / 100 ساعة'].forEach(h=>{ html+='<th style="padding:6px;border:1px solid #FED7AA;white-space:nowrap">'+h+'</th>'; });
         html+='</tr>';
@@ -4051,7 +4041,7 @@ function loadTadamonMgr(){
       if(recs.length===0){
         html+='<div style="text-align:center;color:#888;padding:40px;font-size:14px">لا توجد محاضر مسجّلة بعد</div>';
       } else {
-        html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+        html+='<div class="fire-tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
         html+='<tr style="background:#E0F2FE;font-weight:800">';
         ['المحطة','التاريخ','الفترة','أيام','الاستهلاك KWH','المبيعات م³','KWH/م³'].forEach(h=>{
           html+='<th style="padding:7px 6px;border:1px solid #BAE6FD;white-space:nowrap">'+h+'</th>';
@@ -4225,7 +4215,7 @@ function renderFireItemTable(item, list){
   const cols=fireTableCols(itemId);
   let html='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:12px 0;overflow:hidden">';
   html+='<div style="background:linear-gradient(135deg,#7F1D1D,#B91C1C);color:#fff;padding:10px 12px;font-weight:800;font-size:14px">'+item+' <span style="opacity:.8;font-size:12px;font-weight:400">('+list.length+' عطل)</span></div>';
-  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+  html+='<div class="fire-tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
   // رأس الأعمدة + عمود تاريخ البلاغ + عمود الإجراء
   html+='<tr style="background:#FEE2E2;font-weight:800">';
   cols.forEach(c=>{ html+='<th style="padding:7px 6px;border:1px solid #FCA5A5;white-space:nowrap">'+c.h+'</th>'; });
