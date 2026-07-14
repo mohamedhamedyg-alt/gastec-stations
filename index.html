@@ -2506,19 +2506,22 @@ function calcFD(id){
   updateTotalDT();
 }
 function updateTotalDT(){
-  let total=0; const stoppedComps=new Set();
+  let total=0, purge=0; const stoppedComps=new Set();
   document.querySelectorAll('[id^="ft-dur-"]').forEach(el=>{
     const t=el.value;if(!t||t.includes('⚠'))return;
     const hm=t.match(/(\d+)\s*س/),mm=t.match(/(\d+)\s*د/);
-    total+=(hm?parseInt(hm[1])*60:0)+(mm?parseInt(mm[1]):0);
-    // أى ضاغط اتوقف؟
+    const mins=(hm?parseInt(hm[1])*60:0)+(mm?parseInt(mm[1]):0);
     const id=el.id.replace('ft-dur-','');
+    const reason=document.getElementById('ft-stop-reason-'+id)?.value||'';
+    // تفريغ البنزين منفصل — لا يدخل فى إجمالى الأعطال/الصيانات
+    if(reason==='تفريغ بنزين'){ purge+=mins; return; }
+    total+=mins;
     const ty=document.getElementById('ft-type-'+id)?.value;
     if(ty&&ty.startsWith('c')) stoppedComps.add(parseInt(ty.slice(1)));
   });
+  window.__purgeDowntime=purge;
   const el=document.getElementById('f-total-downtime');
   let txt = total>0?(Math.floor(total/60)>0?Math.floor(total/60)+' س ':'')+total%60+' د':'';
-  // لو محطة ضاغطين وواقف واحد بس → وضّح
   const nComps=(currentStation?.comps||[]).length;
   if(total>0 && nComps>1 && stoppedComps.size>0 && stoppedComps.size<nComps){
     const tags=[...stoppedComps].sort().map(i=>'ض'+(i+1)).join('+');
@@ -2882,7 +2885,7 @@ async function submitForm(){
 
   // تجميع بيانات التوقفات من كل البطاقات
   // نجمّع كل توقف كوحدة كاملة (سطر لكل توقف — كل الحقول متوازية ولا يُهمل أى توقف)
-  const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[],_mA=[],_acA=[],_box=[];
+  const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[],_mA=[],_acA=[],_box=[],_purge=[];
   for(let fi=1;fi<=faultCount;fi++){
     if(!document.getElementById('fault-'+fi))continue;
     const gv=s=>document.getElementById('ft-'+s+'-'+fi)?.value||'';
@@ -2919,7 +2922,13 @@ async function submitForm(){
       if(raRaw) bits.push(raRaw);
       boxText = bits.length ? bits.join(' — ') : 'تفريغ بنزين';
     }
-    _box.push(boxText);
+    // تفريغ البنزين لا يدخل box الأعطال (له عموده المنفصل)
+    if(!isStationWide) _box.push(boxText);
+    // نفصل تفريغ البنزين (مع مدته) عن الأعطال — للعرض المنفصل عند المسؤول
+    const durVal=document.getElementById('ft-dur-'+fi)?.value||'';
+    if(isStationWide){
+      _purge.push('تفريغ بنزين'+(durVal&&!durVal.includes('⚠')?' ('+durVal+')':''));
+    }
     // كل توقف يدفع عنصر لكل مصفوفة (حتى لو فاضى — نحافظ على التوازى)
     _sF.push(tmS('f')||'—');
     _sT.push(tmS('t')||'—');
@@ -2938,6 +2947,8 @@ async function submitForm(){
     sent_time:_sentTime,
     stop_reason:_types.join(' | '), stop_ar:(_rAr.length?_rAr:_types).join(' | '), stop_en:(_rEn.length?_rEn:_types.map(t=>tryLocalPhrase(t)||t)).join(' | '),
     stop_box:_box.join(' | '),
+    purge_box:_purge.join(' | '),
+    purge_downtime:(function(){var p=window.__purgeDowntime||0;return p>0?((Math.floor(p/60)>0?Math.floor(p/60)+' س ':'')+p%60+' د'):'';})(),
     stop_from:_sF.join(' | '), stop_to:_sT.join(' | '),
     repair_dur:_rD.join(' | '), repair_from:_rF.join(' | '), repair_to:_rT.join(' | '),
     maint_action:_mA.join(' | '), supervisor_action:_acA.join(' | '),
@@ -4201,13 +4212,44 @@ function renderMgrDay(j){
   tb.innerHTML=html;
   buildOilPanel(j.oils||{});
 }
-// خلية مدة التوقف (clickable لو فيه توقف)
+// خلية مدة التوقف (clickable لو فيه توقف) + رمز ⛽ لتفريغ البنزين
 function dtCell(s){
   const dt=s.downtime||'—';
   const hasStop=(s.stopReason&&s.stopReason.trim())||(s.stopDetails&&s.stopDetails.trim());
-  if(!hasStop || dt==='—' || dt==='0 س 0 د') return dt;
-  const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:dt,reason:s.stopReason||'',details:s.stopDetails||''}));
-  return '<span onclick="showStopReason(\''+payload+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+dt+' <span style="font-size:10px">ℹ️</span></span>';
+  const hasPurge=(s.purgeBox&&s.purgeBox.trim())||(s.purgeDowntime&&s.purgeDowntime.trim());
+  let out='';
+  // مدة الأعطال/الصيانات (بدون تفريغ بنزين)
+  if(hasStop && dt!=='—' && dt!=='0 س 0 د'){
+    const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:dt,reason:s.stopReason||'',details:s.stopDetails||''}));
+    out='<span onclick="showStopReason(\''+payload+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+dt+' <span style="font-size:10px">ℹ️</span></span>';
+  } else {
+    out=(hasStop?dt:(dt==='—'?'—':dt));
+  }
+  // رمز تفريغ البنزين (منفصل)
+  if(hasPurge){
+    const pp=encodeURIComponent(JSON.stringify({name:s.name,purge:s.purgeBox||'',dur:s.purgeDowntime||''}));
+    out+=' <span onclick="showPurge(\''+pp+'\')" title="تفريغ بنزين" style="cursor:pointer;font-size:14px">⛽</span>';
+    if(!hasStop && (dt==='—'||dt==='0 س 0 د')) out=out.replace('—','').trim();
+  }
+  return out||'—';
+}
+function showPurge(payload){
+  let d;
+  try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
+  const box=document.getElementById('stop-reason-modal');
+  const body=document.getElementById('stop-reason-body');
+  let h='<div style="font-weight:800;color:#0369A1;font-size:15px;margin-bottom:12px">'+d.name+'</div>';
+  h+='<div style="background:#EFF6FF;border:1px solid #93C5FD;border-radius:8px;padding:12px">';
+  h+='<div style="font-weight:800;color:#1E40AF;font-size:13px;margin-bottom:8px">⛽ تفريغ بنزين</div>';
+  if(d.dur&&d.dur.trim()){
+    h+='<div style="font-size:14px;color:#1E3A8A;font-weight:700">مدة التوقف: <span style="direction:ltr">'+d.dur+'</span></div>';
+  } else {
+    h+='<div style="font-size:14px;color:#1E3A8A;font-weight:700">تفريغ بنزين</div>';
+  }
+  h+='<div style="font-size:11px;color:#64748B;margin-top:6px">توقف خارج إرادة المحطة (غير محسوب في إجمالي مدد التوقف)</div>';
+  h+='</div>';
+  body.innerHTML=h;
+  box.style.display='flex';
 }
 function showStopReason(payload){
   let d;
