@@ -395,17 +395,17 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <input type="number" class="form-control" id="tadamon-factor" min="0" step="0.01" inputmode="decimal" style="direction:ltr" value="1" placeholder="1" oninput="calcTadamon()">
         <div style="font-size:11px;color:#64748B;margin-top:2px">افتراضى 1. لو العداد له معامل ضرب أدخله هنا.</div>
       </div>
-      <!-- تعريفة الكهرباء (موحّدة) -->
-      <div style="background:#FEFCE8;border:1px solid #FDE047;border-radius:8px;padding:9px 11px;margin-top:10px">
-        <div style="font-size:11px;font-weight:800;color:#854D0E;margin-bottom:6px">💡 تعريفة الكهرباء (جنيه/ك.و.س) — موحّدة لكل المحطات</div>
+      <!-- تعريفة الكهرباء (للعرض فقط — يعدّلها المسؤول) -->
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:9px 11px;margin-top:10px">
+        <div style="font-size:11px;font-weight:800;color:#64748B;margin-bottom:6px">💡 تعريفة الكهرباء (جنيه/ك.و.س) — يحدّدها المسؤول</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div>
-            <label style="font-size:10px;color:#666">صناعى</label>
-            <input type="number" id="tariff-ind-t" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.74" oninput="onTariffEditT('ind')" onblur="confirmTariffSaveT('ind')">
+            <label style="font-size:10px;color:#999">صناعى</label>
+            <input type="number" id="tariff-ind-t" class="form-control" style="font-size:12px;direction:ltr;background:#F1F5F9;color:#475569" value="2.74" readonly>
           </div>
           <div>
-            <label style="font-size:10px;color:#666">تجارى</label>
-            <input type="number" id="tariff-com-t" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.79" oninput="onTariffEditT('com')" onblur="confirmTariffSaveT('com')">
+            <label style="font-size:10px;color:#999">تجارى</label>
+            <input type="number" id="tariff-com-t" class="form-control" style="font-size:12px;direction:ltr;background:#F1F5F9;color:#475569" value="2.79" readonly>
           </div>
         </div>
       </div>
@@ -622,19 +622,17 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
             <input type="text" class="form-control num-fmt" id="f-kvarh" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr">
           </div>
         </div>
-        <!-- تعريفة الكهرباء (موحّدة — قابلة للتعديل) -->
-        <div style="background:#FEFCE8;border:1px solid #FDE047;border-radius:8px;padding:9px 11px;margin-top:8px">
-          <div style="font-size:11px;font-weight:800;color:#854D0E;margin-bottom:6px">💡 تعريفة الكهرباء (جنيه/ك.و.س) — موحّدة لكل المحطات</div>
+        <!-- تعريفة الكهرباء (للعرض فقط — يعدّلها المسؤول) -->
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:9px 11px;margin-top:8px">
+          <div style="font-size:11px;font-weight:800;color:#64748B;margin-bottom:6px">💡 تعريفة الكهرباء (جنيه/ك.و.س) — يحدّدها المسؤول</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div>
-              <label style="font-size:10px;color:#666">صناعى</label>
-              <input type="number" id="tariff-ind" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.74" oninput="onTariffEdit('ind')" onblur="confirmTariffSave('ind')">
-              <div id="tariff-ind-note" style="font-size:10px;color:#16A34A;font-weight:700"></div>
+              <label style="font-size:10px;color:#999">صناعى</label>
+              <input type="number" id="tariff-ind" class="form-control" style="font-size:12px;direction:ltr;background:#F1F5F9;color:#475569" value="2.74" readonly>
             </div>
             <div>
-              <label style="font-size:10px;color:#666">تجارى</label>
-              <input type="number" id="tariff-com" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.79" oninput="onTariffEdit('com')" onblur="confirmTariffSave('com')">
-              <div id="tariff-com-note" style="font-size:10px;color:#16A34A;font-weight:700"></div>
+              <label style="font-size:10px;color:#999">تجارى</label>
+              <input type="number" id="tariff-com" class="form-control" style="font-size:12px;direction:ltr;background:#F1F5F9;color:#475569" value="2.79" readonly>
             </div>
           </div>
         </div>
@@ -908,7 +906,32 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800">⚡ محاضر التضامن</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">بيان محاضر التضامن (الكهرباء الشهرية) + حالة الإرسال</div>
     </div>
+    <div onclick="openTariffSettings()" style="background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:15px;font-weight:800">💡 إعدادات تعريفة الكهرباء</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">صناعى: <span id="hub-tariff-ind">2.74</span> — تجارى: <span id="hub-tariff-com">2.79</span> جنيه</div>
+    </div>
     <button class="btn-mgr back" onclick="resetToLogin()" style="margin-top:6px">خروج</button>
+  </div>
+
+  <!-- نافذة إعدادات التعريفة -->
+  <div id="tariff-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)">
+      <div style="font-size:17px;font-weight:800;color:#B45309;margin-bottom:6px">💡 تعريفة الكهرباء</div>
+      <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px;font-size:12px;color:#92400E;font-weight:700;margin-bottom:14px">⚠️ تنبيه: هذه القيم موحّدة لكل المحطات وتؤثر على حساب الحافز/الغرامة في البيان اليومي والمحاضر. تأكد قبل الحفظ.</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:700">تعريفة الكهرباء الصناعية (جنيه/ك.و.س)</label>
+        <input type="number" id="tariff-modal-ind" class="form-control" style="direction:ltr;font-size:15px;font-weight:800" step="0.01" value="2.74">
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:13px;font-weight:700">تعريفة الكهرباء التجارية (جنيه/ك.و.س)</label>
+        <input type="number" id="tariff-modal-com" class="form-control" style="direction:ltr;font-size:15px;font-weight:800" step="0.01" value="2.79">
+      </div>
+      <div id="tariff-modal-status" style="text-align:center;font-size:12px;font-weight:700;margin-bottom:10px;min-height:16px"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeTariffSettings()" style="flex:1;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">إلغاء</button>
+        <button onclick="saveTariffSettings()" style="flex:2;background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">💾 حفظ التعريفة</button>
+      </div>
+    </div>
   </div>
 
   <!-- ══════ منطقة الأقسام (مخفية حتى يختار من القائمة) ══════ -->
@@ -932,6 +955,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
   </div>
+  <div id="mgr-hoses-summary"></div>
   <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);min-height:340px;overflow:auto;position:relative">
     <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:940px;width:100%;font-size:12px">
       <thead>
@@ -1094,62 +1118,37 @@ function loadTariffSettings(){
     .catch(()=>{});
 }
 loadTariffSettings();
-// عند تعديل المشرف للتعريفة — تحذير + حفظ موحّد
-function onTariffEdit(kind){
-  const el=document.getElementById(kind==='ind'?'tariff-ind':'tariff-com');
-  if(!el) return;
-  el.dataset.touched='1';
-  const val=parseFloat(el.value)||0;
-  if(kind==='ind') window.__tariffInd=val; else window.__tariffCom=val;
-  if(typeof calcLive==='function') calcLive();
-  if(typeof calcTadamon==='function') calcTadamon();
+// ══════════ إعدادات التعريفة (المسؤول فقط) ══════════
+function openTariffSettings(){
+  const m=document.getElementById('tariff-modal');
+  document.getElementById('tariff-modal-ind').value=window.__tariffInd;
+  document.getElementById('tariff-modal-com').value=window.__tariffCom;
+  document.getElementById('tariff-modal-status').textContent='';
+  m.style.display='flex';
 }
-function confirmTariffSave(kind){
-  const el=document.getElementById(kind==='ind'?'tariff-ind':'tariff-com');
-  if(!el) return;
-  const val=parseFloat(el.value)||0;
-  if(val<=0){ return; }
-  if(!confirm('⚠️ برجاء التأكد من أنك تقوم بتعديل قيمة تعريفة الكهرباء '+(kind==='ind'?'الصناعية':'التجارية')+' إلى '+val+' جنيه.\n\nهذه القيمة موحّدة لكل المحطات. متأكد؟')){
-    el.value = kind==='ind' ? window.__tariffInd : window.__tariffCom;
-    return;
-  }
-  const ind=parseFloat(document.getElementById('tariff-ind')?.value)||window.__tariffInd;
-  const com=parseFloat(document.getElementById('tariff-com')?.value)||window.__tariffCom;
+function closeTariffSettings(){
+  document.getElementById('tariff-modal').style.display='none';
+}
+function saveTariffSettings(){
+  const ind=parseFloat(document.getElementById('tariff-modal-ind')?.value)||0;
+  const com=parseFloat(document.getElementById('tariff-modal-com')?.value)||0;
+  const st=document.getElementById('tariff-modal-status');
+  if(ind<=0||com<=0){ st.style.color='#B91C1C'; st.textContent='❌ أدخل قيم صحيحة'; return; }
+  st.style.color='#0369A1'; st.textContent='⏳ جارى الحفظ...';
   window.__tariffInd=ind; window.__tariffCom=com;
   syncTariffInputs();
-  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com).catch(()=>{});
-  const note=document.getElementById(kind==='ind'?'tariff-ind-note':'tariff-com-note');
-  if(note){ note.textContent='✅ تم الحفظ'; setTimeout(()=>{note.textContent='';},2000); }
+  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com)
+    .then(r=>r.json())
+    .then(()=>{ st.style.color='#166534'; st.textContent='✅ تم الحفظ — التعريفة محدّثة لكل المحطات'; setTimeout(closeTariffSettings,1400); })
+    .catch(()=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ — أعد المحاولة'; });
 }
-// نسخة التضامن (نفس المنطق، IDs مختلفة)
-function onTariffEditT(kind){
-  const el=document.getElementById(kind==='ind'?'tariff-ind-t':'tariff-com-t');
-  if(!el) return;
-  const val=parseFloat(el.value)||0;
-  if(kind==='ind') window.__tariffInd=val; else window.__tariffCom=val;
-  if(typeof calcTadamon==='function') calcTadamon();
-}
-function confirmTariffSaveT(kind){
-  const el=document.getElementById(kind==='ind'?'tariff-ind-t':'tariff-com-t');
-  if(!el) return;
-  const val=parseFloat(el.value)||0;
-  if(val<=0){ return; }
-  if(!confirm('⚠️ برجاء التأكد من أنك تقوم بتعديل قيمة تعريفة الكهرباء '+(kind==='ind'?'الصناعية':'التجارية')+' إلى '+val+' جنيه.\n\nهذه القيمة موحّدة لكل المحطات. متأكد؟')){
-    el.value = kind==='ind' ? window.__tariffInd : window.__tariffCom;
-    return;
-  }
-  const ind=parseFloat(document.getElementById('tariff-ind-t')?.value)||window.__tariffInd;
-  const com=parseFloat(document.getElementById('tariff-com-t')?.value)||window.__tariffCom;
-  window.__tariffInd=ind; window.__tariffCom=com;
-  syncTariffInputs();
-  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com).catch(()=>{});
-  if(typeof calcTadamon==='function') calcTadamon();
-}
-// مزامنة كل خانات التعريفة (البيان اليومى + التضامن)
+// مزامنة كل خانات التعريفة (عرض المشرف + كارت المسؤول)
 function syncTariffInputs(){
   [['tariff-ind',window.__tariffInd],['tariff-com',window.__tariffCom],
-   ['tariff-ind-t',window.__tariffInd],['tariff-com-t',window.__tariffCom]].forEach(([id,v])=>{
-    const e=document.getElementById(id); if(e) e.value=v;
+   ['tariff-ind-t',window.__tariffInd],['tariff-com-t',window.__tariffCom],
+   ['hub-tariff-ind',window.__tariffInd],['hub-tariff-com',window.__tariffCom]].forEach(([id,v])=>{
+    const e=document.getElementById(id); if(!e) return;
+    if(e.tagName==='INPUT') e.value=v; else e.textContent=v;
   });
 }
 const SAFETY_WARN=75, SAFETY_MAX=90;
@@ -4131,8 +4130,34 @@ function renderMgrDay(j){
   document.getElementById('mgr-c-pending').textContent=j.pending;
   document.getElementById('mgr-c-kwhm3').textContent=j.totals.kwhm3;
   document.getElementById('mgr-c-down').textContent=j.totals.downtime;
+  // ── كروت إجمالى الهوزات المتوقفة بالمنطقة ──
+  const hosesByRegion={}; let totalHoses=0;
+  j.stations.forEach(s=>{
+    const hz=parseInt(s.hoses)||0;
+    if(hz>0){ hosesByRegion[s.region]=(hosesByRegion[s.region]||0)+hz; totalHoses+=hz; }
+  });
+  const hcard=document.getElementById('mgr-hoses-summary');
+  if(hcard){
+    if(totalHoses>0){
+      let hh='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:12px;margin-bottom:12px">';
+      hh+='<div style="font-weight:800;color:#9A3412;font-size:13px;margin-bottom:8px">🔧 إجمالى الهوزات المتوقفة</div>';
+      hh+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+      Object.keys(hosesByRegion).forEach(reg=>{
+        hh+='<div style="background:#fff;border:1px solid #FED7AA;border-radius:8px;padding:7px 12px;text-align:center;min-width:90px">';
+        hh+='<div style="font-size:11px;color:#9A6540">'+reg+'</div>';
+        hh+='<div style="font-size:19px;font-weight:800;color:#C2410C;direction:ltr">'+hosesByRegion[reg]+'</div></div>';
+      });
+      hh+='<div style="background:linear-gradient(135deg,#C2410C,#F97316);color:#fff;border-radius:8px;padding:7px 14px;text-align:center;min-width:100px">';
+      hh+='<div style="font-size:11px;opacity:.9">الإجمالى الكلى</div>';
+      hh+='<div style="font-size:22px;font-weight:800;direction:ltr">'+totalHoses+'</div></div>';
+      hh+='</div></div>';
+      hcard.innerHTML=hh;
+    } else { hcard.innerHTML=''; }
+  }
   const tb=document.getElementById('mgr-table');
   let html='';
+  // ألوان خفيفة لكل عمود
+  const C={sent:'#F0FDF4', time:'#F8FAFC', sales:'#EFF6FF', kwh:'#F5F3FF', fr:'#FEFCE8', dev:'#FEF9F5', pf:'#F0F9FF', util:'#F0FDFA', down:'#FFF7ED', hose:'#FEF2F2'};
   j.stations.forEach(s=>{
     const status=s.sent?(s.stopped?'<span style="color:#B45309;font-weight:800">⏸ متوقفة</span>':'<span style="color:var(--green);font-weight:800">✔ أرسلت</span>'):'<span style="color:var(--red);font-weight:800">✖ لم ترسل</span>';
     const sentTime=s.sentTime||(s.sent?'—':'');
@@ -4141,16 +4166,16 @@ function renderMgrDay(j){
     html+='<tr>'+
       '<td class="mg-fz1">'+s.code+'</td>'+
       '<td class="mg-fz2">'+s.name+'</td>'+
-      '<td>'+status+'</td>'+
-      '<td style="direction:ltr;font-weight:700;color:#555">'+sentTime+'</td>'+
-      '<td style="font-weight:800">'+fmt(s.sales)+'</td>'+
-      '<td>'+fmt(s.kwhM3)+'</td>'+
-      '<td>'+fmt(s.fr)+'</td>'+
-      '<td style="'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
-      '<td>'+fmt(s.pf)+'</td>'+
-      '<td>'+fmt(s.util)+'</td>'+
-      '<td style="color:var(--amber);font-weight:700">'+(s.downtime||'—')+'</td>'+
-      '<td style="color:#8A5A00;font-weight:800">'+(s.hoses>0?s.hoses:'—')+'</td>'+
+      '<td style="background:'+C.sent+'">'+status+'</td>'+
+      '<td style="direction:ltr;font-weight:700;color:#555;background:'+C.time+'">'+sentTime+'</td>'+
+      '<td style="font-weight:800;background:'+C.sales+'">'+fmt(s.sales)+'</td>'+
+      '<td style="background:'+C.kwh+'">'+fmt(s.kwhM3)+'</td>'+
+      '<td style="background:'+C.fr+'">'+fmt(s.fr)+'</td>'+
+      '<td style="background:'+C.dev+';'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
+      '<td style="background:'+C.pf+'">'+fmt(s.pf)+'</td>'+
+      '<td style="background:'+C.util+'">'+fmt(s.util)+'</td>'+
+      '<td style="color:var(--amber);font-weight:700;background:'+C.down+'">'+(s.downtime||'—')+'</td>'+
+      '<td style="color:#8A5A00;font-weight:800;background:'+C.hose+'">'+(s.hoses>0?s.hoses:'—')+'</td>'+
     '</tr>';
   });
   tb.innerHTML=html;
