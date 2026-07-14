@@ -1896,37 +1896,13 @@ function calcLive(){
   const kwhPerM3 = (sales>0 && kwhInd>0) ? kwhInd/sales : 0;
   document.getElementById('lc-cost').textContent = kwhPerM3>0 ? kwhPerM3.toFixed(3)+' KWH/م³' : '—';
 
-  // ── حافز/غرامة PF — المعادلات الرسمية ──
+  // ── حافز/غرامة PF — المعادلات الرسمية الموحّدة ──
   // التعريفة: تجارى فقط → تجارى، غير كده → صناعى
   const tariffRate = isCommercialOnly ? (window.__tariffCom||2.79) : (window.__tariffInd||2.74);
   const pfInc = pfIncentive(pf, kwhForPF, tariffRate);
   const pfEl = document.getElementById('lc-pf-status');
   pfEl.textContent = pfInc.txt;
   pfEl.className = 'live-calc-val '+(pfInc.cls||'');
-  __skipOldPFBlock: {
-  let statusTxt, statusCls;
-
-  if(pf <= 0){
-    statusTxt = '—'; statusCls = '';
-  } else if(pf >= 0.95) {
-    // حالة ④ — PF من 95% لـ 99% أو أعلى → تخفيض الفاتورة بقيمة 0.95
-    statusTxt = '✨ تخفيض الفاتورة (PF ≥ 95%)'; statusCls = 'ok';
-  } else if(pf >= 0.92) {
-    // حالة ③ — حافز = (PF - 0.92) × 1/5 × القيمة الكلية
-    const bonus = (pf - 0.92) * (1/5) * indCost;
-    statusTxt = '✅ حافز '+bonus.toFixed(0)+' جنيه'; statusCls = 'ok';
-  } else if(pf >= 0.70) {
-    // حالة ① — غرامة = (0.92 - PF) × 1/5 × القيمة الكلية
-    const fine = (0.92 - pf) * (1/5) * indCost;
-    statusTxt = '⚠ غرامة '+fine.toFixed(0)+' جنيه'; statusCls = 'warn';
-  } else {
-    // حالة ② — PF أقل من 70% — غرامة مضاعفة = (0.92 - PF) × 1 × القيمة الكلية
-    const fine = (0.92 - pf) * 1 * indCost;
-    statusTxt = '❌ غرامة مضاعفة '+fine.toFixed(0)+' جنيه'; statusCls = 'bad';
-  }
-  pfEl.textContent = statusTxt;
-  pfEl.className = 'live-calc-val '+(statusCls||'');
-  } // نهاية __skipOldPFBlock (غير مستخدم — المنطق الجديد فوق)
 
   // ── Flow Rate الفعلى والمعيارى والحيود ──
   calcFlowRate(sales);
