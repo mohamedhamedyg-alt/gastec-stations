@@ -22,15 +22,15 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Cairo',sans-serif;background:#EEF3F9;color:var(--gray-dark);min-height:100vh;font-size:14px}
-.app-header{background:var(--blue-dark);padding:10px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.25)}
+.app-header{background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:10px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.25)}
 .header-main{display:flex;align-items:center;justify-content:space-between}
 .logo{display:flex;align-items:center;gap:8px}
 .logo-icon{width:34px;height:34px;background:var(--blue-light);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:white}
-.logo-text .title{display:inline-block;font-size:13px;font-weight:800;color:#fff;line-height:1.3;background:linear-gradient(135deg,#0E7490,#0891B2);padding:5px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.25);box-shadow:0 2px 6px rgba(8,145,178,.4)}
+.logo-text .title{display:inline-block;font-size:13px;font-weight:800;color:#FCD34D;line-height:1.3;background:#1F2937;padding:6px 15px;border-radius:10px;border:1.5px solid #FCD34D;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .logo-text .sub{font-size:9px;color:#90B8D8}
 .header-date{color:#90B8D8;font-size:11px}
 .header-credit{text-align:center;padding-top:7px;border-top:1px solid rgba(255,255,255,0.15);margin-top:6px}
-.credit-badge{display:inline-block;background:linear-gradient(135deg,#C026D3,#DB2777);color:#fff;font-size:12.5px;font-weight:800;padding:6px 18px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);letter-spacing:0.2px;box-shadow:0 2px 8px rgba(192,38,211,.35)}
+.credit-badge{display:inline-block;background:#1F2937;color:#FCD34D;font-size:12.5px;font-weight:800;padding:6px 18px;border-radius:20px;border:1.5px solid #FCD34D;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 /* LOGIN */
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 72px)}
 .login-card{background:var(--white);border-radius:16px;padding:28px 24px;width:100%;max-width:400px;border:1px solid var(--border);text-align:center;margin:16px}
@@ -250,15 +250,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 <div class="app-header">
   <div class="header-main">
     <div class="logo">
-      <div class="logo-icon">G</div>
-      <div class="logo-text">
+      <div class="logo-text" style="flex:1">
         <div class="title">غازتك | برنامج متابعة وتشغيل المحطات</div>
         <div class="sub" style="font-size:11px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       </div>
     </div>
     <div class="header-date" id="header-date"></div>
   </div>
-  <div class="header-credit"><span class="credit-badge">إعداد التصميم : مهندس / محمد أبو النجا</span></div>
+  <div class="header-credit"><span class="credit-badge">تصميم وتنفيذ : مهندس / محمد أبو النجا</span></div>
 </div>
 
 <!-- LOGIN -->
