@@ -853,10 +853,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800">🔧 مقارنة الضواغط</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">مقارنة الضواغط المتطابقة بالموديل — FR والحيود والكفاءة</div>
     </div>
-    <div onclick="openMgrSection('oil')" style="background:linear-gradient(135deg,#C2410C,#F97316);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
-      <div style="font-size:17px;font-weight:800">🛢️ استهلاك الزيت</div>
-      <div style="font-size:12px;opacity:.85;margin-top:4px">البيان التفصيلى لمعدلات استهلاك الزيت (آخر 3 شهور)</div>
-    </div>
     <div onclick="openMgrSection('fire')" style="background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
       <div style="font-size:17px;font-weight:800">🧯 منظومات الحريق</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">ملخص أعطال منظومات الحريق + حالة الإرسال</div>
@@ -940,18 +936,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <span id="comp-dl-status" style="font-size:12px;color:#1A6B4A;font-weight:700"></span>
     </div>
     <div id="comp-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل...</div></div>
-  </div>
-
-  <!-- ══════ تاب استهلاك الزيت ══════ -->
-  <div class="mgr-tab-content" id="mtab-oil">
-  <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
-    <div class="mgr-tab-title">🛢️ استهلاك الزيت (آخر 3 شهور)</div>
-    <div class="mgr-last-update" id="oil-last-update"></div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-      <button class="btn-mgr export" style="background:#C2410C;margin-bottom:0;width:auto" onclick="exportOilXlsx()">📥 تحميل بيان الزيت (Excel)</button>
-      <span id="oil-dl-status" style="font-size:12px;color:#1A6B4A;font-weight:700"></span>
-    </div>
-    <div id="oil-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#C2410C;font-weight:800">⏳ جارى التحميل...</div></div>
   </div>
 
   <!-- ══════ تاب منظومات الحريق ══════ -->
@@ -3306,7 +3290,6 @@ function openMgrSection(tab){
   // تحميل محتوى القسم عند فتحه أول مرة
   if(tab==='holding' && !window.__holdingLoaded){ window.__holdingLoaded=true; loadHolding(); }
   if(tab==='comp' && !window.__compLoaded){ window.__compLoaded=true; loadCompComparison(); }
-  if(tab==='oil' && !window.__oilLoaded){ window.__oilLoaded=true; loadOilReport(); }
   if(tab==='fire' && !window.__fireLoaded){ window.__fireLoaded=true; loadFireIssues(); }
   if(tab==='tadamon' && !window.__tadLoaded){ window.__tadLoaded=true; loadTadamonMgr(); }
   window.scrollTo({top:0,behavior:'smooth'});
