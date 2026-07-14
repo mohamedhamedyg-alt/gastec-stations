@@ -352,42 +352,59 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <button onclick="toggleTadamon()" style="width:100%;background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">⚡ تسجيل محضر تضامن (قراءة عداد الكهرباء)</button>
   <div id="tadamon-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #7DD3FC">
     <div style="background:#F0F9FF;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#075985;font-weight:700">
-      يُسجّل عند زيارة مندوب الكهرباء. النظام يحسب الفترة والاستهلاك والمبيعات و KWH/م³ تلقائياً.
+      يُسجّل عند زيارة مندوب الكهرباء. النظام يحسب الاستهلاك ومعامل القدرة والحافز/الغرامة تلقائياً.
       <div id="tadamon-type-hint" style="margin-top:4px;font-weight:800"></div>
     </div>
-    <!-- أول محضر: القراءة السابقة يدوياً -->
-    <div id="tadamon-first" style="display:none;background:#FEF9C3;border-radius:8px;padding:12px;margin-bottom:12px">
-      <div style="font-weight:800;color:#854D0E;font-size:13px;margin-bottom:8px">⚠️ أول محضر لهذه المحطة — أدخل القراءة السابقة مرة واحدة</div>
+    <!-- القراءة السابقة (تظهر دائماً — قابلة للتعديل) -->
+    <div style="background:#FEF9C3;border-radius:8px;padding:12px;margin-bottom:12px">
+      <div style="font-weight:800;color:#854D0E;font-size:13px;margin-bottom:8px">📋 القراءة السابقة <span id="tad-prev-src" style="font-size:11px;font-weight:400"></span></div>
       <div class="form-group" style="margin-bottom:8px">
-        <label style="font-size:12px">تاريخ القراءة السابقة</label>
-        <input type="date" class="form-control" id="tadamon-prev-date" style="direction:ltr;font-size:13px">
+        <label style="font-size:12px">تاريخ الزيارة السابقة</label>
+        <input type="date" class="form-control" id="tadamon-prev-date" style="direction:ltr;font-size:13px" onchange="calcTadamon()">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="form-group" style="margin-bottom:0">
+          <label style="font-size:12px">KWH سابقة (فعّالة)</label>
+          <input type="number" class="form-control" id="tadamon-prev-kwh" min="0" step="0.01" inputmode="decimal" style="direction:ltr;font-size:13px" placeholder="0" oninput="calcTadamon()">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label style="font-size:12px">KVARH سابقة (غير فعّالة)</label>
+          <input type="number" class="form-control" id="tadamon-prev-kvarh" min="0" step="0.01" inputmode="decimal" style="direction:ltr;font-size:13px" placeholder="0" oninput="calcTadamon()">
+        </div>
+      </div>
+    </div>
+    <!-- القراءة الحالية -->
+    <div style="background:#EFF6FF;border-radius:8px;padding:12px;margin-bottom:12px">
+      <div style="font-weight:800;color:#1E40AF;font-size:13px;margin-bottom:8px">📊 القراءة الحالية</div>
+      <div class="form-group" style="margin-bottom:8px">
+        <label style="font-size:12px"><span class="req">*</span> تاريخ زيارة المندوب</label>
+        <input type="date" class="form-control" id="tadamon-date" style="direction:ltr;font-weight:700" onchange="calcTadamon()">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="form-group" style="margin-bottom:0">
+          <label style="font-size:12px"><span class="req">*</span> KWH حالية (فعّالة)</label>
+          <input type="number" class="form-control" id="tadamon-kwh" min="0" step="0.01" inputmode="decimal" style="direction:ltr" placeholder="0" oninput="calcTadamon()">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label style="font-size:12px"><span class="req">*</span> KVARH حالية (غير فعّالة)</label>
+          <input type="number" class="form-control" id="tadamon-kvarh" min="0" step="0.01" inputmode="decimal" style="direction:ltr" placeholder="0" oninput="calcTadamon()">
+        </div>
       </div>
       <div class="form-group" style="margin-bottom:0">
-        <label style="font-size:12px">قراءة العداد السابقة</label>
-        <input type="number" class="form-control" id="tadamon-prev-reading" min="0" step="0.01" inputmode="decimal" style="direction:ltr;font-size:13px" placeholder="قراءة العداد">
+        <label style="font-size:12px">ثابت العداد (المضروب)</label>
+        <input type="number" class="form-control" id="tadamon-factor" min="0" step="0.01" inputmode="decimal" style="direction:ltr" value="1" placeholder="1" oninput="calcTadamon()">
+        <div style="font-size:11px;color:#64748B;margin-top:2px">افتراضى 1. لو العداد له معامل ضرب أدخله هنا.</div>
       </div>
-    </div>
-    <!-- بيانات القراءة الحالية -->
-    <div class="form-group" style="margin-bottom:10px">
-      <label style="font-size:13px"><span class="req">*</span> تاريخ زيارة المندوب</label>
-      <input type="date" class="form-control" id="tadamon-date" style="direction:ltr;font-weight:700" onchange="calcTadamon()">
-    </div>
-    <div class="form-group" style="margin-bottom:10px">
-      <label style="font-size:13px"><span class="req">*</span> قراءة العداد الحالية</label>
-      <input type="number" class="form-control" id="tadamon-reading" min="0" step="0.01" inputmode="decimal" style="direction:ltr" placeholder="قراءة العداد" oninput="calcTadamon()">
-    </div>
-    <div class="form-group" style="margin-bottom:10px">
-      <label style="font-size:13px">ثابت العداد (المضروب)</label>
-      <input type="number" class="form-control" id="tadamon-factor" min="0" step="0.01" inputmode="decimal" style="direction:ltr" value="1" placeholder="1" oninput="calcTadamon()">
-      <div style="font-size:11px;color:#64748B;margin-top:2px">افتراضى 1. لو العداد له معامل ضرب أدخله هنا.</div>
     </div>
     <!-- النتائج المحسوبة -->
     <div id="tadamon-result" style="display:none;background:#0369A1;color:#fff;border-radius:10px;padding:12px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>الفترة:</span><span id="tad-period" style="font-weight:800">—</span></div>
       <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>عدد الأيام:</span><span id="tad-days" style="font-weight:800">—</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>الاستهلاك (KWH):</span><span id="tad-cons" style="font-weight:800;direction:ltr">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-top:1px solid rgba(255,255,255,.2);margin-top:3px"><span>استهلاك KWH (فعّالة):</span><span id="tad-cons" style="font-weight:800;direction:ltr">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>استهلاك KVARH:</span><span id="tad-cons-kvarh" style="font-weight:800;direction:ltr">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;padding:6px 0;border-top:1px solid rgba(255,255,255,.2);margin-top:3px"><span>معامل القدرة (PF):</span><span id="tad-pf" style="font-weight:800;direction:ltr">—</span></div>
+      <div id="tad-pf-status" style="text-align:center;font-weight:800;font-size:14px;padding:8px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,.15)">—</div>
     </div>
-    <div style="font-size:11px;color:#64748B;margin-bottom:10px">ملاحظة: المبيعات و KWH/م³ يُحسبان تلقائياً من سجل المبيعات عند الإرسال.</div>
     <button onclick="submitTadamon()" style="width:100%;background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer">إرسال محضر التضامن</button>
     <div id="tadamon-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
   </div>
@@ -1273,7 +1290,7 @@ function loadForm(){
   // تصفير محضر التضامن
   const tadPanel=document.getElementById('tadamon-panel'); if(tadPanel) tadPanel.style.display='none';
   _tadamonPrev=null;
-  ['tadamon-date','tadamon-reading','tadamon-prev-date','tadamon-prev-reading'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['tadamon-date','tadamon-kwh','tadamon-kvarh','tadamon-prev-date','tadamon-prev-kwh','tadamon-prev-kvarh'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const tadFactor=document.getElementById('tadamon-factor'); if(tadFactor) tadFactor.value='1';
   // نرجّع للقائمة الرئيسية (hub)
   if(typeof backToHub==='function') backToHub();
@@ -3500,68 +3517,96 @@ function toggleTadamon(){
 function loadTadamonPrev(){
   const st=currentStation;
   if(!st) return;
-  const firstBox=document.getElementById('tadamon-first');
+  const srcEl=document.getElementById('tad-prev-src');
   fetch(APPS_SCRIPT_URL+'?action=tadamonPrev&code='+encodeURIComponent(st.code))
     .then(r=>r.json())
     .then(j=>{
       if(j.found){
-        _tadamonPrev={date:j.date, reading:parseFloat(j.reading)||0};
-        firstBox.style.display='none'; // مش أول محضر
+        // نملأ القراءة السابقة (ظاهرة وقابلة للتعديل)
+        const pd=document.getElementById('tadamon-prev-date');
+        const pk=document.getElementById('tadamon-prev-kwh');
+        const pv=document.getElementById('tadamon-prev-kvarh');
+        if(pd&&j.date) pd.value=j.date;
+        if(pk) pk.value=parseFloat(j.kwh)||0;
+        if(pv) pv.value=parseFloat(j.kvarh)||0;
+        if(srcEl) srcEl.textContent='(من آخر محضر — عدّل لو لزم)';
       } else {
-        _tadamonPrev=null;
-        firstBox.style.display='block'; // أول محضر — يدخل السابقة يدوياً
+        if(srcEl) srcEl.textContent='(أول محضر — أدخل القراءة السابقة)';
       }
       calcTadamon();
     })
-    .catch(()=>{ _tadamonPrev=null; firstBox.style.display='block'; });
+    .catch(()=>{ if(srcEl) srcEl.textContent='(أدخل القراءة السابقة يدوياً)'; });
 }
-function getTadamonPrev(){
-  // السابقة: من آخر محضر، أو من الإدخال اليدوى (أول محضر)
-  if(_tadamonPrev) return _tadamonPrev;
-  const pd=document.getElementById('tadamon-prev-date')?.value;
-  const pr=parseFloat(document.getElementById('tadamon-prev-reading')?.value)||0;
-  if(pd) return {date:pd, reading:pr};
-  return null;
+// حساب PF والحافز/الغرامة (نفس معادلات البيان اليومى)
+function tadamonPFStatus(kwh, kvarh){
+  if(kwh<=0) return {pf:0, txt:'—', cls:''};
+  const kva=kvarh>0?Math.sqrt(kwh*kwh+kvarh*kvarh):kwh;
+  const pf=kva>0?kwh/kva:0;
+  const indCost=kwh*2.74;
+  let txt, cls;
+  if(pf>=0.95){ txt='✨ تخفيض الفاتورة (PF ≥ 95%)'; cls='ok'; }
+  else if(pf>=0.92){ const bonus=(pf-0.92)*(1/5)*indCost; txt='✅ حافز '+bonus.toFixed(0)+' جنيه'; cls='ok'; }
+  else if(pf>=0.70){ const fine=(0.92-pf)*(1/5)*indCost; txt='⚠ غرامة '+fine.toFixed(0)+' جنيه'; cls='warn'; }
+  else { const fine=(0.92-pf)*1*indCost; txt='❌ غرامة مضاعفة '+fine.toFixed(0)+' جنيه'; cls='bad'; }
+  return {pf, txt, cls};
 }
 function calcTadamon(){
-  const prev=getTadamonPrev();
+  const prevDate=document.getElementById('tadamon-prev-date')?.value;
+  const prevKwh=parseFloat(document.getElementById('tadamon-prev-kwh')?.value)||0;
+  const prevKvarh=parseFloat(document.getElementById('tadamon-prev-kvarh')?.value)||0;
   const curDate=document.getElementById('tadamon-date')?.value;
-  const curReading=parseFloat(document.getElementById('tadamon-reading')?.value)||0;
+  const curKwh=parseFloat(document.getElementById('tadamon-kwh')?.value)||0;
+  const curKvarh=parseFloat(document.getElementById('tadamon-kvarh')?.value)||0;
   const factor=parseFloat(document.getElementById('tadamon-factor')?.value)||1;
   const resBox=document.getElementById('tadamon-result');
-  if(!prev||!curDate||!curReading){ resBox.style.display='none'; return; }
-  // الفترة والأيام
-  const d1=new Date(prev.date), d2=new Date(curDate);
+  if(!prevDate||!curDate||curKwh<=0){ resBox.style.display='none'; return; }
+  const d1=new Date(prevDate), d2=new Date(curDate);
   const days=Math.round((d2-d1)/(1000*60*60*24));
   // الاستهلاك = (الحالية − السابقة) × الثابت
-  const cons=(curReading - prev.reading)*factor;
+  const consKwh=(curKwh - prevKwh)*factor;
+  const consKvarh=(curKvarh - prevKvarh)*factor;
+  // PF على استهلاك الفترة
+  const pfRes=tadamonPFStatus(consKwh, consKvarh);
   resBox.style.display='block';
-  document.getElementById('tad-period').textContent=prev.date+' ← '+curDate;
+  document.getElementById('tad-period').textContent=prevDate+' ← '+curDate;
   document.getElementById('tad-days').textContent=days+' يوم';
-  document.getElementById('tad-cons').textContent=cons.toLocaleString('en-US',{maximumFractionDigits:2})+' KWH';
+  document.getElementById('tad-cons').textContent=consKwh.toLocaleString('en-US',{maximumFractionDigits:2})+' KWH';
+  document.getElementById('tad-cons-kvarh').textContent=consKvarh.toLocaleString('en-US',{maximumFractionDigits:2})+' KVARH';
+  document.getElementById('tad-pf').textContent=pfRes.pf>0?(pfRes.pf*100).toFixed(1)+'%':'—';
+  const st=document.getElementById('tad-pf-status');
+  st.textContent=pfRes.txt;
+  st.style.background = pfRes.cls==='ok'?'rgba(34,197,94,.3)':(pfRes.cls==='warn'?'rgba(245,158,11,.3)':(pfRes.cls==='bad'?'rgba(239,68,68,.3)':'rgba(255,255,255,.15)'));
 }
 function submitTadamon(){
   const st=currentStation;
   if(!st) return;
   const statusEl=document.getElementById('tadamon-status');
-  const prev=getTadamonPrev();
+  const prevDate=document.getElementById('tadamon-prev-date')?.value;
+  const prevKwh=parseFloat(document.getElementById('tadamon-prev-kwh')?.value)||0;
+  const prevKvarh=parseFloat(document.getElementById('tadamon-prev-kvarh')?.value)||0;
   const curDate=document.getElementById('tadamon-date')?.value;
-  const curReading=parseFloat(document.getElementById('tadamon-reading')?.value)||0;
+  const curKwh=parseFloat(document.getElementById('tadamon-kwh')?.value)||0;
+  const curKvarh=parseFloat(document.getElementById('tadamon-kvarh')?.value)||0;
   const factor=parseFloat(document.getElementById('tadamon-factor')?.value)||1;
-  if(!prev){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل القراءة السابقة (أول محضر)'; return; }
-  if(!curDate){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل تاريخ الزيارة'; return; }
-  if(!curReading){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل قراءة العداد'; return; }
-  if(curReading<prev.reading){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ القراءة الحالية أقل من السابقة'; return; }
+  if(!prevDate){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل تاريخ القراءة السابقة'; return; }
+  if(!curDate){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل تاريخ الزيارة الحالية'; return; }
+  if(curKwh<=0){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ أدخل قراءة KWH الحالية'; return; }
+  if(curKwh<prevKwh){ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ قراءة KWH الحالية أقل من السابقة'; return; }
   const t=st?.tariff||tariff;
   const readType=(t==='com')?'تجارى':'صناعى';
+  const consKwh=(curKwh-prevKwh)*factor;
+  const consKvarh=(curKvarh-prevKvarh)*factor;
+  const pfRes=tadamonPFStatus(consKwh, consKvarh);
   statusEl.style.color='#0369A1'; statusEl.textContent='⏳ جارى الإرسال...';
   const payload={
     type:'tadamon',
     code:st.code, name:st.name, region:st.region,
     read_type:readType,
-    prev_date:prev.date, prev_reading:prev.reading,
-    cur_date:curDate, cur_reading:curReading,
-    factor:factor
+    prev_date:prevDate, prev_kwh:prevKwh, prev_kvarh:prevKvarh,
+    cur_date:curDate, cur_kwh:curKwh, cur_kvarh:curKvarh,
+    factor:factor,
+    cons_kwh:consKwh, cons_kvarh:consKvarh,
+    pf:(pfRes.pf*100).toFixed(2)
   };
   fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(()=>{
@@ -4026,17 +4071,20 @@ function loadTadamonMgr(){
       } else {
         html+='<div class="fire-tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
         html+='<tr style="background:#E0F2FE;font-weight:800">';
-        ['المحطة','التاريخ','الفترة','أيام','الاستهلاك KWH','المبيعات م³','KWH/م³'].forEach(h=>{
+        ['المحطة','التاريخ','الفترة','أيام','استهلاك KWH','معامل القدرة','المبيعات م³','KWH/م³'].forEach(h=>{
           html+='<th style="padding:7px 6px;border:1px solid #BAE6FD;white-space:nowrap">'+h+'</th>';
         });
         html+='</tr>';
         recs.forEach(r=>{
+          const pfVal=parseFloat(r.pf)||0;
+          const pfColor=pfVal>=92?'#16A34A':(pfVal>=70?'#D97706':'#DC2626');
           html+='<tr>';
-          html+='<td style="padding:6px;border:1px solid #E5E7EB;font-weight:700">'+r.name+'<br><span style="color:#999;font-size:10px">'+r.code+' — '+r.region+'</span></td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;font-weight:700">'+r.name+'<br><span style="color:#999;font-size:10px">'+r.region+'</span></td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+r.curDate+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-size:10px">'+r.prevDate+' ←<br>'+r.curDate+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center">'+r.days+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:700">'+Number(r.cons).toLocaleString('en-US',{maximumFractionDigits:1})+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:'+pfColor+'">'+(pfVal>0?pfVal.toFixed(1)+'%':'—')+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+Number(r.sales).toLocaleString('en-US',{maximumFractionDigits:1})+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:#0369A1">'+Number(r.kwhM3).toFixed(3)+'</td>';
           html+='</tr>';
