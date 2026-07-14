@@ -395,6 +395,20 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <input type="number" class="form-control" id="tadamon-factor" min="0" step="0.01" inputmode="decimal" style="direction:ltr" value="1" placeholder="1" oninput="calcTadamon()">
         <div style="font-size:11px;color:#64748B;margin-top:2px">افتراضى 1. لو العداد له معامل ضرب أدخله هنا.</div>
       </div>
+      <!-- تعريفة الكهرباء (موحّدة) -->
+      <div style="background:#FEFCE8;border:1px solid #FDE047;border-radius:8px;padding:9px 11px;margin-top:10px">
+        <div style="font-size:11px;font-weight:800;color:#854D0E;margin-bottom:6px">💡 تعريفة الكهرباء (جنيه/ك.و.س) — موحّدة لكل المحطات</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label style="font-size:10px;color:#666">صناعى</label>
+            <input type="number" id="tariff-ind-t" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.74" oninput="onTariffEditT('ind')" onblur="confirmTariffSaveT('ind')">
+          </div>
+          <div>
+            <label style="font-size:10px;color:#666">تجارى</label>
+            <input type="number" id="tariff-com-t" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.79" oninput="onTariffEditT('com')" onblur="confirmTariffSaveT('com')">
+          </div>
+        </div>
+      </div>
     </div>
     <!-- النتائج المحسوبة -->
     <div id="tadamon-result" style="display:none;background:#0369A1;color:#fff;border-radius:10px;padding:12px;margin-bottom:10px">
@@ -606,6 +620,22 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <div class="form-group">
             <label>KVARH <span style="font-size:9px;color:var(--gray-light)">(غير فعالة)</span></label>
             <input type="text" class="form-control num-fmt" id="f-kvarh" inputmode="decimal" oninput="sanDec(this);calcLive()" onblur="fmtBlur(this);calcLive()" onfocus="unfmt(this)" placeholder="0" style="direction:ltr">
+          </div>
+        </div>
+        <!-- تعريفة الكهرباء (موحّدة — قابلة للتعديل) -->
+        <div style="background:#FEFCE8;border:1px solid #FDE047;border-radius:8px;padding:9px 11px;margin-top:8px">
+          <div style="font-size:11px;font-weight:800;color:#854D0E;margin-bottom:6px">💡 تعريفة الكهرباء (جنيه/ك.و.س) — موحّدة لكل المحطات</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label style="font-size:10px;color:#666">صناعى</label>
+              <input type="number" id="tariff-ind" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.74" oninput="onTariffEdit('ind')" onblur="confirmTariffSave('ind')">
+              <div id="tariff-ind-note" style="font-size:10px;color:#16A34A;font-weight:700"></div>
+            </div>
+            <div>
+              <label style="font-size:10px;color:#666">تجارى</label>
+              <input type="number" id="tariff-com" class="form-control" style="font-size:12px;direction:ltr" step="0.01" value="2.79" oninput="onTariffEdit('com')" onblur="confirmTariffSave('com')">
+              <div id="tariff-com-note" style="font-size:10px;color:#16A34A;font-weight:700"></div>
+            </div>
           </div>
         </div>
         <div id="meter-b-block" style="display:none;grid-column:1/-1">
@@ -1049,6 +1079,79 @@ function unfmt(el){el.value=String(el.value).replace(/,/g,'');}
 const ADMIN_CODE='ADMIN2024';
 const MAINT_CODE='MAINT2024';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyB81Q2UuGMEjHe44zEk8pP_R4wup8j7r56KOq4vIFhGiYgi0VQap0MBHyg-aOnsIpYZg/exec';
+// تعريفة الكهرباء (تُجلب مرة واحدة عند الفتح، افتراضى 2.74/2.79)
+window.__tariffInd = 2.74;
+window.__tariffCom = 2.79;
+function loadTariffSettings(){
+  fetch(APPS_SCRIPT_URL+'?action=getTariff')
+    .then(r=>r.json())
+    .then(j=>{
+      if(j.ind>0) window.__tariffInd=parseFloat(j.ind);
+      if(j.com>0) window.__tariffCom=parseFloat(j.com);
+      syncTariffInputs();
+      if(typeof calcLive==='function') calcLive();
+    })
+    .catch(()=>{});
+}
+loadTariffSettings();
+// عند تعديل المشرف للتعريفة — تحذير + حفظ موحّد
+function onTariffEdit(kind){
+  const el=document.getElementById(kind==='ind'?'tariff-ind':'tariff-com');
+  if(!el) return;
+  el.dataset.touched='1';
+  const val=parseFloat(el.value)||0;
+  if(kind==='ind') window.__tariffInd=val; else window.__tariffCom=val;
+  if(typeof calcLive==='function') calcLive();
+  if(typeof calcTadamon==='function') calcTadamon();
+}
+function confirmTariffSave(kind){
+  const el=document.getElementById(kind==='ind'?'tariff-ind':'tariff-com');
+  if(!el) return;
+  const val=parseFloat(el.value)||0;
+  if(val<=0){ return; }
+  if(!confirm('⚠️ برجاء التأكد من أنك تقوم بتعديل قيمة تعريفة الكهرباء '+(kind==='ind'?'الصناعية':'التجارية')+' إلى '+val+' جنيه.\n\nهذه القيمة موحّدة لكل المحطات. متأكد؟')){
+    el.value = kind==='ind' ? window.__tariffInd : window.__tariffCom;
+    return;
+  }
+  const ind=parseFloat(document.getElementById('tariff-ind')?.value)||window.__tariffInd;
+  const com=parseFloat(document.getElementById('tariff-com')?.value)||window.__tariffCom;
+  window.__tariffInd=ind; window.__tariffCom=com;
+  syncTariffInputs();
+  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com).catch(()=>{});
+  const note=document.getElementById(kind==='ind'?'tariff-ind-note':'tariff-com-note');
+  if(note){ note.textContent='✅ تم الحفظ'; setTimeout(()=>{note.textContent='';},2000); }
+}
+// نسخة التضامن (نفس المنطق، IDs مختلفة)
+function onTariffEditT(kind){
+  const el=document.getElementById(kind==='ind'?'tariff-ind-t':'tariff-com-t');
+  if(!el) return;
+  const val=parseFloat(el.value)||0;
+  if(kind==='ind') window.__tariffInd=val; else window.__tariffCom=val;
+  if(typeof calcTadamon==='function') calcTadamon();
+}
+function confirmTariffSaveT(kind){
+  const el=document.getElementById(kind==='ind'?'tariff-ind-t':'tariff-com-t');
+  if(!el) return;
+  const val=parseFloat(el.value)||0;
+  if(val<=0){ return; }
+  if(!confirm('⚠️ برجاء التأكد من أنك تقوم بتعديل قيمة تعريفة الكهرباء '+(kind==='ind'?'الصناعية':'التجارية')+' إلى '+val+' جنيه.\n\nهذه القيمة موحّدة لكل المحطات. متأكد؟')){
+    el.value = kind==='ind' ? window.__tariffInd : window.__tariffCom;
+    return;
+  }
+  const ind=parseFloat(document.getElementById('tariff-ind-t')?.value)||window.__tariffInd;
+  const com=parseFloat(document.getElementById('tariff-com-t')?.value)||window.__tariffCom;
+  window.__tariffInd=ind; window.__tariffCom=com;
+  syncTariffInputs();
+  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com).catch(()=>{});
+  if(typeof calcTadamon==='function') calcTadamon();
+}
+// مزامنة كل خانات التعريفة (البيان اليومى + التضامن)
+function syncTariffInputs(){
+  [['tariff-ind',window.__tariffInd],['tariff-com',window.__tariffCom],
+   ['tariff-ind-t',window.__tariffInd],['tariff-com-t',window.__tariffCom]].forEach(([id,v])=>{
+    const e=document.getElementById(id); if(e) e.value=v;
+  });
+}
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
 // Maintenance schedules per compressor brand — من جدول الصيانات الرسمى
@@ -1782,8 +1885,9 @@ function calcLive(){
   const lc = document.getElementById('live-calc');
   if(kwhInd<=0 && kwhCom<=0){ lc.className='live-calc'; return; }
 
-  // ── Power Factor — KWH صناعى فقط + KVARH ──
-  const kwhForPF = kwhInd > 0 ? kwhInd : 0;
+  // ── Power Factor — الكهرباء الفعّالة (صناعى لو موجود، وإلا تجارى) + KVARH ──
+  const kwhForPF = kwhInd > 0 ? kwhInd : kwhCom;
+  const isCommercialOnly = (kwhInd<=0 && kwhCom>0);
   const kva = (kwhForPF>0 && kvarh>0) ? Math.sqrt(kwhForPF*kwhForPF + kvarh*kvarh) : kwhForPF;
   const pf  = kva > 0 ? kwhForPF/kva : 0;
   document.getElementById('lc-pf').textContent = pf>0 ? (pf*100).toFixed(1)+'%' : '—';
@@ -1793,8 +1897,13 @@ function calcLive(){
   document.getElementById('lc-cost').textContent = kwhPerM3>0 ? kwhPerM3.toFixed(3)+' KWH/م³' : '—';
 
   // ── حافز/غرامة PF — المعادلات الرسمية ──
-  const indCost  = kwhInd * 2.74; // تكلفة الكهرباء الصناعية
+  // التعريفة: تجارى فقط → تجارى، غير كده → صناعى
+  const tariffRate = isCommercialOnly ? (window.__tariffCom||2.79) : (window.__tariffInd||2.74);
+  const pfInc = pfIncentive(pf, kwhForPF, tariffRate);
   const pfEl = document.getElementById('lc-pf-status');
+  pfEl.textContent = pfInc.txt;
+  pfEl.className = 'live-calc-val '+(pfInc.cls||'');
+  __skipOldPFBlock: {
   let statusTxt, statusCls;
 
   if(pf <= 0){
@@ -1817,15 +1926,42 @@ function calcLive(){
   }
   pfEl.textContent = statusTxt;
   pfEl.className = 'live-calc-val '+(statusCls||'');
+  } // نهاية __skipOldPFBlock (غير مستخدم — المنطق الجديد فوق)
 
   // ── Flow Rate الفعلى والمعيارى والحيود ──
   calcFlowRate(sales);
 
   // حفظ للإرسال
-  const totalElecLE = (kwhInd*2.74) + (kwhCom*2.79);
-  const costPerM3   = (sales>0 && kwhInd>0) ? (kwhInd*2.74)/sales : 0;
-  window._liveCalc  = {pf, kwhForPF, kwhInd, kwhCom, kvarh, totalElecLE, costPerM3, kwhPerM3, indCost};
+  const tRateInd = window.__tariffInd||2.74, tRateCom = window.__tariffCom||2.79;
+  const totalElecLE = (kwhInd*tRateInd) + (kwhCom*tRateCom);
+  const costPerM3   = (sales>0 && kwhInd>0) ? (kwhInd*tRateInd)/sales : 0;
+  window._liveCalc  = {pf, kwhForPF, kwhInd, kwhCom, kvarh, totalElecLE, costPerM3, kwhPerM3};
   lc.className = 'live-calc show';
+}
+// ══════════ معادلة الحافز/الغرامة الموحّدة (البيان اليومى + التضامن) ══════════
+// cons = قيمة الاستهلاك (KWH)، rate = التعريفة (صناعى 2.74 / تجارى 2.79)
+function pfIncentive(pf, cons, rate){
+  if(pf<=0 || cons<=0) return {pf:pf, txt:'—', cls:'', amount:0};
+  const cost = cons * rate; // قيمة الاستهلاك × التعريفة
+  let txt, cls, amount;
+  if(pf>=0.95){
+    // حافز = 0.5 × (0.95 − 0.92) × التكلفة
+    amount = 0.5 * (0.95 - 0.92) * cost;
+    txt = '✨ حافز '+amount.toFixed(0)+' جنيه (PF ≥ 95%)'; cls='ok';
+  } else if(pf>=0.92){
+    // حافز = 0.5 × (PF − 0.92) × التكلفة
+    amount = 0.5 * (pf - 0.92) * cost;
+    txt = '✅ حافز '+amount.toFixed(0)+' جنيه'; cls='ok';
+  } else if(pf>=0.70){
+    // غرامة = 0.5 × (0.92 − PF) × التكلفة
+    amount = 0.5 * (0.92 - pf) * cost;
+    txt = '⚠ غرامة '+amount.toFixed(0)+' جنيه'; cls='warn';
+  } else {
+    // غرامة مضاعفة = 1 × (0.92 − PF) × التكلفة
+    amount = 1 * (0.92 - pf) * cost;
+    txt = '❌ غرامة مضاعفة '+amount.toFixed(0)+' جنيه'; cls='bad';
+  }
+  return {pf:pf, txt:txt, cls:cls, amount:amount};
 }
 
 // حساب Flow Rate الفعلى والمعيارى والحيود
@@ -3537,18 +3673,13 @@ function loadTadamonPrev(){
     })
     .catch(()=>{ if(srcEl) srcEl.textContent='(أدخل القراءة السابقة يدوياً)'; });
 }
-// حساب PF والحافز/الغرامة (نفس معادلات البيان اليومى)
-function tadamonPFStatus(kwh, kvarh){
-  if(kwh<=0) return {pf:0, txt:'—', cls:''};
+// حساب PF والحافز/الغرامة للتضامن (يستخدم المعادلة الموحّدة pfIncentive)
+function tadamonPFStatus(kwh, kvarh, isCommercialOnly){
+  if(kwh<=0) return {pf:0, txt:'—', cls:'', amount:0};
   const kva=kvarh>0?Math.sqrt(kwh*kwh+kvarh*kvarh):kwh;
   const pf=kva>0?kwh/kva:0;
-  const indCost=kwh*2.74;
-  let txt, cls;
-  if(pf>=0.95){ txt='✨ تخفيض الفاتورة (PF ≥ 95%)'; cls='ok'; }
-  else if(pf>=0.92){ const bonus=(pf-0.92)*(1/5)*indCost; txt='✅ حافز '+bonus.toFixed(0)+' جنيه'; cls='ok'; }
-  else if(pf>=0.70){ const fine=(0.92-pf)*(1/5)*indCost; txt='⚠ غرامة '+fine.toFixed(0)+' جنيه'; cls='warn'; }
-  else { const fine=(0.92-pf)*1*indCost; txt='❌ غرامة مضاعفة '+fine.toFixed(0)+' جنيه'; cls='bad'; }
-  return {pf, txt, cls};
+  const rate = isCommercialOnly ? (window.__tariffCom||2.79) : (window.__tariffInd||2.74);
+  return pfIncentive(pf, kwh, rate);
 }
 function calcTadamon(){
   const prevDate=document.getElementById('tadamon-prev-date')?.value;
@@ -3566,7 +3697,8 @@ function calcTadamon(){
   const consKwh=(curKwh - prevKwh)*factor;
   const consKvarh=(curKvarh - prevKvarh)*factor;
   // PF على استهلاك الفترة
-  const pfRes=tadamonPFStatus(consKwh, consKvarh);
+  const isComOnly=(currentStation?.tariff||tariff)==="com";
+  const pfRes=tadamonPFStatus(consKwh, consKvarh, isComOnly);
   resBox.style.display='block';
   document.getElementById('tad-period').textContent=prevDate+' ← '+curDate;
   document.getElementById('tad-days').textContent=days+' يوم';
@@ -3596,7 +3728,8 @@ function submitTadamon(){
   const readType=(t==='com')?'تجارى':'صناعى';
   const consKwh=(curKwh-prevKwh)*factor;
   const consKvarh=(curKvarh-prevKvarh)*factor;
-  const pfRes=tadamonPFStatus(consKwh, consKvarh);
+  const isComOnly=(currentStation?.tariff||tariff)==="com";
+  const pfRes=tadamonPFStatus(consKwh, consKvarh, isComOnly);
   statusEl.style.color='#0369A1'; statusEl.textContent='⏳ جارى الإرسال...';
   const payload={
     type:'tadamon',
