@@ -490,7 +490,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="section-body">
       <div class="form-group" style="margin-bottom:12px">
         <label><span class="req">*</span> سعر المتر المكعب الحالى (جنيه)</label>
-        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" oninput="saveGasPrice(this.value);checkSalesTotal()" style="direction:ltr">
+        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" oninput="this.dataset.touched='1';saveGasPrice(this.value);checkSalesTotal()" style="direction:ltr">
         <div class="validation-msg">إلزامى</div>
       </div>
       <div class="form-grid">
@@ -907,17 +907,22 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:12px;opacity:.85;margin-top:4px">بيان محاضر التضامن (الكهرباء الشهرية) + حالة الإرسال</div>
     </div>
     <div onclick="openTariffSettings()" style="background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
-      <div style="font-size:15px;font-weight:800">💡 إعدادات تعريفة الكهرباء</div>
-      <div style="font-size:12px;opacity:.85;margin-top:4px">صناعى: <span id="hub-tariff-ind">2.74</span> — تجارى: <span id="hub-tariff-com">2.79</span> جنيه</div>
+      <div style="font-size:15px;font-weight:800">💰 إعدادات سعر المتر المباع وتعريفة الكهرباء</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">سعر المتر: <span id="hub-gas-price">13</span> — كهرباء صناعى: <span id="hub-tariff-ind">2.74</span> — تجارى: <span id="hub-tariff-com">2.79</span></div>
     </div>
     <button class="btn-mgr back" onclick="resetToLogin()" style="margin-top:6px">خروج</button>
   </div>
 
-  <!-- نافذة إعدادات التعريفة -->
+  <!-- نافذة إعدادات سعر المتر المباع وتعريفة الكهرباء -->
   <div id="tariff-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px">
-    <div style="background:#fff;border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)">
-      <div style="font-size:17px;font-weight:800;color:#B45309;margin-bottom:6px">💡 تعريفة الكهرباء</div>
-      <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px;font-size:12px;color:#92400E;font-weight:700;margin-bottom:14px">⚠️ تنبيه: هذه القيم موحّدة لكل المحطات وتؤثر على حساب الحافز/الغرامة في البيان اليومي والمحاضر. تأكد قبل الحفظ.</div>
+    <div style="background:#fff;border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3);max-height:90vh;overflow:auto">
+      <div style="font-size:17px;font-weight:800;color:#B45309;margin-bottom:6px">💰 سعر المتر المباع وتعريفة الكهرباء</div>
+      <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px;font-size:12px;color:#92400E;font-weight:700;margin-bottom:14px">⚠️ تنبيه: هذه القيم موحّدة لكل المحطات وتؤثر على الحسابات المالية والحافز/الغرامة. تأكد قبل الحفظ.</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:700">💵 سعر المتر المكعب من الغاز (جنيه)</label>
+        <input type="number" id="gas-price-modal" class="form-control" style="direction:ltr;font-size:15px;font-weight:800" step="0.01" value="13">
+      </div>
+      <div style="border-top:1px dashed #E5E7EB;margin:14px 0;padding-top:6px"></div>
       <div class="form-group" style="margin-bottom:12px">
         <label style="font-size:13px;font-weight:700">تعريفة الكهرباء الصناعية (جنيه/ك.و.س)</label>
         <input type="number" id="tariff-modal-ind" class="form-control" style="direction:ltr;font-size:15px;font-weight:800" step="0.01" value="2.74">
@@ -929,7 +934,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div id="tariff-modal-status" style="text-align:center;font-size:12px;font-weight:700;margin-bottom:10px;min-height:16px"></div>
       <div style="display:flex;gap:10px">
         <button onclick="closeTariffSettings()" style="flex:1;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">إلغاء</button>
-        <button onclick="saveTariffSettings()" style="flex:2;background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">💾 حفظ التعريفة</button>
+        <button onclick="saveTariffSettings()" style="flex:2;background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">💾 حفظ</button>
       </div>
     </div>
   </div>
@@ -951,11 +956,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-sum-card"><div class="mgr-sum-label">التاريخ</div><div class="mgr-sum-val" id="mgr-c-date" style="color:var(--blue-dark);font-size:15px">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">مبيعات م³</div><div class="mgr-sum-val" id="mgr-c-sales" style="color:var(--blue-dark)">0</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">أرسلت</div><div class="mgr-sum-val" id="mgr-c-sent" style="color:var(--green)">0</div></div>
-    <div class="mgr-sum-card"><div class="mgr-sum-label">لم ترسل</div><div class="mgr-sum-val" id="mgr-c-pending" style="color:var(--red)">42</div></div>
+    <div class="mgr-sum-card"><div class="mgr-sum-label">هوزات متوقفة</div><div class="mgr-sum-val" id="mgr-c-hoses" style="color:#C2410C">0</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
   </div>
-  <div id="mgr-hoses-summary"></div>
   <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);min-height:340px;overflow:auto;position:relative">
     <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:940px;width:100%;font-size:12px">
       <thead>
@@ -1103,15 +1107,17 @@ function unfmt(el){el.value=String(el.value).replace(/,/g,'');}
 const ADMIN_CODE='ADMIN2024';
 const MAINT_CODE='MAINT2024';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyB81Q2UuGMEjHe44zEk8pP_R4wup8j7r56KOq4vIFhGiYgi0VQap0MBHyg-aOnsIpYZg/exec';
-// تعريفة الكهرباء (تُجلب مرة واحدة عند الفتح، افتراضى 2.74/2.79)
+// تعريفة الكهرباء + سعر الغاز (تُجلب مرة واحدة عند الفتح، افتراضى)
 window.__tariffInd = 2.74;
 window.__tariffCom = 2.79;
+window.__gasPrice = 13;
 function loadTariffSettings(){
   fetch(APPS_SCRIPT_URL+'?action=getTariff')
     .then(r=>r.json())
     .then(j=>{
       if(j.ind>0) window.__tariffInd=parseFloat(j.ind);
       if(j.com>0) window.__tariffCom=parseFloat(j.com);
+      if(j.gas>0) window.__gasPrice=parseFloat(j.gas);
       syncTariffInputs();
       if(typeof calcLive==='function') calcLive();
     })
@@ -1121,6 +1127,7 @@ loadTariffSettings();
 // ══════════ إعدادات التعريفة (المسؤول فقط) ══════════
 function openTariffSettings(){
   const m=document.getElementById('tariff-modal');
+  document.getElementById('gas-price-modal').value=window.__gasPrice;
   document.getElementById('tariff-modal-ind').value=window.__tariffInd;
   document.getElementById('tariff-modal-com').value=window.__tariffCom;
   document.getElementById('tariff-modal-status').textContent='';
@@ -1130,26 +1137,31 @@ function closeTariffSettings(){
   document.getElementById('tariff-modal').style.display='none';
 }
 function saveTariffSettings(){
+  const gas=parseFloat(document.getElementById('gas-price-modal')?.value)||0;
   const ind=parseFloat(document.getElementById('tariff-modal-ind')?.value)||0;
   const com=parseFloat(document.getElementById('tariff-modal-com')?.value)||0;
   const st=document.getElementById('tariff-modal-status');
-  if(ind<=0||com<=0){ st.style.color='#B91C1C'; st.textContent='❌ أدخل قيم صحيحة'; return; }
+  if(gas<=0||ind<=0||com<=0){ st.style.color='#B91C1C'; st.textContent='❌ أدخل قيم صحيحة'; return; }
   st.style.color='#0369A1'; st.textContent='⏳ جارى الحفظ...';
-  window.__tariffInd=ind; window.__tariffCom=com;
+  window.__gasPrice=gas; window.__tariffInd=ind; window.__tariffCom=com;
   syncTariffInputs();
-  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com)
+  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com+'&gas='+gas)
     .then(r=>r.json())
-    .then(()=>{ st.style.color='#166534'; st.textContent='✅ تم الحفظ — التعريفة محدّثة لكل المحطات'; setTimeout(closeTariffSettings,1400); })
+    .then(()=>{ st.style.color='#166534'; st.textContent='✅ تم الحفظ — القيم محدّثة لكل المحطات'; setTimeout(closeTariffSettings,1400); })
     .catch(()=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ — أعد المحاولة'; });
 }
-// مزامنة كل خانات التعريفة (عرض المشرف + كارت المسؤول)
+// مزامنة كل الخانات (عرض المشرف + كارت المسؤول)
 function syncTariffInputs(){
   [['tariff-ind',window.__tariffInd],['tariff-com',window.__tariffCom],
    ['tariff-ind-t',window.__tariffInd],['tariff-com-t',window.__tariffCom],
-   ['hub-tariff-ind',window.__tariffInd],['hub-tariff-com',window.__tariffCom]].forEach(([id,v])=>{
+   ['hub-tariff-ind',window.__tariffInd],['hub-tariff-com',window.__tariffCom],
+   ['hub-gas-price',window.__gasPrice]].forEach(([id,v])=>{
     const e=document.getElementById(id); if(!e) return;
     if(e.tagName==='INPUT') e.value=v; else e.textContent=v;
   });
+  // سعر الغاز فى خانة المشرف (لو فاضية أو الافتراضى)
+  const gp=document.getElementById('f-gas-price');
+  if(gp && !gp.dataset.touched){ gp.value=window.__gasPrice; }
 }
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
@@ -4127,33 +4139,12 @@ function renderMgrDay(j){
   document.getElementById('mgr-c-date').textContent=j.date||'—';
   document.getElementById('mgr-c-sales').textContent=(j.totals.sales||0).toLocaleString('en-US',{maximumFractionDigits:0});
   document.getElementById('mgr-c-sent').textContent=j.sent+'/'+(j.sent+j.pending);
-  document.getElementById('mgr-c-pending').textContent=j.pending;
   document.getElementById('mgr-c-kwhm3').textContent=j.totals.kwhm3;
   document.getElementById('mgr-c-down').textContent=j.totals.downtime;
-  // ── كروت إجمالى الهوزات المتوقفة بالمنطقة ──
-  const hosesByRegion={}; let totalHoses=0;
-  j.stations.forEach(s=>{
-    const hz=parseInt(s.hoses)||0;
-    if(hz>0){ hosesByRegion[s.region]=(hosesByRegion[s.region]||0)+hz; totalHoses+=hz; }
-  });
-  const hcard=document.getElementById('mgr-hoses-summary');
-  if(hcard){
-    if(totalHoses>0){
-      let hh='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:12px;margin-bottom:12px">';
-      hh+='<div style="font-weight:800;color:#9A3412;font-size:13px;margin-bottom:8px">🔧 إجمالى الهوزات المتوقفة</div>';
-      hh+='<div style="display:flex;flex-wrap:wrap;gap:8px">';
-      Object.keys(hosesByRegion).forEach(reg=>{
-        hh+='<div style="background:#fff;border:1px solid #FED7AA;border-radius:8px;padding:7px 12px;text-align:center;min-width:90px">';
-        hh+='<div style="font-size:11px;color:#9A6540">'+reg+'</div>';
-        hh+='<div style="font-size:19px;font-weight:800;color:#C2410C;direction:ltr">'+hosesByRegion[reg]+'</div></div>';
-      });
-      hh+='<div style="background:linear-gradient(135deg,#C2410C,#F97316);color:#fff;border-radius:8px;padding:7px 14px;text-align:center;min-width:100px">';
-      hh+='<div style="font-size:11px;opacity:.9">الإجمالى الكلى</div>';
-      hh+='<div style="font-size:22px;font-weight:800;direction:ltr">'+totalHoses+'</div></div>';
-      hh+='</div></div>';
-      hcard.innerHTML=hh;
-    } else { hcard.innerHTML=''; }
-  }
+  // إجمالى الهوزات المتوقفة (فى خانة الملخص)
+  let totalHoses=0;
+  j.stations.forEach(s=>{ totalHoses+=parseInt(s.hoses)||0; });
+  const hEl=document.getElementById('mgr-c-hoses'); if(hEl) hEl.textContent=totalHoses;
   const tb=document.getElementById('mgr-table');
   let html='';
   // ألوان خفيفة لكل عمود
