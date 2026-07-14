@@ -913,6 +913,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <button class="btn-mgr back" onclick="resetToLogin()" style="margin-top:6px">خروج</button>
   </div>
 
+  <!-- نافذة سبب التوقف -->
+  <div id="stop-reason-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeStopReason()">
+    <div style="background:#fff;border-radius:16px;padding:20px;max-width:380px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3);max-height:80vh;overflow:auto">
+      <div id="stop-reason-body"></div>
+      <button onclick="closeStopReason()" style="width:100%;margin-top:14px;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:11px;font-family:Cairo;font-weight:800;cursor:pointer">إغلاق</button>
+    </div>
+  </div>
+
   <!-- نافذة إعدادات سعر المتر المباع وتعريفة الكهرباء -->
   <div id="tariff-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px">
     <div style="background:#fff;border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3);max-height:90vh;overflow:auto">
@@ -4165,13 +4173,43 @@ function renderMgrDay(j){
       '<td style="background:'+C.dev+';font-weight:800;'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
       '<td style="background:'+C.pf+';font-weight:800;color:#0369A1">'+fmt(s.pf)+'</td>'+
       '<td style="background:'+C.util+';font-weight:800;color:#0F766E">'+fmt(s.util)+'</td>'+
-      '<td style="color:#C2410C;font-weight:800;background:'+C.down+'">'+(s.downtime||'—')+'</td>'+
+      '<td style="color:#C2410C;font-weight:800;background:'+C.down+'">'+dtCell(s)+'</td>'+
       '<td style="color:#B91C1C;font-weight:800;background:'+C.hose+'">'+(s.hoses>0?s.hoses:'—')+'</td>'+
     '</tr>';
   });
   tb.innerHTML=html;
   buildOilPanel(j.oils||{});
 }
+// خلية مدة التوقف (clickable لو فيه توقف)
+function dtCell(s){
+  const dt=s.downtime||'—';
+  const hasStop=(s.stopReason&&s.stopReason.trim())||(s.stopDetails&&s.stopDetails.trim());
+  if(!hasStop || dt==='—' || dt==='0 س 0 د') return dt;
+  const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:dt,reason:s.stopReason||'',details:s.stopDetails||''}));
+  return '<span onclick="showStopReason(\''+payload+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+dt+' <span style="font-size:10px">ℹ️</span></span>';
+}
+function showStopReason(payload){
+  let d;
+  try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
+  const box=document.getElementById('stop-reason-modal');
+  const body=document.getElementById('stop-reason-body');
+  let h='<div style="font-weight:800;color:#C2410C;font-size:15px;margin-bottom:12px">'+d.name+'</div>';
+  const txt=(d.details&&d.details.trim())?d.details:(d.reason||'');
+  if(txt && txt.trim()){
+    const parts=txt.split(' | ');
+    h+='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:8px;padding:12px">';
+    h+='<div style="font-weight:800;color:#9A3412;font-size:13px;margin-bottom:8px">🔧 سبب التوقف</div>';
+    parts.forEach((p,i)=>{
+      h+='<div style="font-size:14px;color:#7C2D12;font-weight:700;padding:7px 0'+(i<parts.length-1?';border-bottom:1px dashed #FDBA74':'')+'">'+(parts.length>1?(i+1)+'. ':'')+p+'</div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div style="text-align:center;color:#888;padding:16px">لا يوجد سبب مسجّل</div>';
+  }
+  body.innerHTML=h;
+  box.style.display='flex';
+}
+function closeStopReason(){ document.getElementById('stop-reason-modal').style.display='none'; }
 
 // ══════════ بيان محاضر التضامن (المسؤول) ══════════
 function openTadamon(){
