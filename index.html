@@ -2882,7 +2882,7 @@ async function submitForm(){
 
   // تجميع بيانات التوقفات من كل البطاقات
   // نجمّع كل توقف كوحدة كاملة (سطر لكل توقف — كل الحقول متوازية ولا يُهمل أى توقف)
-  const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[],_mA=[],_acA=[];
+  const _sF=[],_sT=[],_rF=[],_rT=[],_rD=[],_rAr=[],_rEn=[],_types=[],_mA=[],_acA=[],_box=[];
   for(let fi=1;fi<=faultCount;fi++){
     if(!document.getElementById('fault-'+fi))continue;
     const gv=s=>document.getElementById('ft-'+s+'-'+fi)?.value||'';
@@ -2900,6 +2900,26 @@ async function submitForm(){
     const arText = isStationWide ? 'تفريغ بنزين' : (prefix + (raRaw ? ': '+raRaw : (stopReason?': '+stopReason:'')));
     const reRaw = gv('reason-en').trim();
     const enText = isStationWide ? 'Fuel Discharge' : ((compName||'')+(reRaw?': '+reRaw:''));
+    // ── نص مختصر للبوكس (المسؤول): [ض1/ض2/المحرك] — [سبب التوقف] — [التفاصيل] ──
+    // لو التفاصيل فاضية → تفريغ بنزين
+    let boxText;
+    if(isStationWide || (!raRaw && !stopReason)){
+      boxText = 'تفريغ بنزين';
+    } else {
+      // نحدد الوحدة المختصرة: ض1/ض2 أو المحرك (لو ضاغط محرك غازى)
+      let unitTag='';
+      if(tyEl && tyEl.value && tyEl.value.startsWith('c')){
+        const ci=parseInt(tyEl.value.slice(1));
+        const comp=(currentStation?.comps||[])[ci];
+        unitTag = (comp && comp.motor==='gas') ? 'المحرك' : ('ض'+(ci+1));
+      }
+      const bits=[];
+      if(unitTag) bits.push(unitTag);
+      if(stopReason) bits.push(stopReason);
+      if(raRaw) bits.push(raRaw);
+      boxText = bits.length ? bits.join(' — ') : 'تفريغ بنزين';
+    }
+    _box.push(boxText);
     // كل توقف يدفع عنصر لكل مصفوفة (حتى لو فاضى — نحافظ على التوازى)
     _sF.push(tmS('f')||'—');
     _sT.push(tmS('t')||'—');
@@ -2917,6 +2937,7 @@ async function submitForm(){
   const payload={
     sent_time:_sentTime,
     stop_reason:_types.join(' | '), stop_ar:(_rAr.length?_rAr:_types).join(' | '), stop_en:(_rEn.length?_rEn:_types.map(t=>tryLocalPhrase(t)||t)).join(' | '),
+    stop_box:_box.join(' | '),
     stop_from:_sF.join(' | '), stop_to:_sT.join(' | '),
     repair_dur:_rD.join(' | '), repair_from:_rF.join(' | '), repair_to:_rT.join(' | '),
     maint_action:_mA.join(' | '), supervisor_action:_acA.join(' | '),
