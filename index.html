@@ -29,7 +29,8 @@ body{font-family:'Cairo',sans-serif;background:#EEF3F9;color:var(--gray-dark);mi
 .logo-text .title{font-size:13px;font-weight:800;color:white;line-height:1.2}
 .logo-text .sub{font-size:9px;color:#90B8D8}
 .header-date{color:#90B8D8;font-size:11px}
-.header-credit{text-align:center;font-size:12px;font-weight:700;color:rgba(255,255,255,0.75);padding-top:5px;border-top:1px solid rgba(255,255,255,0.15);margin-top:6px}
+.header-credit{text-align:center;padding-top:7px;border-top:1px solid rgba(255,255,255,0.15);margin-top:6px}
+.credit-badge{display:inline-block;background:rgba(255,255,255,0.18);color:#fff;font-size:12.5px;font-weight:800;padding:5px 16px;border-radius:20px;border:1px solid rgba(255,255,255,0.35);letter-spacing:0.2px;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
 /* LOGIN */
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 72px)}
 .login-card{background:var(--white);border-radius:16px;padding:28px 24px;width:100%;max-width:400px;border:1px solid var(--border);text-align:center;margin:16px}
@@ -257,7 +258,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
     <div class="header-date" id="header-date"></div>
   </div>
-  <div class="header-credit">إعداد التصميم التجريبى — م / محمد أبو النجا</div>
+  <div class="header-credit"><span class="credit-badge">إعداد التصميم : مهندس / محمد أبو النجا</span></div>
 </div>
 
 <!-- LOGIN -->
@@ -4147,26 +4148,26 @@ function renderMgrDay(j){
   const hEl=document.getElementById('mgr-c-hoses'); if(hEl) hEl.textContent=totalHoses;
   const tb=document.getElementById('mgr-table');
   let html='';
-  // ألوان خفيفة لكل عمود
-  const C={sent:'#F0FDF4', time:'#F8FAFC', sales:'#EFF6FF', kwh:'#F5F3FF', fr:'#FEFCE8', dev:'#FEF9F5', pf:'#F0F9FF', util:'#F0FDFA', down:'#FFF7ED', hose:'#FEF2F2'};
+  // ألوان أوضح (أغمق شوية) لكل عمود
+  const C={sent:'#DCFCE7', time:'#EEF2F6', sales:'#DBEAFE', kwh:'#EDE9FE', fr:'#FEF9C3', dev:'#FEE2E2', pf:'#E0F2FE', util:'#CCFBF1', down:'#FFEDD5', hose:'#FEE2E2'};
   j.stations.forEach(s=>{
-    const status=s.sent?(s.stopped?'<span style="color:#B45309;font-weight:800">⏸ متوقفة</span>':'<span style="color:var(--green);font-weight:800">✔ أرسلت</span>'):'<span style="color:var(--red);font-weight:800">✖ لم ترسل</span>';
+    const status=s.sent?(s.stopped?'<span style="color:#B45309;font-weight:800">⏸ متوقفة</span>':'<span style="color:#15803D;font-weight:800">✔ أرسلت</span>'):'<span style="color:#DC2626;font-weight:800">✖ لم ترسل</span>';
     const sentTime=s.sentTime||(s.sent?'—':'');
     const fmt=v=>(v==null||v==='—')?'—':(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:1}):v);
     const devColor=String(s.frDev).startsWith('-')?'color:#9C0006;font-weight:800':'color:#276221;font-weight:800';
     html+='<tr>'+
-      '<td class="mg-fz1">'+s.code+'</td>'+
-      '<td class="mg-fz2">'+s.name+'</td>'+
-      '<td style="background:'+C.sent+'">'+status+'</td>'+
-      '<td style="direction:ltr;font-weight:700;color:#555;background:'+C.time+'">'+sentTime+'</td>'+
-      '<td style="font-weight:800;background:'+C.sales+'">'+fmt(s.sales)+'</td>'+
-      '<td style="background:'+C.kwh+'">'+fmt(s.kwhM3)+'</td>'+
-      '<td style="background:'+C.fr+'">'+fmt(s.fr)+'</td>'+
-      '<td style="background:'+C.dev+';'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
-      '<td style="background:'+C.pf+'">'+fmt(s.pf)+'</td>'+
-      '<td style="background:'+C.util+'">'+fmt(s.util)+'</td>'+
-      '<td style="color:var(--amber);font-weight:700;background:'+C.down+'">'+(s.downtime||'—')+'</td>'+
-      '<td style="color:#8A5A00;font-weight:800;background:'+C.hose+'">'+(s.hoses>0?s.hoses:'—')+'</td>'+
+      '<td class="mg-fz1" style="font-weight:800">'+s.code+'</td>'+
+      '<td class="mg-fz2" style="font-weight:800">'+s.name+'</td>'+
+      '<td style="background:'+C.sent+';font-weight:800">'+status+'</td>'+
+      '<td style="direction:ltr;font-weight:800;color:#334155;background:'+C.time+'">'+sentTime+'</td>'+
+      '<td style="font-weight:800;background:'+C.sales+';color:#1E40AF">'+fmt(s.sales)+'</td>'+
+      '<td style="background:'+C.kwh+';font-weight:800;color:#6D28D9">'+fmt(s.kwhM3)+'</td>'+
+      '<td style="background:'+C.fr+';font-weight:800;color:#854D0E">'+fmt(s.fr)+'</td>'+
+      '<td style="background:'+C.dev+';font-weight:800;'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
+      '<td style="background:'+C.pf+';font-weight:800;color:#0369A1">'+fmt(s.pf)+'</td>'+
+      '<td style="background:'+C.util+';font-weight:800;color:#0F766E">'+fmt(s.util)+'</td>'+
+      '<td style="color:#C2410C;font-weight:800;background:'+C.down+'">'+(s.downtime||'—')+'</td>'+
+      '<td style="color:#B91C1C;font-weight:800;background:'+C.hose+'">'+(s.hoses>0?s.hoses:'—')+'</td>'+
     '</tr>';
   });
   tb.innerHTML=html;
