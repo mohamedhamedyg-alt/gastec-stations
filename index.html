@@ -490,7 +490,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="section-body">
       <div class="form-group" style="margin-bottom:12px">
         <label><span class="req">*</span> سعر المتر المكعب الحالى (جنيه)</label>
-        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" oninput="this.dataset.touched='1';saveGasPrice(this.value);checkSalesTotal()" style="direction:ltr">
+        <input type="number" class="form-control" id="f-gas-price" min="0" step="0.01" inputmode="decimal" placeholder="13" style="direction:ltr;background:#F1F5F9;color:#475569" readonly>
+        <div style="font-size:11px;color:#94A3B8;margin-top:2px">يحدّده المسؤول — موحّد لكل المحطات</div>
         <div class="validation-msg">إلزامى</div>
       </div>
       <div class="form-grid">
@@ -1131,6 +1132,8 @@ function loadTariffSettings(){
     .catch(()=>{});
 }
 loadTariffSettings();
+// تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
+try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ إعدادات التعريفة (المسؤول فقط) ══════════
 function openTariffSettings(){
   const m=document.getElementById('tariff-modal');
@@ -1166,9 +1169,10 @@ function syncTariffInputs(){
     const e=document.getElementById(id); if(!e) return;
     if(e.tagName==='INPUT') e.value=v; else e.textContent=v;
   });
-  // سعر الغاز فى خانة المشرف (لو فاضية أو الافتراضى)
+  // سعر الغاز فى خانة المشرف (للعرض — موحّد من المسؤول)
   const gp=document.getElementById('f-gas-price');
-  if(gp && !gp.dataset.touched){ gp.value=window.__gasPrice; }
+  if(gp){ gp.value=window.__gasPrice; }
+  if(typeof checkSalesTotal==='function') checkSalesTotal();
 }
 const SAFETY_WARN=75, SAFETY_MAX=90;
 const GRAF_MODELS=['GRF 115-6-4-132-2B','GRF 115-3-4-160-2B','GRF 115-3-4-200-2B'];
@@ -2168,7 +2172,7 @@ function addFault(){
   faultCount++;
   const id=faultCount;
   const hozes=Array.from({length:12},(_,i)=>`<option>هوز ${i+1}</option>`).join('');
-  const compOpts=(currentStation?.comps||[]).map((c,i)=>`<option value="c${i}">${(c.motor==='gas')?'المحرك':'الضاغط '+(i+1)}: ${c.name} — ${c.model}</option>`).join('')+`<option value="all">المحطة بالكامل</option>`;
+  const compOpts=(currentStation?.comps||[]).map((c,i)=>`<option value="c${i}">${(c.motor==='gas')?'المحرك':'الضاغط '+(i+1)}: ${c.name} — ${c.model}</option>`).join('')+`<option value="all">المحطة بالكامل (خارج الإرادة)</option>`;
   const div=document.createElement('div');div.className='fault-row';div.id=`fault-${id}`;
   div.innerHTML=`
     <div class="fault-row-head">توقف رقم ${id} <button class="btn-remove" onclick="removeFault(${id})">✕</button></div>
@@ -2282,7 +2286,25 @@ function addFault(){
   document.getElementById('faults-container').appendChild(div);
   document.getElementById('total-downtime-wrap').style.display='flex';
 }
-function updateFT(id){updateTotalDT();}
+function updateFT(id){
+  // نبدّل خيارات سبب التوقف حسب النوع:
+  // "المحطة بالكامل (خارج الإرادة)" → أسباب خارجة عن الإرادة فقط
+  const ty=document.getElementById('ft-type-'+id)?.value;
+  const sel=document.getElementById('ft-stop-reason-'+id);
+  if(sel){
+    const cur=sel.value;
+    let opts;
+    if(ty==='all'){
+      opts=['تفريغ بنزين','انقطاع الكهرباء','غلق الشارع الرئيسى','حفر أمام المحطة','أخرى (خارج الإرادة)'];
+    } else {
+      opts=['عطل','صيانة دورية','أخرى'];
+    }
+    sel.innerHTML='<option value="">— اختر —</option>'+opts.map(o=>`<option value="${o}">${o}</option>`).join('');
+    // نحافظ على الاختيار لو لسه متاح
+    if(cur && opts.indexOf(cur)>=0) sel.value=cur; else sel.value='';
+  }
+  updateTotalDT();
+}
 function updateStopReason(id){
   const reason=document.getElementById('ft-stop-reason-'+id)?.value||'';
   const translations={'عطل':'Fault','صيانة دورية':'Scheduled Maintenance','أخرى':'Other'};
@@ -2507,7 +2529,7 @@ function calcFD(id){
 }
 function updateTotalDT(){
   let total=0, external=0; const stoppedComps=new Set();
-  const EXTERNAL_REASONS={'تفريغ بنزين':1,'انقطاع الكهرباء':1};
+  const EXTERNAL_REASONS={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1,'أخرى (خارج الإرادة)':1};
   document.querySelectorAll('[id^="ft-dur-"]').forEach(el=>{
     const t=el.value;if(!t||t.includes('⚠'))return;
     const hm=t.match(/(\d+)\s*س/),mm=t.match(/(\d+)\s*د/);
@@ -2897,7 +2919,7 @@ async function submitForm(){
     const compName = (tyEl&&tyEl.value) ? tyEl.options[tyEl.selectedIndex].text : '';
     const stopReason = gv('stop-reason'); // عطل / صيانة دورية / تفريغ بنزين / انقطاع الكهرباء / أخرى
     // الأسباب الخارجة عن الإرادة (تظهر منفصلة برمز عند المسؤول)
-    const EXTERNAL={'تفريغ بنزين':1,'انقطاع الكهرباء':1};
+    const EXTERNAL={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1,'أخرى (خارج الإرادة)':1};
     const isExternal = !!EXTERNAL[stopReason];
     // الوحدة المختصرة: ض1/ض2/المحرك/المحطة بالكامل
     let unitTag='';
@@ -2913,7 +2935,7 @@ async function submitForm(){
     const raRaw = gv('reason').trim();
     const arText = isExternal ? stopReason : (prefix + (raRaw ? ': '+raRaw : (stopReason?': '+stopReason:'')));
     const reRaw = gv('reason-en').trim();
-    const EXT_EN={'تفريغ بنزين':'Fuel Discharge','انقطاع الكهرباء':'Power Outage'};
+    const EXT_EN={'تفريغ بنزين':'Fuel Discharge','انقطاع الكهرباء':'Power Outage','غلق الشارع الرئيسى':'Main Road Closure','حفر أمام المحطة':'Excavation Near Station','أخرى (خارج الإرادة)':'Other (External)'};
     const enText = isExternal ? (EXT_EN[stopReason]||stopReason) : ((compName||'')+(reRaw?': '+reRaw:''));
     // ── نص مختصر للبوكس: [الوحدة] — [سبب] — [تفاصيل] ──
     let boxText;
@@ -3097,21 +3119,21 @@ async function submitForm(){
     showSendBanner('warn', msg);
     window.__showDash();
   }
-  // تحقق سريع بإعادة محاولة: يسأل كل ~900ms، أول ما يلاقيه يعرض النجاح فوراً
+  // تحقق سريع بإعادة محاولة: يسأل كل ~1s، أول ما يلاقيه يعرض النجاح فوراً
   function _pollVerify(attempt){
     if(_verifyDone)return;
     fetch(APPS_SCRIPT_URL+'?action=verify&date='+encodeURIComponent(reqDate)+'&code='+st.code)
       .then(r=>r.json())
       .then(v=>{
         if(_verifyDone)return;
-        if(v&&v.found){ _ok(); }                 // وصل — نجاح فورى
-        else if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 700); } // لسه بيكتب، نعيد
-        else { _fail('لم يصل البيان للسيرفر — تأكد من الإنترنت وأعد الإرسال. (لم يُحفظ شىء)'); }
+        if(v&&v.found){ _ok(); }                 // وصل — نجاح فورى مؤكد
+        else if(attempt<12){ setTimeout(()=>_pollVerify(attempt+1), 1000); } // لسه بيكتب/السيرفر بطىء، نعيد لـ12 ثانية
+        else { _fail('⚠️ لم يتأكد وصول البيان بعد 12 ثانية. غالباً لم يصل — تأكد من الإنترنت وأعد الإرسال، وراجع شاشة المسؤول للتأكد.'); }
       })
       .catch(()=>{
         if(_verifyDone)return;
-        if(attempt<6){ setTimeout(()=>_pollVerify(attempt+1), 700); }
-        else { _softConfirm('تم الإرسال — لكن تعذّر تأكيد الوصول تلقائياً. راجع شاشة المسؤول.'); }
+        if(attempt<12){ setTimeout(()=>_pollVerify(attempt+1), 1000); }
+        else { _fail('⚠️ تعذّر تأكيد وصول البيان. راجع شاشة المسؤول: لو المحطة مش موجودة، أعد الإرسال.'); }
       });
   }
   fetch(APPS_SCRIPT_URL, {
@@ -3120,8 +3142,8 @@ async function submitForm(){
     body: JSON.stringify(payload)
   }).then(()=>{
     if(sendBtn)sendBtn.textContent='⏳ جارى التأكد...';
-    showSendBanner('sending','جارى تأكيد وصول البيان...');
-    setTimeout(()=>_pollVerify(1), 500); // أول محاولة بعد 500ms (الكاش سريع)
+    showSendBanner('sending','جارى تأكيد وصول البيان... (قد يستغرق حتى 12 ثانية)');
+    setTimeout(()=>_pollVerify(1), 800);
   }).catch(()=>_fail('فشل الاتصال بالسيرفر — تأكد من الإنترنت وأعد المحاولة. (لم يُحفظ شىء)'));
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
   const costDecimals=hasGasMotor?5:2;
@@ -4236,16 +4258,15 @@ function dtCell(s){
   } else {
     out=(hasStop?dt:(dt==='—'?'—':dt));
   }
-  // رمز الأسباب الخارجة عن الإرادة (⛽ تفريغ بنزين / ⚡ انقطاع كهرباء)
+  // رمز الأسباب الخارجة عن الإرادة (⛽ بنزين / ⚡ كهرباء / 🚧 شارع أو حفر)
   if(hasPurge){
     const pb=s.purgeBox||'';
-    const hasPower=pb.indexOf('انقطاع الكهرباء')>=0;
-    const hasFuel=pb.indexOf('تفريغ بنزين')>=0;
     const pp=encodeURIComponent(JSON.stringify({name:s.name,purge:pb,dur:s.purgeDowntime||''}));
     let icons='';
-    if(hasFuel) icons+='⛽';
-    if(hasPower) icons+='⚡';
-    if(!icons) icons='⛽';
+    if(pb.indexOf('تفريغ بنزين')>=0) icons+='⛽';
+    if(pb.indexOf('انقطاع الكهرباء')>=0) icons+='⚡';
+    if(pb.indexOf('غلق الشارع')>=0||pb.indexOf('حفر')>=0) icons+='🚧';
+    if(!icons) icons='⛔';
     out+=' <span onclick="showPurge(\''+pp+'\')" title="توقف خارج الإرادة" style="cursor:pointer;font-size:14px">'+icons+'</span>';
     if(!hasStop && (dt==='—'||dt==='0 س 0 د')) out=out.replace('—','').trim();
   }
@@ -4258,12 +4279,15 @@ function showPurge(payload){
   const body=document.getElementById('stop-reason-body');
   let h='<div style="font-weight:800;color:#0369A1;font-size:15px;margin-bottom:12px">'+d.name+'</div>';
   h+='<div style="background:#EFF6FF;border:1px solid #93C5FD;border-radius:8px;padding:12px">';
-  h+='<div style="font-weight:800;color:#1E40AF;font-size:13px;margin-bottom:8px">⛽⚡ توقف خارج إرادة المحطة</div>';
+  h+='<div style="font-weight:800;color:#1E40AF;font-size:13px;margin-bottom:8px">⛔ توقف خارج إرادة المحطة</div>';
   const txt=(d.purge&&d.purge.trim())?d.purge:'';
   if(txt){
     const parts=txt.split(' | ');
     parts.forEach((p,i)=>{
-      const ic=p.indexOf('انقطاع الكهرباء')>=0?'⚡ ':(p.indexOf('تفريغ بنزين')>=0?'⛽ ':'• ');
+      let ic='• ';
+      if(p.indexOf('انقطاع الكهرباء')>=0) ic='⚡ ';
+      else if(p.indexOf('تفريغ بنزين')>=0) ic='⛽ ';
+      else if(p.indexOf('غلق الشارع')>=0||p.indexOf('حفر')>=0) ic='🚧 ';
       h+='<div style="font-size:14px;color:#1E3A8A;font-weight:700;padding:6px 0'+(i<parts.length-1?';border-bottom:1px dashed #93C5FD':'')+'">'+ic+p+'</div>';
     });
   } else if(d.dur&&d.dur.trim()){
