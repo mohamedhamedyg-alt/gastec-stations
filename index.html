@@ -4172,13 +4172,17 @@ function loadMgrDay(attempt){
   const d=document.getElementById('mgr-day')?.value;
   if(!d)return;
   const stEl=document.getElementById('mgr-status');
-  stEl.textContent=attempt===1?('⏳ جارى تحميل بيانات '+d+' ...'):('⏳ السيرفر بيستعد... محاولة '+attempt+' من 3');
-  fetch(APPS_SCRIPT_URL+'?action=day&date='+d)
+  stEl.textContent=attempt===1?('⏳ جارى تحميل بيانات '+d+' ...'):('⏳ السيرفر بيستعد... محاولة '+attempt+' من 4');
+  // مهلة أطول لكل محاولة (السيرفر أحياناً يحتاج وقت لأول قراءة)
+  const controller=new AbortController();
+  const tid=setTimeout(()=>controller.abort(),25000);
+  fetch(APPS_SCRIPT_URL+'?action=day&date='+d,{signal:controller.signal})
     .then(r=>r.json())
-    .then(j=>{renderMgrDay(j);stEl.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');})
+    .then(j=>{clearTimeout(tid);renderMgrDay(j);stEl.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');})
     .catch(e=>{
-      if(attempt<3){setTimeout(()=>loadMgrDay(attempt+1),3000);}
-      else{stEl.textContent='❌ تعذر التحميل بعد 3 محاولات — جرّب زرار عرض تانى بعد لحظات';}
+      clearTimeout(tid);
+      if(attempt<4){setTimeout(()=>loadMgrDay(attempt+1),2500);}
+      else{stEl.textContent='❌ تعذر التحميل — السيرفر مشغول، جرّب زرار عرض تانى بعد لحظات';}
     });
 }
 function renderMgrDay(j){
