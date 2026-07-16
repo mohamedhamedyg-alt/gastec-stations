@@ -267,17 +267,46 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 <!-- LOGIN -->
 <div id="login-screen">
   <div style="padding:16px;width:100%;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 72px)">
-    <div class="login-card">
-      <div class="welcome">مرحباً بك</div>
-      <div class="sub">اختر نوع الدخول</div>
-      <div class="toggle-group" style="margin-bottom:18px">
-        <button class="toggle-btn active" id="btn-mode-station" onclick="setLoginMode('station')">مشرف محطة</button>
-        <button class="toggle-btn" id="btn-mode-admin" onclick="setLoginMode('admin')">المسئول</button>
-        <button class="toggle-btn" id="btn-mode-maint" onclick="setLoginMode('maint')">الصيانة</button>
+    <div class="login-card" style="max-width:400px;padding:0;overflow:hidden">
+      <!-- بانر علوى مبهج -->
+      <div style="background:linear-gradient(135deg,#0EA5E9 0%,#6366F1 50%,#A855F7 100%);padding:12px 18px 11px;text-align:center;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-30px;right:-30px;width:80px;height:80px;background:rgba(255,255,255,.12);border-radius:50%"></div>
+        <div style="position:absolute;bottom:-40px;left:-20px;width:90px;height:90px;background:rgba(255,255,255,.08);border-radius:50%"></div>
+        <div style="font-size:20px;margin-bottom:1px;position:relative">⛽</div>
+        <div style="font-size:18px;font-weight:900;color:#fff;position:relative;letter-spacing:.3px">غازتك</div>
+        <div style="font-size:11.5px;color:#fff;font-weight:800;margin-top:2px;position:relative">برنامج متابعة وتشغيل المحطات</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.9);font-weight:700;margin-top:1px;position:relative">منطقة القناة وسيناء</div>
       </div>
-      <input type="text" class="login-input" id="station-code" placeholder="000" inputmode="numeric" maxlength="10" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="btn-login" onclick="doLogin()">دخول</button>
-      <div class="login-err" id="login-err">الكود غير صحيح، تأكد وحاول مرة أخرى</div>
+      <div style="padding:20px">
+        <div style="font-size:14px;font-weight:800;color:#334155;text-align:center;margin-bottom:14px">اختر نوع الدخول</div>
+        <!-- كروت الأدوار بألوان مميزة -->
+        <div style="display:grid;gap:10px;margin-bottom:16px">
+          <div id="role-station" onclick="setLoginMode('station')" style="cursor:pointer;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:13px;background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 3px 10px rgba(16,185,129,.3);border:2.5px solid #10B981;transition:.15s">
+            <div style="font-size:26px">👷</div>
+            <div style="flex:1"><div style="font-size:15px;font-weight:800;color:#fff">مشرف محطة</div><div style="font-size:11px;color:rgba(255,255,255,.85)">إدخال البيان اليومي والمحاضر</div></div>
+            <div id="check-station" style="font-size:20px;color:#fff">●</div>
+          </div>
+          <div id="role-admin" onclick="setLoginMode('admin')" style="cursor:pointer;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:13px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);border:2.5px solid #E2E8F0;transition:.15s">
+            <div style="font-size:26px">📊</div>
+            <div style="flex:1"><div style="font-size:15px;font-weight:800;color:#1E40AF">المسؤول</div><div style="font-size:11px;color:#64748B">متابعة الأداء والتقارير</div></div>
+            <div id="check-admin" style="font-size:20px;color:#CBD5E1">○</div>
+          </div>
+          <div id="role-maint" onclick="setLoginMode('maint')" style="cursor:pointer;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:13px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);border:2.5px solid #E2E8F0;transition:.15s">
+            <div style="font-size:22px;white-space:nowrap">⚙️⚡</div>
+            <div style="flex:1"><div style="font-size:15px;font-weight:800;color:#C2410C">الصيانة</div><div style="font-size:11px;color:#64748B">الصيانات والفحوصات المستحقة</div></div>
+            <div id="check-maint" style="font-size:20px;color:#CBD5E1">○</div>
+          </div>
+        </div>
+        <input type="text" class="login-input" id="station-code" placeholder="000" inputmode="numeric" maxlength="10" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="btn-login" onclick="doLogin()">دخول</button>
+        <div class="login-err" id="login-err">الكود غير صحيح، تأكد وحاول مرة أخرى</div>
+        <!-- أزرار مخفية للتوافق مع الكود القديم -->
+        <div style="display:none">
+          <button id="btn-mode-station" class="active"></button>
+          <button id="btn-mode-admin"></button>
+          <button id="btn-mode-maint"></button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1379,6 +1408,33 @@ function setLoginMode(mode){
   document.getElementById('btn-mode-station').classList.toggle('active',mode==='station');
   document.getElementById('btn-mode-admin').classList.toggle('active',mode==='admin');
   const bm=document.getElementById('btn-mode-maint'); if(bm) bm.classList.toggle('active',mode==='maint');
+  // تحديث كروت الأدوار (الشكل الجديد)
+  const roles={station:['#059669,#10B981','#10B981'],admin:['#2563EB,#3B82F6','#3B82F6'],maint:['#C2410C,#F97316','#F97316']};
+  ['station','admin','maint'].forEach(r=>{
+    const card=document.getElementById('role-'+r);
+    const chk=document.getElementById('check-'+r);
+    if(!card) return;
+    if(r===mode){
+      card.style.background='linear-gradient(135deg,'+roles[r][0]+')';
+      card.style.borderColor=roles[r][1];
+      card.style.boxShadow='0 3px 10px '+roles[r][1]+'55';
+      card.querySelectorAll('div').forEach(d=>{ if(d.style.color&&d.style.color!=='rgba(255, 255, 255, 0.85)') d.style.color='#fff'; });
+      const t=card.querySelector('div[style*="font-weight:800"]'); if(t)t.style.color='#fff';
+      const sub=card.querySelectorAll('div');
+      if(chk){ chk.textContent='●'; chk.style.color='#fff'; }
+      // النصوص
+      card.children[1].children[0].style.color='#fff';
+      card.children[1].children[1].style.color='rgba(255,255,255,.85)';
+    } else {
+      card.style.background='#fff';
+      card.style.borderColor='#E2E8F0';
+      card.style.boxShadow='0 2px 6px rgba(0,0,0,.08)';
+      if(chk){ chk.textContent='○'; chk.style.color='#CBD5E1'; }
+      const clr={station:'#059669',admin:'#1E40AF',maint:'#C2410C'};
+      card.children[1].children[0].style.color=clr[r];
+      card.children[1].children[1].style.color='#64748B';
+    }
+  });
   const inp=document.getElementById('station-code');
   if(mode==='station'){inp.setAttribute('inputmode','numeric');inp.type='text';inp.placeholder='000';}
   else{inp.removeAttribute('inputmode');inp.type='password';inp.placeholder='••••••••';}
@@ -3345,6 +3401,8 @@ async function submitForm(){
   const safetyEl=document.getElementById('d-safety');
   safetyEl.textContent=safetyRem>0?fmtEn(safetyRem,0):'—';
   safetyEl.className='kpi-val '+(safetyRem>15?'ok':safetyRem>0?'warn':'bad');
+  // ── أمر الشغل: يظهر لو صيانة/تشحيم متبقى ≤150 ساعة أو فحص أمان متبقى ≤7 أيام ──
+  buildWorkOrderBtn(st, safetyRem);
   // PF bar handled above
   // WEEK
   const wc=document.getElementById('week-bars');wc.innerHTML='';
@@ -3677,6 +3735,95 @@ function backToHub(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // الرجوع من داشبورد البيان اليومى للقائمة الرئيسية
+// ══════════ أمر شغل الصيانة ══════════
+// يظهر لو: صيانة دورية أو تشحيم متبقى ≤150 ساعة، أو فحص أمان متبقى ≤7 أيام
+function buildWorkOrderBtn(st, safetyRem){
+  const btnWrap=document.getElementById('d-workorder-btn');
+  if(!btnWrap) return;
+  const dueItems=[];
+  activeComps.forEach(idx=>{
+    const c=st.comps[idx];
+    // الصيانة الدورية
+    const rem=parseFloat(document.getElementById('maint-rem-'+idx)?.value);
+    const nextM=document.getElementById('maint-next-'+idx)?.value||'صيانة دورية';
+    if(!isNaN(rem) && rem<=150){
+      dueItems.push({type:'صيانة دورية', unit:c.name+' '+c.model, next:nextM, rem:rem, unitLabel:'ساعة', overdue:rem<0});
+    }
+    // التشحيم (موتور كهرباء)
+    if(c.motor==='elec'){
+      const lubeRem=parseFloat(document.getElementById('lube-rem-'+idx)?.value);
+      if(!isNaN(lubeRem) && lubeRem<=150){
+        dueItems.push({type:'تشحيم', unit:c.name+' '+c.model, next:'تشحيم الموتور', rem:lubeRem, unitLabel:'ساعة', overdue:lubeRem<0});
+      }
+    }
+    // صيانة المحرك الغازى
+    const gRem=parseFloat(document.getElementById('gm-rem-'+idx)?.value);
+    if(!isNaN(gRem) && gRem<=150){
+      const gNext=document.getElementById('gm-next-'+idx)?.value||'صيانة المحرك';
+      dueItems.push({type:'صيانة المحرك', unit:c.name+' (محرك غازى)', next:gNext, rem:gRem, unitLabel:'ساعة', overdue:gRem<0});
+    }
+  });
+  // فحص معدات الأمان
+  if(safetyRem>0 && safetyRem<=7){
+    dueItems.push({type:'فحص معدات الأمان', unit:'المحطة', next:'فحص دورى', rem:safetyRem, unitLabel:'يوم', overdue:false});
+  } else if(safetyRem<0){
+    dueItems.push({type:'فحص معدات الأمان', unit:'المحطة', next:'فحص دورى', rem:safetyRem, unitLabel:'يوم', overdue:true});
+  }
+  if(dueItems.length===0){ btnWrap.innerHTML=''; window.__workOrderItems=null; return; }
+  window.__workOrderItems=dueItems;
+  const hasOverdue=dueItems.some(d=>d.overdue);
+  btnWrap.innerHTML='<button onclick="downloadWorkOrder()" style="width:100%;background:linear-gradient(135deg,'+(hasOverdue?'#B91C1C,#EF4444':'#B45309,#F59E0B')+');color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.15)">🔧 أمر شغل صيانة ('+dueItems.length+') '+(hasOverdue?'— يوجد متأخر ⚠️':'مستحقة قريباً')+'</button>';
+}
+function downloadWorkOrder(){
+  const items=window.__workOrderItems;
+  if(!items||items.length===0){ alert('لا توجد صيانات مستحقة'); return; }
+  const st=currentStation;
+  const dateStr=document.getElementById('f-date')?.value||new Date().toISOString().slice(0,10);
+  const woNum='WO-'+st.code+'-'+dateStr.replace(/-/g,'');
+  // نبنى بطاقة أمر الشغل مؤقتاً
+  let rows='';
+  items.forEach((it,i)=>{
+    const remTxt=it.overdue?('متأخر بـ '+Math.abs(it.rem)+' '+it.unitLabel):('باقى '+it.rem+' '+it.unitLabel);
+    const remColor=it.overdue?'#DC2626':'#B45309';
+    rows+='<tr style="border-bottom:1px solid #E5E7EB">';
+    rows+='<td style="padding:9px 8px;font-weight:800;color:#1F2937">'+(i+1)+'</td>';
+    rows+='<td style="padding:9px 8px;font-weight:700">'+it.type+'</td>';
+    rows+='<td style="padding:9px 8px;font-size:13px">'+it.unit+'</td>';
+    rows+='<td style="padding:9px 8px;font-size:13px">'+it.next+'</td>';
+    rows+='<td style="padding:9px 8px;font-weight:800;color:'+remColor+';white-space:nowrap">'+remTxt+'</td>';
+    rows+='</tr>';
+  });
+  const html='<div id="wo-capture" style="background:#fff;padding:22px;width:600px;font-family:Cairo;color:#1F2937">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #B45309;padding-bottom:12px;margin-bottom:16px">'
+    +'<div><div style="font-size:22px;font-weight:800;color:#B45309">🔧 أمر شغل صيانة</div>'
+    +'<div style="font-size:13px;color:#666;margin-top:4px">غازتك — منطقة القناة وسيناء</div></div>'
+    +'<div style="text-align:left"><div style="font-size:12px;color:#888">رقم الأمر</div><div style="font-size:15px;font-weight:800;direction:ltr">'+woNum+'</div></div></div>'
+    +'<table style="width:100%;font-size:13px;margin-bottom:16px"><tr><td style="padding:5px 0;color:#666;width:110px">المحطة</td><td style="font-weight:800">'+st.name+'</td></tr>'
+    +'<tr><td style="padding:5px 0;color:#666">المنطقة</td><td style="font-weight:700">'+(st.region||'')+'</td></tr>'
+    +'<tr><td style="padding:5px 0;color:#666">التاريخ</td><td style="font-weight:700;direction:ltr">'+dateStr+'</td></tr></table>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #E5E7EB">'
+    +'<tr style="background:#FEF3C7;font-weight:800"><th style="padding:9px 8px;text-align:right">#</th><th style="padding:9px 8px;text-align:right">نوع العمل</th><th style="padding:9px 8px;text-align:right">المعدة</th><th style="padding:9px 8px;text-align:right">التفاصيل</th><th style="padding:9px 8px;text-align:right">الاستحقاق</th></tr>'
+    +rows+'</table>'
+    +'<div style="margin-top:18px;padding:12px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#475569">📋 برجاء التنفيذ من الإدارة المعنية في أقرب وقت. المحطة: '+st.name+' — رقم الأمر: '+woNum+'</div>'
+    +'<div style="margin-top:14px;display:flex;justify-content:space-between;font-size:12px;color:#888"><span>مقدّم الطلب: مشرف المحطة</span><span>تصميم وتنفيذ: مهندس / محمـد أبـو النجـا</span></div>'
+    +'</div>';
+  const holder=document.createElement('div');
+  holder.style.cssText='position:fixed;left:-9999px;top:0';
+  holder.innerHTML=html;
+  document.body.appendChild(holder);
+  const node=holder.querySelector('#wo-capture');
+  if(typeof html2canvas==='undefined'){ alert('تعذّر إنشاء الصورة'); document.body.removeChild(holder); return; }
+  html2canvas(node,{scale:2,backgroundColor:'#ffffff'}).then(canvas=>{
+    canvas.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='أمر_شغل_'+st.name.replace(/\s/g,'_')+'_'+dateStr+'.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      document.body.removeChild(holder);
+    },'image/png');
+  }).catch(()=>{ alert('تعذّر إنشاء الصورة'); document.body.removeChild(holder); });
+}
 // تحميل صورة ملخص الإرسال (PNG واضحة)
 function downloadSummaryImage(){
   const node=document.getElementById('dashboard-capture');
