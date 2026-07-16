@@ -802,11 +802,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div style="font-size:11px;opacity:0.85;margin-top:3px" id="dash-sub"></div>
   </div>
   <div id="dashboard-capture" style="background:#fff">
-  <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:18px 20px;text-align:center;border-radius:10px;margin-bottom:12px">
-    <div style="font-size:26px;font-weight:900;color:#111">غازتك</div>
-    <div style="font-size:13px;font-weight:900;margin-top:3px;color:#1a1a2e">برنامج متابعة وتشغيل المحطات</div>
-    <div style="font-size:11px;font-weight:800;margin-top:2px;color:#1a1a2e">منطقة القناة وسيناء</div>
-    <div style="font-size:11px;font-weight:800;margin-top:5px;color:#1a1a2e">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
+  <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;border-radius:10px;margin-bottom:12px;justify-content:space-between;align-items:center;gap:12px">
+    <div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>
+    <div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>
+    <div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:left">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>
   </div>
   <div style="font-size:20px;font-weight:800;color:var(--blue-dark);text-align:center;padding:14px;background:var(--blue-pale);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border)" id="d-capture-title">إعرف وتابع محطتك</div>
   <div class="kpi-card" style="margin-bottom:10px;padding:16px;text-align:center">
@@ -3815,11 +3814,10 @@ function generateWorkOrder(){
   const remColor=it.overdue?'#DC2626':'#B45309';
   // هيدر بنفس تدرّج الشاشة الافتتاحية (أخف للطباعة)
   const html='<div id="wo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
-    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:18px 20px;text-align:center;color:#1a1a2e">'
-    +'<div style="font-size:26px;font-weight:900;color:#111">غازتك</div>'
-    +'<div style="font-size:13px;font-weight:900;margin-top:3px;color:#1a1a2e">برنامج متابعة وتشغيل المحطات</div>'
-    +'<div style="font-size:11px;font-weight:800;margin-top:2px;color:#1a1a2e">منطقة القناة وسيناء</div>'
-    +'<div style="font-size:11px;font-weight:800;margin-top:5px;color:#1a1a2e">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>'
+    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#111">'
+    +'<div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>'
+    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>'
+    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:left">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
     +'</div>'
     +'<div style="padding:20px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B45309;padding-bottom:10px;margin-bottom:14px">'
@@ -3918,11 +3916,10 @@ function generateFireWorkOrder(){
   });
   const roleLabel=(window.__fireWOMode==='admin')?'مقدّم الطلب (المسؤول)':'مقدّم الطلب (المشرف)';
   const html='<div id="fwo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
-    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:18px 20px;text-align:center;color:#1a1a2e">'
-    +'<div style="font-size:26px;font-weight:900;color:#111">غازتك</div>'
-    +'<div style="font-size:13px;font-weight:900;margin-top:3px">برنامج متابعة وتشغيل المحطات</div>'
-    +'<div style="font-size:11px;font-weight:800;margin-top:2px">منطقة القناة وسيناء</div>'
-    +'<div style="font-size:11px;font-weight:800;margin-top:5px">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>'
+    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#111">'
+    +'<div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>'
+    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>'
+    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:left">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
     +'</div>'
     +'<div style="padding:20px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B91C1C;padding-bottom:10px;margin-bottom:14px">'
@@ -3986,7 +3983,7 @@ function downloadSummaryImage(){
   const oldTitle=titleEl?titleEl.textContent:'';
   if(titleEl) titleEl.textContent=stName+' — '+dateStr;
   const hdr=document.getElementById('d-capture-header');
-  if(hdr) hdr.style.display='block';
+  if(hdr) hdr.style.display='flex';
   // نثبّت عرض مريح للتصوير (نسبة أفضل + دقة أعلى)، ثم نرجّعه
   const oldW=node.style.width, oldMax=node.style.maxWidth, oldPad=node.style.padding;
   node.style.width='480px'; node.style.maxWidth='480px'; node.style.padding='14px';
