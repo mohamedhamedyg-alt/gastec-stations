@@ -3915,50 +3915,73 @@ function generateFireWorkOrder(){
   const stat=(window.__fireWOMode==='admin')?{name:it.stationName,region:it.region,code:it.code}:currentStation;
   const dateStr=(window.__fireWOMode==='admin')?(it.date||new Date().toISOString().slice(0,10)):(document.getElementById('fire-date')?.value||new Date().toISOString().slice(0,10));
   const woNum='FWO-'+(stat.code||'')+'-'+dateStr.replace(/-/g,'');
-  let faultRows='';
-  it.faults.forEach((f,i)=>{
-    faultRows+='<tr><td style="padding:9px 8px;font-weight:800;border-top:1px solid #E5E7EB">'+(i+1)+'</td><td style="padding:9px 8px;border-top:1px solid #E5E7EB">'+f+'</td></tr>';
-  });
   const roleLabel=(window.__fireWOMode==='admin')?'مقدّم الطلب (المسؤول)':'مقدّم الطلب (المشرف)';
-  const html='<div id="fwo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
-    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#111">'
-    +'<div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>'
-    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>'
-    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:center">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
-    +'</div>'
-    +'<div style="padding:20px">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B91C1C;padding-bottom:10px;margin-bottom:14px">'
-    +'<div style="font-size:19px;font-weight:800;color:#B91C1C">🧯 أمر شغل منظومات الحريق</div>'
-    +'<div style="text-align:left"><div style="font-size:11px;color:#888">رقم الأمر</div><div style="font-size:14px;font-weight:800;direction:ltr">'+woNum+'</div></div></div>'
-    +'<table style="width:100%;font-size:13px;margin-bottom:14px">'
-    +'<tr><td style="padding:5px 0;color:#666;width:120px">المحطة</td><td style="font-weight:800">'+(stat.name||'')+'</td></tr>'
-    +'<tr><td style="padding:5px 0;color:#666">المنطقة</td><td style="font-weight:700">'+(stat.region||'')+'</td></tr>'
-    +'<tr><td style="padding:5px 0;color:#666">التاريخ</td><td style="font-weight:700;direction:ltr">'+dateStr+'</td></tr>'
-    +'<tr><td style="padding:5px 0;color:#666">البند</td><td style="font-weight:800;color:#B91C1C">'+it.label+'</td></tr>'
-    +'<tr><td style="padding:5px 0;color:#666">الإدارة المعنية</td><td style="font-weight:800;color:#B91C1C">'+dept+'</td></tr></table>'
-    +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #E5E7EB">'
-    +'<tr style="background:#FEE2E2;font-weight:800"><th style="padding:9px 8px;text-align:right;width:40px">#</th><th style="padding:9px 8px;text-align:right">العطل / الملاحظة</th></tr>'
-    +faultRows+'</table>'
-    +'<div style="margin-top:16px;padding:11px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#475569">📋 برجاء التنفيذ في أقرب وقت. المحطة: '+(stat.name||'')+' — رقم الأمر: '+woNum+'</div>'
-    +'<div style="margin-top:14px;display:flex;justify-content:space-between;font-size:12px;color:#555;border-top:1px dashed #ccc;padding-top:10px"><span>'+roleLabel+': <b>'+supName+'</b></span><span>الإدارة: <b>'+dept+'</b></span></div>'
-    +'</div></div>';
-  const holder=document.createElement('div');
-  holder.style.cssText='position:fixed;left:-9999px;top:0'; holder.innerHTML=html;
-  document.body.appendChild(holder);
-  const node=holder.querySelector('#fwo-capture');
-  if(typeof html2canvas==='undefined'){ st.style.color='#B91C1C'; st.textContent='❌ تعذّر'; document.body.removeChild(holder); return; }
-  html2canvas(node,{scale:2,backgroundColor:'#ffffff'}).then(canvas=>{
-    canvas.toBlob(blob=>{
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download='أمر_شغل_حريق_'+(stat.name||'').replace(/\s/g,'_')+'_'+dateStr+'.png';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(url),1000);
-      document.body.removeChild(holder);
-      st.style.color='#166534'; st.textContent='✅ تم التحميل — ابعتها واتساب';
-      setTimeout(closeFireWorkOrderModal,1400);
-    },'image/png');
-  }).catch(()=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذّر الإنشاء'; document.body.removeChild(holder); });
+  // تقسيم الأعطال لصفحات (10 صفوف/صفحة)
+  const PER_PAGE=10;
+  const faults=it.faults||[];
+  const pages=[];
+  for(let i=0;i<faults.length;i+=PER_PAGE) pages.push(faults.slice(i,i+PER_PAGE));
+  if(pages.length===0) pages.push([]);
+  const totalPages=pages.length;
+  // نبنى صورة كل صفحة بالتتابع
+  function buildPage(pageIdx){
+    const pageFaults=pages[pageIdx];
+    const startNum=pageIdx*PER_PAGE;
+    let faultRows='';
+    pageFaults.forEach((f,i)=>{
+      const bg=(i%2===0)?'#fff':'#FEF7F7';
+      faultRows+='<tr style="background:'+bg+'">'
+        +'<td style="padding:9px 8px;font-weight:800;border:1px solid #E5E7EB;text-align:center;width:36px">'+(startNum+i+1)+'</td>'
+        +'<td style="padding:9px 10px;border:1px solid #E5E7EB;line-height:1.6">'+f+'</td>'
+        +'<td style="padding:9px 8px;border:1px solid #E5E7EB;text-align:center;color:#B91C1C;font-weight:800;width:60px">عطل</td></tr>';
+    });
+    const pageTag = totalPages>1 ? (' — صفحة '+(pageIdx+1)+'/'+totalPages) : '';
+    return '<div id="fwo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
+      +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#111">'
+      +'<div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>'
+      +'<div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>'
+      +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:center">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
+      +'</div>'
+      +'<div style="padding:20px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B91C1C;padding-bottom:10px;margin-bottom:14px">'
+      +'<div style="font-size:18px;font-weight:800;color:#B91C1C">🧯 أمر شغل منظومات الحريق'+pageTag+'</div>'
+      +'<div style="text-align:left"><div style="font-size:11px;color:#888">رقم الأمر</div><div style="font-size:14px;font-weight:800;direction:ltr">'+woNum+'</div></div></div>'
+      +'<table style="width:100%;font-size:13px;margin-bottom:14px">'
+      +'<tr><td style="padding:4px 0;color:#666;width:110px">المحطة</td><td style="font-weight:800">'+(stat.name||'')+'</td></tr>'
+      +'<tr><td style="padding:4px 0;color:#666">المنطقة</td><td style="font-weight:700">'+(stat.region||'')+'</td></tr>'
+      +'<tr><td style="padding:4px 0;color:#666">التاريخ</td><td style="font-weight:700;direction:ltr">'+dateStr+'</td></tr>'
+      +'<tr><td style="padding:4px 0;color:#666">البند</td><td style="font-weight:800;color:#B91C1C">'+it.label+'</td></tr>'
+      +'<tr><td style="padding:4px 0;color:#666">الإدارة المعنية</td><td style="font-weight:800;color:#B91C1C">'+dept+'</td></tr></table>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid #E5E7EB">'
+      +'<tr style="background:#FEE2E2;font-weight:800"><th style="padding:8px 6px;text-align:center;border:1px solid #FCA5A5;width:36px">#</th><th style="padding:8px 8px;text-align:right;border:1px solid #FCA5A5">العطل / الوصف</th><th style="padding:8px 6px;text-align:center;border:1px solid #FCA5A5;width:60px">الحالة</th></tr>'
+      +faultRows+'</table>'
+      +'<div style="margin-top:14px;padding:10px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#475569">📋 برجاء التنفيذ في أقرب وقت. المحطة: '+(stat.name||'')+' — رقم الأمر: '+woNum+'</div>'
+      +'<div style="margin-top:12px;display:flex;justify-content:space-between;font-size:12px;color:#555;border-top:1px dashed #ccc;padding-top:10px"><span>'+roleLabel+': <b>'+supName+'</b></span><span>الإدارة: <b>'+dept+'</b></span></div>'
+      +'</div></div>';
+  }
+  if(typeof html2canvas==='undefined'){ st.style.color='#B91C1C'; st.textContent='❌ تعذّر'; return; }
+  let done=0;
+  function renderPage(pi){
+    const holder=document.createElement('div');
+    holder.style.cssText='position:fixed;left:-9999px;top:0'; holder.innerHTML=buildPage(pi);
+    document.body.appendChild(holder);
+    const node=holder.querySelector('#fwo-capture');
+    html2canvas(node,{scale:3,backgroundColor:'#ffffff'}).then(canvas=>{
+      canvas.toBlob(blob=>{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        const pageSuffix = totalPages>1 ? ('_صفحة'+(pi+1)) : '';
+        a.href=url; a.download='أمر_شغل_حريق_'+it.label.replace(/[🧯📦💧🌫️🔔\s]/g,'')+'_'+(stat.name||'').replace(/\s/g,'_')+pageSuffix+'_'+dateStr+'.png';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+        document.body.removeChild(holder);
+        done++;
+        if(pi+1<totalPages){ setTimeout(()=>renderPage(pi+1),400); }
+        else { st.style.color='#166534'; st.textContent=totalPages>1?('✅ تم تحميل '+totalPages+' صفحات — ابعتها واتساب'):'✅ تم التحميل — ابعتها واتساب'; setTimeout(closeFireWorkOrderModal,1500); }
+      },'image/png');
+    }).catch(()=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذّر الإنشاء'; document.body.removeChild(holder); });
+  }
+  renderPage(0);
 }
 // المسؤول: يفتح أمر شغل حريق لبند كامل (كل أعطاله في المنطقة)
 function openAdminFireWorkOrder(itemId, itemLabel){
