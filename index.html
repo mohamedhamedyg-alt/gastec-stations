@@ -273,7 +273,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <div style="position:absolute;top:-30px;right:-30px;width:80px;height:80px;background:rgba(255,255,255,.12);border-radius:50%"></div>
         <div style="position:absolute;bottom:-40px;left:-20px;width:90px;height:90px;background:rgba(255,255,255,.08);border-radius:50%"></div>
         <div style="font-size:20px;margin-bottom:1px;position:relative">⛽</div>
-        <div style="font-size:18px;font-weight:900;color:#fff;position:relative;letter-spacing:.3px">غازتك</div>
+        <div style="font-size:18px;font-weight:900;color:#fff;position:relative">غازتك</div>
         <div style="font-size:11.5px;color:#fff;font-weight:800;margin-top:2px;position:relative">برنامج متابعة وتشغيل المحطات</div>
         <div style="font-size:10px;color:rgba(255,255,255,.9);font-weight:700;margin-top:1px;position:relative">منطقة القناة وسيناء</div>
       </div>
@@ -375,6 +375,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div id="fire-items"></div>
     <button onclick="submitFireSafety()" style="width:100%;background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px">إرسال بيان منظومات الحريق</button>
     <div id="fire-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
+    <div id="fire-workorder-btns" style="margin-top:12px"></div>
   </div>
   </div><!-- /tab-fire -->
 
@@ -801,6 +802,12 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div style="font-size:11px;opacity:0.85;margin-top:3px" id="dash-sub"></div>
   </div>
   <div id="dashboard-capture" style="background:#fff">
+  <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:18px 20px;text-align:center;border-radius:10px;margin-bottom:12px">
+    <div style="font-size:26px;font-weight:900;color:#111">غازتك</div>
+    <div style="font-size:13px;font-weight:900;margin-top:3px;color:#1a1a2e">برنامج متابعة وتشغيل المحطات</div>
+    <div style="font-size:11px;font-weight:800;margin-top:2px;color:#1a1a2e">منطقة القناة وسيناء</div>
+    <div style="font-size:11px;font-weight:800;margin-top:5px;color:#1a1a2e">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
+  </div>
   <div style="font-size:20px;font-weight:800;color:var(--blue-dark);text-align:center;padding:14px;background:var(--blue-pale);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border)" id="d-capture-title">إعرف وتابع محطتك</div>
   <div class="kpi-card" style="margin-bottom:10px;padding:16px;text-align:center">
     <div class="kpi-label">المبيعات اليومية</div>
@@ -3808,11 +3815,11 @@ function generateWorkOrder(){
   const remColor=it.overdue?'#DC2626':'#B45309';
   // هيدر بنفس تدرّج الشاشة الافتتاحية (أخف للطباعة)
   const html='<div id="wo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
-    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:16px 20px;text-align:center;color:#fff">'
-    +'<div style="font-size:22px;font-weight:900;letter-spacing:.3px">غازتك</div>'
-    +'<div style="font-size:12px;font-weight:800;margin-top:2px">برنامج متابعة وتشغيل المحطات</div>'
-    +'<div style="font-size:10.5px;font-weight:700;opacity:.9;margin-top:1px">منطقة القناة وسيناء</div>'
-    +'<div style="font-size:10.5px;font-weight:700;opacity:.85;margin-top:5px">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</div>'
+    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:18px 20px;text-align:center;color:#1a1a2e">'
+    +'<div style="font-size:26px;font-weight:900;color:#111">غازتك</div>'
+    +'<div style="font-size:13px;font-weight:900;margin-top:3px;color:#1a1a2e">برنامج متابعة وتشغيل المحطات</div>'
+    +'<div style="font-size:11px;font-weight:800;margin-top:2px;color:#1a1a2e">منطقة القناة وسيناء</div>'
+    +'<div style="font-size:11px;font-weight:800;margin-top:5px;color:#1a1a2e">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>'
     +'</div>'
     +'<div style="padding:20px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B45309;padding-bottom:10px;margin-bottom:14px">'
@@ -3849,6 +3856,125 @@ function generateWorkOrder(){
     },'image/png');
   }).catch(()=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذّر إنشاء الصورة'; document.body.removeChild(holder); });
 }
+// ══════════ أمر شغل الحريق ══════════
+// إدارات الحريق (المشرف والمسؤول)
+const FIRE_DEPTS = ['إدارة السلامة والصحة المهنية بالمنطقة','إدارة المشروعات بالمنطقة','إدارة الصيانة بالمنطقة'];
+// يبنى زر أمر شغل لكل بند حريق فيه عطل (للمشرف — بعد الإرسال أو من اللوحة)
+function buildFireWorkOrderBtns(){
+  const wrap=document.getElementById('fire-workorder-btns');
+  if(!wrap) return;
+  const faultyItems=[];
+  FIRE_ITEMS_DEF.forEach(def=>{
+    const status=document.getElementById('fire-'+def.id+'-status')?.value||'ok';
+    if(status==='fault'){
+      // نجمع أوصاف الأعطال
+      const w=document.getElementById('fire-'+def.id+'-faults');
+      const boxes=w?w.querySelectorAll('[id$="-box"]'):[];
+      const faults=[];
+      boxes.forEach(box=>{
+        const fid=box.id.replace('-box','');
+        const g=id=>document.getElementById(fid+'-'+id)?.value?.trim()||'';
+        const fault=g('fault'); if(!fault) return;
+        faults.push(fault);
+      });
+      if(faults.length>0) faultyItems.push({id:def.id, label:def.label, faults});
+    }
+  });
+  if(faultyItems.length===0){ wrap.innerHTML=''; window.__fireWO=null; return; }
+  window.__fireWO=faultyItems;
+  let h='<div style="font-size:13px;font-weight:800;color:#B91C1C;margin-bottom:8px;text-align:center">🔧 أوامر شغل الحريق</div>';
+  faultyItems.forEach((it,i)=>{
+    h+='<button onclick="openFireWorkOrderModal('+i+')" style="width:100%;background:linear-gradient(135deg,#B91C1C,#EF4444);color:#fff;border:none;border-radius:12px;padding:12px 14px;font-family:Cairo;font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.15);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px">';
+    h+='<span>🔧 '+it.label+'</span>';
+    h+='<span style="font-size:11px;background:rgba(255,255,255,.25);padding:3px 9px;border-radius:10px">'+it.faults.length+' عطل</span></button>';
+  });
+  wrap.innerHTML=h;
+}
+function openFireWorkOrderModal(idx){
+  window.__fireWOIdx=idx; window.__fireWOMode='mgr';
+  const it=(window.__fireWO||[])[idx]; if(!it) return;
+  document.getElementById('fwo-item-label').textContent=it.label+' — '+it.faults.length+' عطل';
+  document.getElementById('fwo-supervisor-name').value='';
+  const sel=document.getElementById('fwo-dept'); sel.innerHTML=FIRE_DEPTS.map(d=>`<option value="${d}">${d}</option>`).join('');
+  document.getElementById('fwo-modal-status').textContent='';
+  document.getElementById('fire-workorder-modal').style.display='flex';
+}
+function closeFireWorkOrderModal(){ document.getElementById('fire-workorder-modal').style.display='none'; }
+function generateFireWorkOrder(){
+  const idx=window.__fireWOIdx;
+  const list=(window.__fireWOMode==='admin')?window.__fireWOAdmin:window.__fireWO;
+  const it=(list||[])[idx]; if(!it){ closeFireWorkOrderModal(); return; }
+  const supName=document.getElementById('fwo-supervisor-name')?.value?.trim()||'';
+  const dept=document.getElementById('fwo-dept')?.value||FIRE_DEPTS[0];
+  const st=document.getElementById('fwo-modal-status');
+  if(!supName){ st.style.color='#B91C1C'; st.textContent='❌ أدخل الاسم'; return; }
+  st.style.color='#166534'; st.textContent='⏳ جارى الإنشاء...';
+  const stat=(window.__fireWOMode==='admin')?{name:it.stationName,region:it.region,code:it.code}:currentStation;
+  const dateStr=(window.__fireWOMode==='admin')?(it.date||new Date().toISOString().slice(0,10)):(document.getElementById('fire-date')?.value||new Date().toISOString().slice(0,10));
+  const woNum='FWO-'+(stat.code||'')+'-'+dateStr.replace(/-/g,'');
+  let faultRows='';
+  it.faults.forEach((f,i)=>{
+    faultRows+='<tr><td style="padding:9px 8px;font-weight:800;border-top:1px solid #E5E7EB">'+(i+1)+'</td><td style="padding:9px 8px;border-top:1px solid #E5E7EB">'+f+'</td></tr>';
+  });
+  const roleLabel=(window.__fireWOMode==='admin')?'مقدّم الطلب (المسؤول)':'مقدّم الطلب (المشرف)';
+  const html='<div id="fwo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
+    +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:18px 20px;text-align:center;color:#1a1a2e">'
+    +'<div style="font-size:26px;font-weight:900;color:#111">غازتك</div>'
+    +'<div style="font-size:13px;font-weight:900;margin-top:3px">برنامج متابعة وتشغيل المحطات</div>'
+    +'<div style="font-size:11px;font-weight:800;margin-top:2px">منطقة القناة وسيناء</div>'
+    +'<div style="font-size:11px;font-weight:800;margin-top:5px">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>'
+    +'</div>'
+    +'<div style="padding:20px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B91C1C;padding-bottom:10px;margin-bottom:14px">'
+    +'<div style="font-size:19px;font-weight:800;color:#B91C1C">🧯 أمر شغل منظومات الحريق</div>'
+    +'<div style="text-align:left"><div style="font-size:11px;color:#888">رقم الأمر</div><div style="font-size:14px;font-weight:800;direction:ltr">'+woNum+'</div></div></div>'
+    +'<table style="width:100%;font-size:13px;margin-bottom:14px">'
+    +'<tr><td style="padding:5px 0;color:#666;width:120px">المحطة</td><td style="font-weight:800">'+(stat.name||'')+'</td></tr>'
+    +'<tr><td style="padding:5px 0;color:#666">المنطقة</td><td style="font-weight:700">'+(stat.region||'')+'</td></tr>'
+    +'<tr><td style="padding:5px 0;color:#666">التاريخ</td><td style="font-weight:700;direction:ltr">'+dateStr+'</td></tr>'
+    +'<tr><td style="padding:5px 0;color:#666">البند</td><td style="font-weight:800;color:#B91C1C">'+it.label+'</td></tr>'
+    +'<tr><td style="padding:5px 0;color:#666">الإدارة المعنية</td><td style="font-weight:800;color:#B91C1C">'+dept+'</td></tr></table>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #E5E7EB">'
+    +'<tr style="background:#FEE2E2;font-weight:800"><th style="padding:9px 8px;text-align:right;width:40px">#</th><th style="padding:9px 8px;text-align:right">العطل / الملاحظة</th></tr>'
+    +faultRows+'</table>'
+    +'<div style="margin-top:16px;padding:11px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#475569">📋 برجاء التنفيذ في أقرب وقت. المحطة: '+(stat.name||'')+' — رقم الأمر: '+woNum+'</div>'
+    +'<div style="margin-top:14px;display:flex;justify-content:space-between;font-size:12px;color:#555;border-top:1px dashed #ccc;padding-top:10px"><span>'+roleLabel+': <b>'+supName+'</b></span><span>الإدارة: <b>'+dept+'</b></span></div>'
+    +'</div></div>';
+  const holder=document.createElement('div');
+  holder.style.cssText='position:fixed;left:-9999px;top:0'; holder.innerHTML=html;
+  document.body.appendChild(holder);
+  const node=holder.querySelector('#fwo-capture');
+  if(typeof html2canvas==='undefined'){ st.style.color='#B91C1C'; st.textContent='❌ تعذّر'; document.body.removeChild(holder); return; }
+  html2canvas(node,{scale:2,backgroundColor:'#ffffff'}).then(canvas=>{
+    canvas.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='أمر_شغل_حريق_'+(stat.name||'').replace(/\s/g,'_')+'_'+dateStr+'.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      document.body.removeChild(holder);
+      st.style.color='#166534'; st.textContent='✅ تم التحميل — ابعتها واتساب';
+      setTimeout(closeFireWorkOrderModal,1400);
+    },'image/png');
+  }).catch(()=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذّر الإنشاء'; document.body.removeChild(holder); });
+}
+// المسؤول: يفتح أمر شغل حريق لبند كامل (كل أعطاله في المنطقة)
+function openAdminFireWorkOrder(itemId, itemLabel){
+  const faults=(window.__adminFireItems||{})[itemId]||[];
+  if(faults.length===0){ alert('لا توجد أعطال'); return; }
+  // نبنى عنصر واحد يجمع أعطال البند لكل المحطات
+  const faultLines=faults.map(f=>(f.stationName?f.stationName+': ':'')+f.fault);
+  window.__fireWOAdmin=[{
+    label:itemLabel||itemId, faults:faultLines,
+    stationName:'محطات المنطقة', region:'القناة وسيناء', code:'MNTQA', date:new Date().toISOString().slice(0,10)
+  }];
+  window.__fireWOIdx=0; window.__fireWOMode='admin';
+  document.getElementById('fwo-item-label').textContent=(itemLabel||itemId)+' — '+faultLines.length+' عطل بالمنطقة';
+  document.getElementById('fwo-supervisor-name').value='';
+  const sel=document.getElementById('fwo-dept'); sel.innerHTML=FIRE_DEPTS.map(d=>`<option value="${d}">${d}</option>`).join('');
+  document.getElementById('fwo-modal-status').textContent='';
+  document.getElementById('fire-workorder-modal').style.display='flex';
+}
 // تحميل صورة ملخص الإرسال (PNG واضحة)
 function downloadSummaryImage(){
   const node=document.getElementById('dashboard-capture');
@@ -3859,8 +3985,11 @@ function downloadSummaryImage(){
   const titleEl=document.getElementById('d-capture-title');
   const oldTitle=titleEl?titleEl.textContent:'';
   if(titleEl) titleEl.textContent=stName+' — '+dateStr;
+  const hdr=document.getElementById('d-capture-header');
+  if(hdr) hdr.style.display='block';
   html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true}).then(canvas=>{
     if(titleEl) titleEl.textContent=oldTitle;
+    if(hdr) hdr.style.display='none';
     canvas.toBlob(blob=>{
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
@@ -3868,7 +3997,7 @@ function downloadSummaryImage(){
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(()=>URL.revokeObjectURL(url),1000);
     },'image/png');
-  }).catch(()=>{ if(titleEl)titleEl.textContent=oldTitle; alert('تعذّر إنشاء الصورة'); });
+  }).catch(()=>{ if(titleEl)titleEl.textContent=oldTitle; if(hdr)hdr.style.display='none'; alert('تعذّر إنشاء الصورة'); });
 }
 function dashboardBackToHub(){
   document.getElementById('dashboard-screen').style.display='none';
@@ -4055,6 +4184,7 @@ function buildFireItems(){
   const wrap=document.getElementById('fire-items');
   if(wrap.dataset.built==='1') return;
   wrap.dataset.built='1';
+  wrap.oninput=function(){ if(typeof buildFireWorkOrderBtns==='function') buildFireWorkOrderBtns(); };
   wrap.innerHTML = FIRE_ITEMS_DEF.map(it=>`
     <div style="background:#fff;border:1px solid #FCA5A5;border-radius:10px;padding:12px;margin-bottom:11px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
@@ -4107,6 +4237,7 @@ function onFireStatusChange(id){
     const faultsWrap=document.getElementById('fire-'+id+'-faults');
     if(faultsWrap && faultsWrap.children.length===0) addFireFault(id);
   }
+  if(typeof buildFireWorkOrderBtns==='function') buildFireWorkOrderBtns();
 }
 // إضافة عطل لبند
 function addFireFault(itemId){
@@ -4748,8 +4879,16 @@ function renderFireItemTable(item, list){
   const itemId=list[0].itemId;
   const oneAction=list[0].oneAction;
   const cols=fireTableCols(itemId);
+  // نخزّن أعطال هذا البند عالمياً لأمر الشغل
+  window.__adminFireItems = window.__adminFireItems || {};
+  window.__adminFireItems[itemId] = list.map(it=>({
+    stationName: it.name||it.stationName||'', region: it.region||'', code: it.code||'',
+    date: it.date||'', fault: it.fault||it.faultText||(fireTableCols(itemId).map(c=>c.f(it)).join(' — '))
+  }));
   let html='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:12px 0;overflow:hidden">';
-  html+='<div style="background:linear-gradient(135deg,#7F1D1D,#B91C1C);color:#fff;padding:10px 12px;font-weight:800;font-size:14px">'+item+' <span style="opacity:.8;font-size:12px;font-weight:400">('+list.length+' عطل)</span></div>';
+  html+='<div style="background:linear-gradient(135deg,#7F1D1D,#B91C1C);color:#fff;padding:10px 12px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">';
+  html+='<span>'+item+' <span style="opacity:.8;font-size:12px;font-weight:400">('+list.length+' عطل)</span></span>';
+  html+='<button onclick="openAdminFireWorkOrder(\''+itemId+'\',\''+item.replace(/'/g,"")+'\')" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:5px 12px;font-family:Cairo;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap">🔧 أمر شغل</button></div>';
   html+='<div class="fire-tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
   // رأس الأعمدة + عمود تاريخ البلاغ + عمود الإجراء
   html+='<tr style="background:#FEE2E2;font-weight:800">';
@@ -4844,6 +4983,27 @@ function resetToLogin(){
       <div style="display:flex;gap:10px">
         <button onclick="closeWorkOrderModal()" style="flex:1;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">إلغاء</button>
         <button onclick="generateWorkOrder()" style="flex:2;background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">📥 إنشاء وتحميل</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة أمر شغل الحريق -->
+  <div id="fire-workorder-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeFireWorkOrderModal()">
+    <div style="background:#fff;border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)">
+      <div style="font-size:17px;font-weight:800;color:#B91C1C;margin-bottom:4px">🧯 أمر شغل منظومات الحريق</div>
+      <div id="fwo-item-label" style="font-size:13px;color:#666;margin-bottom:14px;font-weight:700"></div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:700">اسم مقدّم الطلب</label>
+        <input type="text" id="fwo-supervisor-name" class="form-control" style="font-size:14px" placeholder="اكتب اسمك">
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:13px;font-weight:700">الإدارة المعنية</label>
+        <select id="fwo-dept" class="form-control" style="font-size:14px"></select>
+      </div>
+      <div id="fwo-modal-status" style="text-align:center;font-size:12px;font-weight:700;margin-bottom:10px;min-height:16px"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeFireWorkOrderModal()" style="flex:1;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">إلغاء</button>
+        <button onclick="generateFireWorkOrder()" style="flex:2;background:linear-gradient(135deg,#B91C1C,#EF4444);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">📥 إنشاء وتحميل</button>
       </div>
     </div>
   </div>
