@@ -247,6 +247,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   .mg-fz1{min-width:44px}
   #mgr-grid{font-size:11px}
 }
+/* وضع التصوير: كروت الأداء عمودين جنب بعض (يقلل الارتفاع) */
+#dashboard-capture.capture-2col .cap-grid{display:grid !important;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+#dashboard-capture.capture-2col .cap-grid > *{margin-bottom:0 !important}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -805,7 +808,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;border-radius:10px;margin-bottom:12px;justify-content:space-between;align-items:center;gap:12px">
     <div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>
     <div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>
-    <div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:left">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>
+    <div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:center">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>
   </div>
   <div style="font-size:20px;font-weight:800;color:var(--blue-dark);text-align:center;padding:14px;background:var(--blue-pale);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border)" id="d-capture-title">إعرف وتابع محطتك</div>
   <div class="kpi-card" style="margin-bottom:10px;padding:16px;text-align:center">
@@ -813,6 +816,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="kpi-val blue" id="d-sales" style="font-size:32px;direction:ltr">—</div>
     <div class="kpi-unit">م³</div>
   </div>
+  <div class="cap-grid">
   <div class="section-card" style="margin-bottom:10px">
     <div class="section-head" style="background:#F0EBF8;color:#4A235B;font-size:12px;font-weight:800"><div class="dot" style="background:#7B3FA0"></div>تكلفة الكهرباء</div>
     <div class="section-body">
@@ -892,6 +896,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="kpi-val" id="d-safety" style="direction:ltr">—</div>
     <div class="kpi-unit">يوم</div>
   </div>
+  </div><!-- /cap-grid -->
   </div><!-- /dashboard-capture -->
   <div id="d-workorder-btn" style="margin-top:14px"></div>
   <button onclick="downloadSummaryImage()" style="width:100%;background:linear-gradient(135deg,#166534,#22C55E);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;margin-top:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)">📥 تحميل صورة ملخص الإرسال</button>
@@ -3817,7 +3822,7 @@ function generateWorkOrder(){
     +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#111">'
     +'<div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>'
     +'<div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>'
-    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:left">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
+    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:center">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
     +'</div>'
     +'<div style="padding:20px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B45309;padding-bottom:10px;margin-bottom:14px">'
@@ -3919,7 +3924,7 @@ function generateFireWorkOrder(){
     +'<div style="background:linear-gradient(135deg,#38BDF8 0%,#818CF8 50%,#C084FC 100%);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#111">'
     +'<div style="text-align:right"><div style="font-size:19px;font-weight:900;color:#111">غازتك</div>'
     +'<div style="font-size:10px;font-weight:800;color:#1a1a2e">برنامج متابعة وتشغيل المحطات — منطقة القناة وسيناء</div></div>'
-    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:left">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
+    +'<div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:center">تصميم وتنفيذ :<br>مهندس / محمد أبو النجا</div>'
     +'</div>'
     +'<div style="padding:20px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B91C1C;padding-bottom:10px;margin-bottom:14px">'
@@ -3986,11 +3991,13 @@ function downloadSummaryImage(){
   if(hdr) hdr.style.display='flex';
   // نثبّت عرض مريح للتصوير (نسبة أفضل + دقة أعلى)، ثم نرجّعه
   const oldW=node.style.width, oldMax=node.style.maxWidth, oldPad=node.style.padding;
-  node.style.width='480px'; node.style.maxWidth='480px'; node.style.padding='14px';
-  html2canvas(node,{scale:3,backgroundColor:'#ffffff',useCORS:true,width:node.offsetWidth,windowWidth:520}).then(canvas=>{
+  node.style.width='620px'; node.style.maxWidth='620px'; node.style.padding='16px';
+  node.classList.add('capture-2col');
+  html2canvas(node,{scale:3,backgroundColor:'#ffffff',useCORS:true,width:node.offsetWidth,windowWidth:660}).then(canvas=>{
     if(titleEl) titleEl.textContent=oldTitle;
     if(hdr) hdr.style.display='none';
     node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad;
+    node.classList.remove('capture-2col');
     canvas.toBlob(blob=>{
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
@@ -3998,7 +4005,7 @@ function downloadSummaryImage(){
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(()=>URL.revokeObjectURL(url),1000);
     },'image/png');
-  }).catch(()=>{ if(titleEl)titleEl.textContent=oldTitle; if(hdr)hdr.style.display='none'; node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; alert('تعذّر إنشاء الصورة'); });
+  }).catch(()=>{ if(titleEl)titleEl.textContent=oldTitle; if(hdr)hdr.style.display='none'; node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; node.classList.remove('capture-2col'); alert('تعذّر إنشاء الصورة'); });
 }
 function dashboardBackToHub(){
   document.getElementById('dashboard-screen').style.display='none';
