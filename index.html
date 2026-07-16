@@ -3987,9 +3987,13 @@ function downloadSummaryImage(){
   if(titleEl) titleEl.textContent=stName+' — '+dateStr;
   const hdr=document.getElementById('d-capture-header');
   if(hdr) hdr.style.display='block';
-  html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true}).then(canvas=>{
+  // نثبّت عرض مريح للتصوير (نسبة أفضل + دقة أعلى)، ثم نرجّعه
+  const oldW=node.style.width, oldMax=node.style.maxWidth, oldPad=node.style.padding;
+  node.style.width='480px'; node.style.maxWidth='480px'; node.style.padding='14px';
+  html2canvas(node,{scale:3,backgroundColor:'#ffffff',useCORS:true,width:node.offsetWidth,windowWidth:520}).then(canvas=>{
     if(titleEl) titleEl.textContent=oldTitle;
     if(hdr) hdr.style.display='none';
+    node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad;
     canvas.toBlob(blob=>{
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
@@ -3997,7 +4001,7 @@ function downloadSummaryImage(){
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(()=>URL.revokeObjectURL(url),1000);
     },'image/png');
-  }).catch(()=>{ if(titleEl)titleEl.textContent=oldTitle; if(hdr)hdr.style.display='none'; alert('تعذّر إنشاء الصورة'); });
+  }).catch(()=>{ if(titleEl)titleEl.textContent=oldTitle; if(hdr)hdr.style.display='none'; node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; alert('تعذّر إنشاء الصورة'); });
 }
 function dashboardBackToHub(){
   document.getElementById('dashboard-screen').style.display='none';
