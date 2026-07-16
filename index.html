@@ -887,10 +887,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="kpi-unit">يوم</div>
   </div>
   </div><!-- /dashboard-capture -->
-  <div class="week-section">
-    <h3>مبيعات الأسبوع (م³)</h3>
-    <div class="week-bars" id="week-bars"></div>
-  </div>
   <div id="d-workorder-btn" style="margin-top:14px"></div>
   <button onclick="downloadSummaryImage()" style="width:100%;background:linear-gradient(135deg,#166534,#22C55E);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;margin-top:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)">📥 تحميل صورة ملخص الإرسال</button>
   <button onclick="dashboardBackToHub()" style="width:100%;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:16px;font-family:Cairo;font-weight:800;font-size:16px;cursor:pointer;margin-top:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)">⬅ رجوع للقائمة الرئيسية</button>
@@ -948,33 +944,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:12px;opacity:.85;margin-top:4px">سعر المتر: <span id="hub-gas-price">13</span> — كهرباء صناعى: <span id="hub-tariff-ind">2.74</span> — تجارى: <span id="hub-tariff-com">2.79</span></div>
     </div>
     <button class="btn-mgr back" onclick="resetToLogin()" style="margin-top:6px">خروج</button>
-  </div>
-
-  <!-- نافذة أمر الشغل (اسم المشرف + الإدارة) -->
-  <div id="workorder-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeWorkOrderModal()">
-    <div style="background:#fff;border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)">
-      <div style="font-size:17px;font-weight:800;color:#B45309;margin-bottom:4px">🔧 أمر شغل صيانة</div>
-      <div id="wo-item-label" style="font-size:13px;color:#666;margin-bottom:14px;font-weight:700"></div>
-      <div class="form-group" style="margin-bottom:12px">
-        <label style="font-size:13px;font-weight:700">اسم المشرف (مقدّم الطلب)</label>
-        <input type="text" id="wo-supervisor-name" class="form-control" style="font-size:14px" placeholder="اكتب اسمك">
-      </div>
-      <div class="form-group" style="margin-bottom:16px">
-        <label style="font-size:13px;font-weight:700">الإدارة المعنية</label>
-        <select id="wo-dept" class="form-control" style="font-size:14px">
-          <option value="إدارة الصيانة">إدارة الصيانة</option>
-          <option value="إدارة المحطات">إدارة المحطات</option>
-          <option value="إدارة التحويل">إدارة التحويل</option>
-          <option value="إدارة اللحام">إدارة اللحام</option>
-          <option value="إدارة المشروعات">إدارة المشروعات</option>
-        </select>
-      </div>
-      <div id="wo-modal-status" style="text-align:center;font-size:12px;font-weight:700;margin-bottom:10px;min-height:16px"></div>
-      <div style="display:flex;gap:10px">
-        <button onclick="closeWorkOrderModal()" style="flex:1;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">إلغاء</button>
-        <button onclick="generateWorkOrder()" style="flex:2;background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">📥 إنشاء وتحميل</button>
-      </div>
-    </div>
   </div>
 
   <!-- نافذة سبب التوقف -->
@@ -3431,11 +3400,14 @@ async function submitForm(){
   // ── أمر الشغل: يظهر لو صيانة/تشحيم متبقى ≤150 ساعة أو فحص أمان متبقى ≤7 أيام ──
   buildWorkOrderBtn(st, safetyRem);
   // PF bar handled above
-  // WEEK
-  const wc=document.getElementById('week-bars');wc.innerHTML='';
-  const days=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
-  const tod=new Date().getDay(),mx=Math.max(...weekData,sales,1);
-  for(let i=0;i<7;i++){const val=i===6?sales:weekData[i];const pct=Math.round(val/mx*60);const w=document.createElement('div');w.className='week-bar-wrap';w.innerHTML=`<div class="week-val">${val>0?val.toLocaleString('en-US'):''}</div><div class="week-bar${i===6?' today':''}" style="height:${pct}px"></div><div class="week-day">${days[(tod-6+i+7)%7]}</div>`;wc.appendChild(w);}
+  // WEEK (اختيارى — أُزيل من الشاشة)
+  const wc=document.getElementById('week-bars');
+  if(wc){
+    wc.innerHTML='';
+    const days=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+    const tod=new Date().getDay(),mx=Math.max(...weekData,sales,1);
+    for(let i=0;i<7;i++){const val=i===6?sales:weekData[i];const pct=Math.round(val/mx*60);const w=document.createElement('div');w.className='week-bar-wrap';w.innerHTML=`<div class="week-val">${val>0?val.toLocaleString('en-US'):''}</div><div class="week-bar${i===6?' today':''}" style="height:${pct}px"></div><div class="week-day">${days[(tod-6+i+7)%7]}</div>`;wc.appendChild(w);}
+  }
 }
 
 // MANAGER
@@ -4845,6 +4817,33 @@ function resetToLogin(){
           <button id="confirm-modal-yes" style="flex:1;background:linear-gradient(135deg,#B45309,#D97706);color:#fff;border:none;border-radius:12px;padding:13px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer">نعم، متوقفة</button>
           <button id="confirm-modal-no" style="flex:1;background:#F1F5F9;color:#475569;border:none;border-radius:12px;padding:13px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer">رجوع</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة أمر الشغل (مستوى body — تظهر فوق أى شاشة) -->
+  <div id="workorder-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeWorkOrderModal()">
+    <div style="background:#fff;border-radius:16px;padding:22px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)">
+      <div style="font-size:17px;font-weight:800;color:#B45309;margin-bottom:4px">🔧 أمر شغل صيانة</div>
+      <div id="wo-item-label" style="font-size:13px;color:#666;margin-bottom:14px;font-weight:700"></div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:700">اسم المشرف (مقدّم الطلب)</label>
+        <input type="text" id="wo-supervisor-name" class="form-control" style="font-size:14px" placeholder="اكتب اسمك">
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:13px;font-weight:700">الإدارة المعنية</label>
+        <select id="wo-dept" class="form-control" style="font-size:14px">
+          <option value="إدارة الصيانة">إدارة الصيانة</option>
+          <option value="إدارة المحطات">إدارة المحطات</option>
+          <option value="إدارة التحويل">إدارة التحويل</option>
+          <option value="إدارة اللحام">إدارة اللحام</option>
+          <option value="إدارة المشروعات">إدارة المشروعات</option>
+        </select>
+      </div>
+      <div id="wo-modal-status" style="text-align:center;font-size:12px;font-weight:700;margin-bottom:10px;min-height:16px"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeWorkOrderModal()" style="flex:1;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">إلغاء</button>
+        <button onclick="generateWorkOrder()" style="flex:2;background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">📥 إنشاء وتحميل</button>
       </div>
     </div>
   </div>
