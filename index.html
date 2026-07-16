@@ -977,7 +977,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <tr>
           <th class="mg-h mg-fz1">الكود</th>
           <th class="mg-h mg-fz2">المحطة</th>
-          <th class="mg-h">الحالة</th>
           <th class="mg-h">وقت الإرسال</th>
           <th class="mg-h">مبيعات م³</th>
           <th class="mg-h">KWH/م³</th>
@@ -2298,9 +2297,9 @@ function updateFT(id){
     const cur=sel.value;
     let opts;
     if(ty==='all'){
-      opts=['تفريغ بنزين','انقطاع الكهرباء','غلق الشارع الرئيسى','حفر أمام المحطة','أخرى (خارج الإرادة)'];
+      opts=['تفريغ بنزين','انقطاع الكهرباء','غلق الشارع الرئيسى','حفر أمام المحطة'];
     } else {
-      opts=['عطل','صيانة دورية','أخرى'];
+      opts=['عطل','صيانة دورية','تشحيم','معايرة','فحص معدات الأمان','تنفيذ خطة طوارئ'];
     }
     sel.innerHTML='<option value="">— اختر —</option>'+opts.map(o=>`<option value="${o}">${o}</option>`).join('');
     // نحافظ على الاختيار لو لسه متاح
@@ -2532,7 +2531,7 @@ function calcFD(id){
 }
 function updateTotalDT(){
   let total=0, external=0; const stoppedComps=new Set();
-  const EXTERNAL_REASONS={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1,'أخرى (خارج الإرادة)':1};
+  const EXTERNAL_REASONS={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1};
   document.querySelectorAll('[id^="ft-dur-"]').forEach(el=>{
     const t=el.value;if(!t||t.includes('⚠'))return;
     const hm=t.match(/(\d+)\s*س/),mm=t.match(/(\d+)\s*د/);
@@ -2721,13 +2720,16 @@ function validateAll(){
     const hasType=document.getElementById('ft-type-'+fid)?.value||'';
     // بطاقة فاضية تماماً (لا فترة ولا سبب ولا نوع) — نتجاهلها
     if(!hasPeriod && !reason && !hasType) return;
-    // (1) الفترة إلزامية — لكن نكمّل باقى الفحوصات (لا نخرج بـ return)
+    // (0) نوع التوقف إلزامى
+    if(!hasType){ errors.push('توقف #'+fid+': نوع التوقف'); markErr('ft-type-'+fid,'إلزامى'); }
+    // (1) الفترة إلزامية دائماً (خارج الإرادة أو ضاغط/محرك)
     if(!hasPeriod){ errors.push('توقف #'+fid+': فترة التوقف (من/إلى)'); markErr('ft-fh-'+fid,'حدد فترة التوقف'); }
-    // (2) سبب التوقف إلزامى
+    // (2) سبب التوقف إلزامى دائماً
     if(!reason){ errors.push('توقف #'+fid+': سبب التوقف'); markErr('ft-stop-reason-'+fid,'إلزامى'); }
-    // (3) عطل أو صيانة دورية → تفاصيل + إجراء الصيانة (+ فترة الإصلاح لو تم الإصلاح)
-    if(reason==='عطل' || reason==='صيانة دورية'){
-      if(!document.getElementById('ft-reason-'+fid)?.value?.trim()){ errors.push('توقف #'+fid+': تفاصيل '+reason); markErr('ft-reason-'+fid,'إلزامى'); }
+    // (3) لو النوع ضاغط/محرك (ليس خارج الإرادة) → تفاصيل العطل + إجراء الصيانة إلزاميان
+    const isExternalType = (hasType==='all');
+    if(!isExternalType && hasType){
+      if(!document.getElementById('ft-reason-'+fid)?.value?.trim()){ errors.push('توقف #'+fid+': تفاصيل العطل/سبب التوقف (عربى)'); markErr('ft-reason-'+fid,'إلزامى'); }
       if(!document.getElementById('ft-maint-'+fid)?.value?.trim()){ errors.push('توقف #'+fid+': إجراء إدارة الصيانة'); markErr('ft-maint-'+fid,'إلزامى'); }
       // لو تم الإصلاح → فترة الإصلاح إلزامية
       const fixedBtn=document.getElementById('ft-repstatus-fixed-'+fid);
@@ -2922,7 +2924,7 @@ async function submitForm(){
     const compName = (tyEl&&tyEl.value) ? tyEl.options[tyEl.selectedIndex].text : '';
     const stopReason = gv('stop-reason'); // عطل / صيانة دورية / تفريغ بنزين / انقطاع الكهرباء / أخرى
     // الأسباب الخارجة عن الإرادة (تظهر منفصلة برمز عند المسؤول)
-    const EXTERNAL={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1,'أخرى (خارج الإرادة)':1};
+    const EXTERNAL={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1};
     const isExternal = !!EXTERNAL[stopReason];
     // الوحدة المختصرة: ض1/ض2/المحرك/المحطة بالكامل
     let unitTag='';
@@ -2938,7 +2940,7 @@ async function submitForm(){
     const raRaw = gv('reason').trim();
     const arText = isExternal ? stopReason : (prefix + (raRaw ? ': '+raRaw : (stopReason?': '+stopReason:'')));
     const reRaw = gv('reason-en').trim();
-    const EXT_EN={'تفريغ بنزين':'Fuel Discharge','انقطاع الكهرباء':'Power Outage','غلق الشارع الرئيسى':'Main Road Closure','حفر أمام المحطة':'Excavation Near Station','أخرى (خارج الإرادة)':'Other (External)'};
+    const EXT_EN={'تفريغ بنزين':'Fuel Discharge','انقطاع الكهرباء':'Power Outage','غلق الشارع الرئيسى':'Main Road Closure','حفر أمام المحطة':'Excavation Near Station'};
     const enText = isExternal ? (EXT_EN[stopReason]||stopReason) : ((compName||'')+(reRaw?': '+reRaw:''));
     // ── نص مختصر للبوكس: [الوحدة] — [سبب] — [تفاصيل] ──
     let boxText;
@@ -4226,14 +4228,12 @@ function renderMgrDay(j){
   // ألوان أوضح (أغمق شوية) لكل عمود
   const C={sent:'#DCFCE7', time:'#EEF2F6', sales:'#DBEAFE', kwh:'#EDE9FE', fr:'#FEF9C3', dev:'#FEE2E2', pf:'#E0F2FE', util:'#CCFBF1', down:'#FFEDD5', hose:'#FEE2E2'};
   j.stations.forEach(s=>{
-    const status=s.sent?(s.stopped?'<span style="color:#B45309;font-weight:800">⏸ متوقفة</span>':'<span style="color:#15803D;font-weight:800">✔ أرسلت</span>'):'<span style="color:#DC2626;font-weight:800">✖ لم ترسل</span>';
-    const sentTime=s.sentTime||(s.sent?'—':'');
+    const sentTime=s.sent?(s.sentTime||'—'):'<span style="color:#DC2626;font-weight:800">لم ترسل</span>';
     const fmt=v=>(v==null||v==='—')?'—':(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:1}):v);
     const devColor=String(s.frDev).startsWith('-')?'color:#9C0006;font-weight:800':'color:#276221;font-weight:800';
     html+='<tr>'+
       '<td class="mg-fz1" style="font-weight:800">'+s.code+'</td>'+
       '<td class="mg-fz2" style="font-weight:800">'+s.name+'</td>'+
-      '<td style="background:'+C.sent+';font-weight:800">'+status+'</td>'+
       '<td style="direction:ltr;font-weight:800;color:#334155;background:'+C.time+'">'+sentTime+'</td>'+
       '<td style="font-weight:800;background:'+C.sales+';color:#1E40AF">'+fmt(s.sales)+'</td>'+
       '<td style="background:'+C.kwh+';font-weight:800;color:#6D28D9">'+fmt(s.kwhM3)+'</td>'+
