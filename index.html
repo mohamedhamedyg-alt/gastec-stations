@@ -378,7 +378,6 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div id="fire-items"></div>
     <button onclick="submitFireSafety()" style="width:100%;background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px">إرسال بيان منظومات الحريق</button>
     <div id="fire-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
-    <div id="fire-workorder-btns" style="margin-top:12px"></div>
   </div>
   </div><!-- /tab-fire -->
 
@@ -3918,59 +3917,60 @@ function openFireWorkOrderModal(idx){
 }
 function closeFireWorkOrderModal(){ document.getElementById('fire-workorder-modal').style.display='none'; }
 function generateFireWorkOrder(){
-  const idx=window.__fireWOIdx;
-  const list=(window.__fireWOMode==='admin')?window.__fireWOAdmin:window.__fireWO;
-  const it=(list||[])[idx]; if(!it){ closeFireWorkOrderModal(); return; }
+  const data=window.__fireWOData;
+  if(!data || !data.rows || data.rows.length===0){ closeFireWorkOrderModal(); return; }
   const supName=document.getElementById('fwo-supervisor-name')?.value?.trim()||'';
   const dept=document.getElementById('fwo-dept')?.value||FIRE_DEPTS[0];
   const st=document.getElementById('fwo-modal-status');
   if(!supName){ st.style.color='#B91C1C'; st.textContent='❌ أدخل الاسم'; return; }
   st.style.color='#166534'; st.textContent='⏳ جارى الإنشاء...';
-  const stat=(window.__fireWOMode==='admin')?{name:it.stationName,region:it.region,code:it.code}:currentStation;
-  const dateStr=(window.__fireWOMode==='admin')?(it.date||new Date().toISOString().slice(0,10)):(document.getElementById('fire-date')?.value||new Date().toISOString().slice(0,10));
-  const woNum='FWO-'+(stat.code||'')+'-'+dateStr.replace(/-/g,'');
-  const roleLabel=(window.__fireWOMode==='admin')?'مقدّم الطلب (المسؤول)':'مقدّم الطلب (المشرف)';
-  // تقسيم الأعطال لصفحات (10 صفوف/صفحة)
-  const PER_PAGE=10;
-  const faults=it.faults||[];
+  const dateStr=new Date().toISOString().slice(0,10);
+  const woNum='FWO-'+dateStr.replace(/-/g,'');
+  const cols=data.cols;
+  const rows=data.rows;
+  // تقسيم لصفحات (8 صفوف/صفحة للجداول العريضة)
+  const PER_PAGE=8;
   const pages=[];
-  for(let i=0;i<faults.length;i+=PER_PAGE) pages.push(faults.slice(i,i+PER_PAGE));
+  for(let i=0;i<rows.length;i+=PER_PAGE) pages.push(rows.slice(i,i+PER_PAGE));
   if(pages.length===0) pages.push([]);
   const totalPages=pages.length;
-  // نبنى صورة كل صفحة بالتتابع
   function buildPage(pageIdx){
-    const pageFaults=pages[pageIdx];
+    const pageRows=pages[pageIdx];
     const startNum=pageIdx*PER_PAGE;
-    let faultRows='';
-    pageFaults.forEach((f,i)=>{
+    // رأس الأعمدة
+    let thead='<tr style="background:#FEE2E2;font-weight:800"><th style="padding:8px 5px;text-align:center;border:1px solid #FCA5A5;width:30px">#</th>';
+    cols.forEach(c=>{ thead+='<th style="padding:8px 6px;text-align:right;border:1px solid #FCA5A5;white-space:nowrap">'+c.h+'</th>'; });
+    thead+='</tr>';
+    // الصفوف
+    let tbody='';
+    pageRows.forEach((row,i)=>{
       const bg=(i%2===0)?'#fff':'#FEF7F7';
-      faultRows+='<tr style="background:'+bg+'">'
-        +'<td style="padding:9px 8px;font-weight:800;border:1px solid #E5E7EB;text-align:center;width:36px">'+(startNum+i+1)+'</td>'
-        +'<td style="padding:9px 10px;border:1px solid #E5E7EB;line-height:1.6">'+f+'</td>'
-        +'<td style="padding:9px 8px;border:1px solid #E5E7EB;text-align:center;color:#B91C1C;font-weight:800;width:60px">عطل</td></tr>';
+      tbody+='<tr style="background:'+bg+'"><td style="padding:8px 5px;border:1px solid #E5E7EB;text-align:center;font-weight:800">'+(startNum+i+1)+'</td>';
+      cols.forEach(c=>{
+        const val=c.f(row);
+        tbody+='<td style="padding:8px 6px;border:1px solid #E5E7EB;line-height:1.5">'+val+'</td>';
+      });
+      tbody+='</tr>';
     });
     const pageTag = totalPages>1 ? (' — صفحة '+(pageIdx+1)+'/'+totalPages) : '';
-    return '<div id="fwo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
+    return '<div id="fwo-capture" style="background:#fff;width:720px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
       +unifiedHeaderHTML()
       +'<div style="padding:20px">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B91C1C;padding-bottom:10px;margin-bottom:14px">'
       +'<div style="font-size:18px;font-weight:800;color:#B91C1C">🧯 أمر شغل منظومات الحريق'+pageTag+'</div>'
       +'<div style="text-align:left"><div style="font-size:11px;color:#888">رقم الأمر</div><div style="font-size:14px;font-weight:800;direction:ltr">'+woNum+'</div></div></div>'
       +'<table style="width:100%;font-size:13px;margin-bottom:14px">'
-      +'<tr><td style="padding:4px 0;color:#666;width:110px">المحطة</td><td style="font-weight:800">'+(stat.name||'')+'</td></tr>'
-      +'<tr><td style="padding:4px 0;color:#666">المنطقة</td><td style="font-weight:700">'+(stat.region||'')+'</td></tr>'
+      +'<tr><td style="padding:4px 0;color:#666;width:110px">البند</td><td style="font-weight:800;color:#B91C1C">'+data.label+'</td></tr>'
       +'<tr><td style="padding:4px 0;color:#666">التاريخ</td><td style="font-weight:700;direction:ltr">'+dateStr+'</td></tr>'
-      +'<tr><td style="padding:4px 0;color:#666">البند</td><td style="font-weight:800;color:#B91C1C">'+it.label+'</td></tr>'
-      +'<tr><td style="padding:4px 0;color:#666">الإدارة المعنية</td><td style="font-weight:800;color:#B91C1C">'+dept+'</td></tr></table>'
-      +'<table style="width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid #E5E7EB">'
-      +'<tr style="background:#FEE2E2;font-weight:800"><th style="padding:8px 6px;text-align:center;border:1px solid #FCA5A5;width:36px">#</th><th style="padding:8px 8px;text-align:right;border:1px solid #FCA5A5">العطل / الوصف</th><th style="padding:8px 6px;text-align:center;border:1px solid #FCA5A5;width:60px">الحالة</th></tr>'
-      +faultRows+'</table>'
-      +'<div style="margin-top:14px;padding:10px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#475569">📋 برجاء التنفيذ في أقرب وقت. المحطة: '+(stat.name||'')+' — رقم الأمر: '+woNum+'</div>'
-      +'<div style="margin-top:12px;display:flex;justify-content:space-between;font-size:12px;color:#555;border-top:1px dashed #ccc;padding-top:10px"><span>'+roleLabel+': <b>'+supName+'</b></span><span>الإدارة: <b>'+dept+'</b></span></div>'
+      +'<tr><td style="padding:4px 0;color:#666">الإدارة المعنية</td><td style="font-weight:800;color:#B91C1C">'+dept+'</td></tr>'
+      +'<tr><td style="padding:4px 0;color:#666">عدد الأعطال</td><td style="font-weight:700">'+rows.length+'</td></tr></table>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #E5E7EB">'
+      +thead+tbody+'</table>'
+      +'<div style="margin-top:14px;padding:10px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#475569">📋 برجاء التنفيذ في أقرب وقت — رقم الأمر: '+woNum+'</div>'
+      +'<div style="margin-top:12px;display:flex;justify-content:space-between;font-size:12px;color:#555;border-top:1px dashed #ccc;padding-top:10px"><span>مقدّم الطلب (المسؤول): <b>'+supName+'</b></span><span>الإدارة: <b>'+dept+'</b></span></div>'
       +'</div></div>';
   }
   if(typeof html2canvas==='undefined'){ st.style.color='#B91C1C'; st.textContent='❌ تعذّر'; return; }
-  let done=0;
   function renderPage(pi){
     const holder=document.createElement('div');
     holder.style.cssText='position:fixed;left:-9999px;top:0'; holder.innerHTML=buildPage(pi);
@@ -3981,11 +3981,10 @@ function generateFireWorkOrder(){
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');
         const pageSuffix = totalPages>1 ? ('_صفحة'+(pi+1)) : '';
-        a.href=url; a.download='أمر_شغل_حريق_'+it.label.replace(/[🧯📦💧🌫️🔔\s]/g,'')+'_'+(stat.name||'').replace(/\s/g,'_')+pageSuffix+'_'+dateStr+'.png';
+        a.href=url; a.download='أمر_شغل_حريق_'+data.label.replace(/[🧯📦💧🌫️🔔\s]/g,'')+pageSuffix+'_'+dateStr+'.png';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(()=>URL.revokeObjectURL(url),1000);
         document.body.removeChild(holder);
-        done++;
         if(pi+1<totalPages){ setTimeout(()=>renderPage(pi+1),400); }
         else { st.style.color='#166534'; st.textContent=totalPages>1?('✅ تم تحميل '+totalPages+' صفحات — ابعتها واتساب'):'✅ تم التحميل — ابعتها واتساب'; setTimeout(closeFireWorkOrderModal,1500); }
       },'image/png');
@@ -3993,18 +3992,13 @@ function generateFireWorkOrder(){
   }
   renderPage(0);
 }
-// المسؤول: يفتح أمر شغل حريق لبند كامل (كل أعطاله في المنطقة)
+// المسؤول: يفتح أمر شغل حريق لبند كامل (جدول بأعمدة البند)
 function openAdminFireWorkOrder(itemId, itemLabel){
-  const faults=(window.__adminFireItems||{})[itemId]||[];
-  if(faults.length===0){ alert('لا توجد أعطال'); return; }
-  // نبنى عنصر واحد يجمع أعطال البند لكل المحطات
-  const faultLines=faults.map(f=>(f.stationName?f.stationName+': ':'')+f.fault);
-  window.__fireWOAdmin=[{
-    label:itemLabel||itemId, faults:faultLines,
-    stationName:'محطات المنطقة', region:'القناة وسيناء', code:'MNTQA', date:new Date().toISOString().slice(0,10)
-  }];
-  window.__fireWOIdx=0; window.__fireWOMode='admin';
-  document.getElementById('fwo-item-label').textContent=(itemLabel||itemId)+' — '+faultLines.length+' عطل بالمنطقة';
+  const data=(window.__adminFireItems||{})[itemId];
+  if(!data || !data.rows || data.rows.length===0){ alert('لا توجد أعطال'); return; }
+  window.__fireWOData={ itemId:itemId, label:data.label||itemLabel||itemId, rows:data.rows, cols:fireTableCols(itemId) };
+  window.__fireWOMode='admin';
+  document.getElementById('fwo-item-label').textContent=(data.label||itemLabel)+' — '+data.rows.length+' عطل بالمنطقة';
   document.getElementById('fwo-supervisor-name').value='';
   const sel=document.getElementById('fwo-dept'); sel.innerHTML=FIRE_DEPTS.map(d=>`<option value="${d}">${d}</option>`).join('');
   document.getElementById('fwo-modal-status').textContent='';
@@ -4225,7 +4219,7 @@ function buildFireItems(){
   const wrap=document.getElementById('fire-items');
   if(wrap.dataset.built==='1') return;
   wrap.dataset.built='1';
-  wrap.oninput=function(){ if(typeof buildFireWorkOrderBtns==='function') buildFireWorkOrderBtns(); };
+  wrap.oninput=function(){};
   wrap.innerHTML = FIRE_ITEMS_DEF.map(it=>`
     <div style="background:#fff;border:1px solid #FCA5A5;border-radius:10px;padding:12px;margin-bottom:11px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
@@ -4278,7 +4272,6 @@ function onFireStatusChange(id){
     const faultsWrap=document.getElementById('fire-'+id+'-faults');
     if(faultsWrap && faultsWrap.children.length===0) addFireFault(id);
   }
-  if(typeof buildFireWorkOrderBtns==='function') buildFireWorkOrderBtns();
 }
 // إضافة عطل لبند
 function addFireFault(itemId){
@@ -4920,12 +4913,9 @@ function renderFireItemTable(item, list){
   const itemId=list[0].itemId;
   const oneAction=list[0].oneAction;
   const cols=fireTableCols(itemId);
-  // نخزّن أعطال هذا البند عالمياً لأمر الشغل
+  // نخزّن أعطال هذا البند (الصفوف الكاملة) لأمر الشغل بالأعمدة
   window.__adminFireItems = window.__adminFireItems || {};
-  window.__adminFireItems[itemId] = list.map(it=>({
-    stationName: it.name||it.stationName||'', region: it.region||'', code: it.code||'',
-    date: it.date||'', fault: it.fault||it.faultText||(fireTableCols(itemId).map(c=>c.f(it)).join(' — '))
-  }));
+  window.__adminFireItems[itemId] = {label:item, rows:list.slice()};
   let html='<div style="border:1px solid #FCA5A5;border-radius:10px;margin:12px 0;overflow:hidden">';
   html+='<div style="background:linear-gradient(135deg,#7F1D1D,#B91C1C);color:#fff;padding:10px 12px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">';
   html+='<span>'+item+' <span style="opacity:.8;font-size:12px;font-weight:400">('+list.length+' عطل)</span></span>';
