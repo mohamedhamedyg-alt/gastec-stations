@@ -248,6 +248,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   #mgr-grid{font-size:11px}
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="app-header">
@@ -770,7 +771,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div style="font-size:15px;font-weight:800">تم إرسال البيانات بنجاح</div>
     <div style="font-size:11px;opacity:0.85;margin-top:3px" id="dash-sub"></div>
   </div>
-  <div style="font-size:20px;font-weight:800;color:var(--blue-dark);text-align:center;padding:14px;background:var(--blue-pale);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border)">إعرف وتابع محطتك</div>
+  <div id="dashboard-capture" style="background:#fff">
+  <div style="font-size:20px;font-weight:800;color:var(--blue-dark);text-align:center;padding:14px;background:var(--blue-pale);border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border)" id="d-capture-title">إعرف وتابع محطتك</div>
   <div class="kpi-card" style="margin-bottom:10px;padding:16px;text-align:center">
     <div class="kpi-label">المبيعات اليومية</div>
     <div class="kpi-val blue" id="d-sales" style="font-size:32px;direction:ltr">—</div>
@@ -859,7 +861,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <h3>مبيعات الأسبوع (م³)</h3>
     <div class="week-bars" id="week-bars"></div>
   </div>
-  <button onclick="dashboardBackToHub()" style="width:100%;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:16px;font-family:Cairo;font-weight:800;font-size:16px;cursor:pointer;margin-top:16px;box-shadow:0 3px 10px rgba(0,0,0,.15)">⬅ رجوع للقائمة الرئيسية</button>
+  </div><!-- /dashboard-capture -->
+  <div id="d-workorder-btn" style="margin-top:14px"></div>
+  <button onclick="downloadSummaryImage()" style="width:100%;background:linear-gradient(135deg,#166534,#22C55E);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;margin-top:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)">📥 تحميل صورة ملخص الإرسال</button>
+  <button onclick="dashboardBackToHub()" style="width:100%;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:12px;padding:16px;font-family:Cairo;font-weight:800;font-size:16px;cursor:pointer;margin-top:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)">⬅ رجوع للقائمة الرئيسية</button>
 </div>
 </div>
 
@@ -3672,6 +3677,27 @@ function backToHub(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // الرجوع من داشبورد البيان اليومى للقائمة الرئيسية
+// تحميل صورة ملخص الإرسال (PNG واضحة)
+function downloadSummaryImage(){
+  const node=document.getElementById('dashboard-capture');
+  if(!node || typeof html2canvas==='undefined'){ alert('تعذّر إنشاء الصورة — أعد المحاولة'); return; }
+  const stName=currentStation?.name||'المحطة';
+  const dateStr=document.getElementById('f-date')?.value||new Date().toISOString().slice(0,10);
+  // عنوان مؤقت فى الصورة
+  const titleEl=document.getElementById('d-capture-title');
+  const oldTitle=titleEl?titleEl.textContent:'';
+  if(titleEl) titleEl.textContent=stName+' — '+dateStr;
+  html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true}).then(canvas=>{
+    if(titleEl) titleEl.textContent=oldTitle;
+    canvas.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='ملخص_'+stName.replace(/\s/g,'_')+'_'+dateStr+'.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    },'image/png');
+  }).catch(()=>{ if(titleEl)titleEl.textContent=oldTitle; alert('تعذّر إنشاء الصورة'); });
+}
 function dashboardBackToHub(){
   document.getElementById('dashboard-screen').style.display='none';
   document.getElementById('form-screen').style.display='block';
