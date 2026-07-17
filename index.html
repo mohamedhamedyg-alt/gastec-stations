@@ -808,14 +808,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div style="font-size:11px;opacity:0.85;margin-top:3px" id="dash-sub"></div>
   </div>
   <div id="dashboard-capture" style="background:#fff">
-  <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:9px 14px;border-radius:10px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:10px">
-    <div style="display:inline-block;font-size:14px;font-weight:800;color:#0D2B4E;background:#fff;padding:5px 13px;border-radius:8px;white-space:nowrap">غازتك | القناة وسيناء</div>
-    <div style="font-size:12px;font-weight:800;color:#fff;white-space:nowrap">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
+  <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:11px 16px;border-radius:10px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:10px">
+    <div style="display:inline-block;font-size:15px;font-weight:800;color:#0D2B4E;background:#fff;padding:7px 15px;border-radius:8px;white-space:nowrap">غازتك | منطقة القناة وسيناء | برنامج المتابعة اليومى</div>
+    <div style="font-size:14px;font-weight:800;color:#fff;white-space:nowrap">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
   </div>
   <div id="d-capture-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-    <div style="flex:1;background:var(--blue-pale);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:800;color:var(--blue-dark)" id="d-capture-station">إعرف وتابع محطتك</div>
+    <div style="flex:1;background:var(--blue-pale);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:17px;font-weight:800;color:var(--blue-dark)" id="d-capture-station">إعرف وتابع محطتك</div>
     <div style="background:#1A4A7A;border-radius:8px;padding:8px 22px;text-align:center;color:#fff">
-      <div style="font-size:10px;opacity:.85">المبيعات م³</div>
+      <div style="font-size:11px;opacity:.85">المبيعات م³</div>
       <div class="kpi-val" id="d-sales" style="font-size:24px;direction:ltr;color:#fff">—</div>
     </div>
   </div>
@@ -3408,9 +3408,10 @@ async function submitForm(){
     lubeSection.appendChild(card);
   });
 
-  // ⑧ Safety — رقم دائماً (سالب لو تعدى 90 يوم من آخر فحص)
-  const safetyRem=parseNum(document.getElementById('f-safety-remain')?.value)||0;
+  // ⑧ Safety — رقم دائماً (سالب لو تعدى المدة من آخر فحص) — نقرأ القيمة الحقيقية من dataset
   const safetyEl=document.getElementById('d-safety');
+  const safetyRemEl=document.getElementById('f-safety-remain');
+  const safetyRem=safetyRemEl?(parseFloat(safetyRemEl.dataset.rem)||0):0;
   if(safetyRem<0) safetyEl.textContent='−'+fmtEn(Math.abs(safetyRem),0);
   else safetyEl.textContent=fmtEn(safetyRem,0);
   safetyEl.className='kpi-val '+(safetyRem>15?'ok':safetyRem>0?'warn':'bad');
@@ -4024,8 +4025,11 @@ function downloadSummaryImage(){
     const typeEl=document.getElementById('ft-type-'+id);
     const typeLabel=typeEl?(typeEl.options[typeEl.selectedIndex]?.text||''):'';
     if(!reason)return;
-    if(EXTERNAL_R[reason]) externalReasons.push(reason+' ('+t+')');
-    else internalReasons.push((typeLabel?typeLabel.split(':')[0]+' — ':'')+reason);
+    if(EXTERNAL_R[reason]){ externalReasons.push(reason+' ('+t+')'); return; }
+    // تفاصيل العطل الكاملة (عربى) لو موجودة، وإلا السبب المختصر
+    const details=(document.getElementById('ft-reason-'+id)?.value||'').trim();
+    const unit=typeLabel?typeLabel.split(':')[0]+' — ':'';
+    internalReasons.push(unit+(details||reason));
   });
   if(reasonEl) reasonEl.textContent=internalReasons.length?('السبب: '+internalReasons.join(' / ')):'';
   if(extEl) extEl.textContent=externalReasons.length?('⛔ خارج الإرادة (غير محسوب): '+externalReasons.join(' / ')):'';
