@@ -809,8 +809,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
   <div id="dashboard-capture" style="background:#fff">
   <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:11px 16px;border-radius:10px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:10px">
-    <div style="display:inline-block;font-size:15px;font-weight:800;color:#0D2B4E;background:#fff;padding:7px 15px;border-radius:8px;white-space:nowrap">غازتك | منطقة القناة وسيناء | برنامج المتابعة اليومى</div>
-    <div style="font-size:14px;font-weight:800;color:#fff;white-space:nowrap">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
+    <div style="display:inline-block;font-size:15px;font-weight:800;color:#0D2B4E;background:#fff;padding:7px 15px;border-radius:8px">غازتك | منطقة القناة وسيناء | برنامج المتابعة اليومى</div>
+    <div style="font-size:14px;font-weight:800;color:#fff">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
   </div>
   <div id="d-capture-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
     <div style="flex:1;background:var(--blue-pale);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:17px;font-weight:800;color:var(--blue-dark)" id="d-capture-station">إعرف وتابع محطتك</div>
@@ -3822,6 +3822,20 @@ function unifiedHeaderHTML(){
     +'<span style="display:inline-block;background:#fff;color:#0D2B4E;font-size:12.5px;font-weight:800;padding:6px 18px;border-radius:20px">تصميم وتنفيذ : مهندس / محمد أبو النجا</span>'
     +'</div></div>';
 }
+// تصوير موحّد: يضمن تحميل الخط أولاً (يمنع تقطيع الحروف العربية)
+function captureNode(node, opts){
+  opts = opts || {};
+  const settings = Object.assign({
+    backgroundColor:'#ffffff', useCORS:true, scale:opts.scale||3,
+    letterRendering:true, allowTaint:false
+  }, opts);
+  // ننتظر تحميل كل الخطوط قبل التصوير (أهم سبب لتقطيع الحروف)
+  const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  return fontsReady.then(()=>{
+    // ننتظر إطار عرض إضافى لضمان اكتمال الرسم
+    return new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res)));
+  }).then(()=> html2canvas(node, settings));
+}
 function generateWorkOrder(){
   const idx=window.__woIdx;
   const it=(window.__workOrderItems||[])[idx];
@@ -3861,7 +3875,7 @@ function generateWorkOrder(){
   document.body.appendChild(holder);
   const node=holder.querySelector('#wo-capture');
   if(typeof html2canvas==='undefined'){ st.style.color='#B91C1C'; st.textContent='❌ تعذّر إنشاء الصورة'; document.body.removeChild(holder); return; }
-  html2canvas(node,{scale:2,backgroundColor:'#ffffff'}).then(canvas=>{
+  captureNode(node,{scale:3}).then(canvas=>{
     canvas.toBlob(blob=>{
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
@@ -3978,7 +3992,7 @@ function generateFireWorkOrder(){
     holder.style.cssText='position:fixed;left:-9999px;top:0'; holder.innerHTML=buildPage(pi);
     document.body.appendChild(holder);
     const node=holder.querySelector('#fwo-capture');
-    html2canvas(node,{scale:3,backgroundColor:'#ffffff'}).then(canvas=>{
+    captureNode(node,{scale:3}).then(canvas=>{
       canvas.toBlob(blob=>{
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');
@@ -4043,7 +4057,7 @@ function downloadSummaryImage(){
   const oldW=node.style.width, oldMax=node.style.maxWidth, oldPad=node.style.padding;
   node.style.width='800px'; node.style.maxWidth='800px'; node.style.padding='16px';
   node.classList.add('capture-2col');
-  html2canvas(node,{scale:4,backgroundColor:'#ffffff',useCORS:true,width:node.offsetWidth,windowWidth:840}).then(canvas=>{
+  captureNode(node,{scale:4,width:node.offsetWidth,windowWidth:840}).then(canvas=>{
     if(stationEl) stationEl.textContent=oldStation;
     if(reasonEl) reasonEl.textContent=oldReason;
     if(extEl) extEl.textContent=oldExt;
