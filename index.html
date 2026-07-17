@@ -256,16 +256,20 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 #dashboard-capture.capture-2col .pf-result{display:none !important}
 /* يجبر المسافات بين الكلمات وقت التصوير (يمنع بلع المسافات فى html2canvas) */
 #dashboard-capture.capture-2col *{word-spacing:normal !important;white-space:normal}
-/* تكبير الخطوط فى الصورة للوضوح */
-#dashboard-capture.capture-2col .kpi-label{font-size:15px !important;font-weight:900 !important}
-#dashboard-capture.capture-2col .kpi-val{font-size:25px !important;font-weight:900 !important}
-#dashboard-capture.capture-2col .kpi-unit{font-size:13px !important;font-weight:800 !important}
-#dashboard-capture.capture-2col .kpi-dev{font-size:13px !important;font-weight:800 !important}
-#dashboard-capture.capture-2col .section-head{font-size:17px !important;font-weight:900 !important}
-#dashboard-capture.capture-2col .section-body{font-size:15px !important;font-weight:700 !important}
+/* تكبير الخطوط فى الصورة للوضوح — أقصى ثقل */
+#dashboard-capture.capture-2col .kpi-label{font-size:15px !important;font-weight:900 !important;color:#1a1a2e !important}
+#dashboard-capture.capture-2col .kpi-val{font-size:26px !important;font-weight:900 !important;-webkit-text-stroke:0.4px currentColor;letter-spacing:-.3px}
+#dashboard-capture.capture-2col .kpi-unit{font-size:13px !important;font-weight:900 !important}
+#dashboard-capture.capture-2col .kpi-dev{font-size:13px !important;font-weight:900 !important}
+#dashboard-capture.capture-2col .section-head{font-size:17px !important;font-weight:900 !important;-webkit-text-stroke:0.3px currentColor}
+#dashboard-capture.capture-2col .section-body{font-size:15px !important;font-weight:800 !important}
 #dashboard-capture.capture-2col #d-cost-le,
 #dashboard-capture.capture-2col #d-pf-amount{font-size:18px !important;font-weight:900 !important}
-#dashboard-capture.capture-2col .section-body *{font-weight:700 !important}
+#dashboard-capture.capture-2col .section-body *{font-weight:800 !important}
+/* تمييز الفقرات: كل قسم بإطار جانبى سميك + ظل ملوّن */
+#dashboard-capture.capture-2col .section-card,
+#dashboard-capture.capture-2col .kpi-card{border-width:1.5px !important;border-right-width:5px !important;box-shadow:0 3px 11px rgba(0,0,0,.14) !important}
+#dashboard-capture.capture-2col .kpi-card{background:#F8FAFC;border:1.5px solid #CBD5E1;border-right:5px solid #64748B}
 /* تمييز الفقرات: ظل أقوى وحدود أوضح */
 #dashboard-capture.capture-2col .kpi-card,
 #dashboard-capture.capture-2col .section-card{box-shadow:0 3px 12px rgba(0,0,0,.18) !important;border-width:2px !important}
