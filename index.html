@@ -254,8 +254,11 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 #dashboard-capture.capture-2col .pf-bar-wrap,
 #dashboard-capture.capture-2col .pf-markers,
 #dashboard-capture.capture-2col .pf-result{display:none !important}
+/* يجبر المسافات بين الكلمات وقت التصوير (يمنع بلع المسافات فى html2canvas) */
+#dashboard-capture.capture-2col *{word-spacing:normal !important;white-space:normal}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zumer/snapdom@1.9.5/dist/snapdom.min.js"></script>
 </head>
 <body>
 <div class="app-header">
@@ -835,7 +838,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <div class="kpi-unit" id="d-cost-unit"></div>
           <div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border)">
             <div class="kpi-label">تكلفة م³ الغاز المباع من الكهرباء</div>
-            <div style="font-size:14px;font-weight:800;direction:ltr;color:var(--amber)" id="d-cost-le">—</div>
+            <div style="font-size:14px;font-weight:800;direction:rtl;color:var(--amber)" id="d-cost-le">—</div>
           </div>
         </div>
       </div>
@@ -2933,7 +2936,7 @@ async function submitForm(){
     if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${(indCost*(0.92-pf)*1).toFixed(2)} جنيه`;}
     else if(pf<0.92){pfResult='fine';pfAmount=`غرامة: ${(indCost*(0.92-pf)*0.5).toFixed(2)} جنيه`;}
     else if(pf<=0.95){pfResult='good';pfAmount=`حافز: ${(indCost*(pf-0.92)*0.5).toFixed(2)} جنيه`;}
-    else{pfResult='good';pfAmount=`حافز: ${(indCost*(0.95-0.92)*0.5).toFixed(2)} جنيه (أقصى)`;}
+    else{pfResult='good';pfAmount=`حافز: ${(indCost*(0.95-0.92)*0.5).toFixed(2)} جنيه`;}
   } else if(!mi&&kwhCom>0){
     // ── تعريفة تجارية فقط: لا يوجد Power Factor — التكلفة من التجارى ──
     pf=null; pfResult=''; pfAmount='لا يوجد PF — تعريفة تجارية';
@@ -3237,7 +3240,7 @@ async function submitForm(){
   if(totalElecEl)totalElecEl.textContent=(totalElecLE&&totalElecLE>0)?fmtEn(totalElecLE,0):'—';
   document.getElementById('d-cost-unit').textContent=kwhInd>0?'KWH/م³ (صناعى)':'KWH/م³ (تجارى)';
   const costLEEl=document.getElementById('d-cost-le');
-  if(costLEEl)costLEEl.textContent=costLEPerM3?fmtEn(costLEPerM3,costDecimals)+' جنيه/م³':'—';
+  if(costLEEl)costLEEl.innerHTML=costLEPerM3?('<span style="direction:ltr;unicode-bidi:isolate;display:inline-block">'+fmtEn(costLEPerM3,costDecimals)+'</span> جنيه / م³'):'—';
   // Flow rate with actual inlet pressure correction
   const pressPlc=pressPlcVal;
   const st_refPress=currentStation?.comps?.[idx0]?.ref_press||null; // to be added
@@ -3291,11 +3294,13 @@ async function submitForm(){
   const utilEl=document.getElementById('d-util');
   if(hasTwoActive){
     const parts=utilPerComp.map((u,i)=>'ض'+(activeComps[i]+1)+': '+(u==null?'—':fmtEn(u,1)+'%'));
-    utilEl.textContent=parts.join('  |  ');
+    utilEl.innerHTML=parts.map(p=>'<span style="direction:rtl;unicode-bidi:isolate;display:inline-block">'+p+'</span>').join('<span style="color:#ccc"> | </span>');
     utilEl.style.fontSize='15px';
+    utilEl.style.direction='rtl';
     utilEl.className='kpi-val';
     document.getElementById('d-util-dev').textContent='كفاءة كل ضاغط على حدة';
   } else if(util!==null){
+    utilEl.style.direction='ltr';
     utilEl.textContent=fmtEn(util,1)+'%';utilEl.className='kpi-val '+(util>=85?'ok':util>=70?'warn':'bad');
     document.getElementById('d-util-dev').textContent=util>=85?'Efficiency ممتازة':util>=70?'Efficiency مقبولة':'Efficiency منخفضة';
   }
@@ -3822,19 +3827,20 @@ function unifiedHeaderHTML(){
     +'<span style="display:inline-block;background:#fff;color:#0D2B4E;font-size:12.5px;font-weight:800;padding:6px 18px;border-radius:20px">تصميم وتنفيذ : مهندس / محمد أبو النجا</span>'
     +'</div></div>';
 }
-// تصوير موحّد: يضمن تحميل الخط أولاً (يمنع تقطيع الحروف العربية)
+// تصوير موحّد: snapdom أولاً (يحافظ على المسافات العربية ودقة عالية)، مع fallback
 function captureNode(node, opts){
   opts = opts || {};
-  const settings = Object.assign({
-    backgroundColor:'#ffffff', useCORS:true, scale:opts.scale||3,
-    letterRendering:true, allowTaint:false
-  }, opts);
-  // ننتظر تحميل كل الخطوط قبل التصوير (أهم سبب لتقطيع الحروف)
+  const scale = opts.scale||3;
   const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-  return fontsReady.then(()=>{
-    // ننتظر إطار عرض إضافى لضمان اكتمال الرسم
-    return new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res)));
-  }).then(()=> html2canvas(node, settings));
+  return fontsReady.then(()=> new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res))))
+    .then(()=>{
+      // snapdom: أدق فى العربى ويحافظ على المسافات
+      if(typeof window.snapdom!=='undefined'){
+        return window.snapdom.toCanvas(node,{scale:scale,backgroundColor:'#ffffff'})
+          .catch(()=> html2canvas(node, Object.assign({backgroundColor:'#ffffff',useCORS:true,scale:scale,letterRendering:true},opts)));
+      }
+      return html2canvas(node, Object.assign({backgroundColor:'#ffffff',useCORS:true,scale:scale,letterRendering:true},opts));
+    });
 }
 function generateWorkOrder(){
   const idx=window.__woIdx;
