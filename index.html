@@ -257,14 +257,15 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 /* يجبر المسافات بين الكلمات وقت التصوير (يمنع بلع المسافات فى html2canvas) */
 #dashboard-capture.capture-2col *{word-spacing:normal !important;white-space:normal}
 /* تكبير الخطوط فى الصورة للوضوح */
-#dashboard-capture.capture-2col .kpi-label{font-size:14px !important;font-weight:800 !important}
-#dashboard-capture.capture-2col .kpi-val{font-size:22px !important;font-weight:800 !important}
-#dashboard-capture.capture-2col .kpi-unit{font-size:12px !important}
-#dashboard-capture.capture-2col .kpi-dev{font-size:12px !important}
-#dashboard-capture.capture-2col .section-head{font-size:16px !important;font-weight:800 !important}
-#dashboard-capture.capture-2col .section-body{font-size:14px !important}
+#dashboard-capture.capture-2col .kpi-label{font-size:15px !important;font-weight:900 !important}
+#dashboard-capture.capture-2col .kpi-val{font-size:25px !important;font-weight:900 !important}
+#dashboard-capture.capture-2col .kpi-unit{font-size:13px !important;font-weight:800 !important}
+#dashboard-capture.capture-2col .kpi-dev{font-size:13px !important;font-weight:800 !important}
+#dashboard-capture.capture-2col .section-head{font-size:17px !important;font-weight:900 !important}
+#dashboard-capture.capture-2col .section-body{font-size:15px !important;font-weight:700 !important}
 #dashboard-capture.capture-2col #d-cost-le,
-#dashboard-capture.capture-2col #d-pf-amount{font-size:16px !important}
+#dashboard-capture.capture-2col #d-pf-amount{font-size:18px !important;font-weight:900 !important}
+#dashboard-capture.capture-2col .section-body *{font-weight:700 !important}
 /* تمييز الفقرات: ظل أقوى وحدود أوضح */
 #dashboard-capture.capture-2col .kpi-card,
 #dashboard-capture.capture-2col .section-card{box-shadow:0 3px 12px rgba(0,0,0,.18) !important;border-width:2px !important}
@@ -904,8 +905,16 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="kpi-card">
       <div class="kpi-label">إجمالى ساعات التوقف</div>
       <div class="kpi-val" id="d-down" style="direction:rtl">—</div>
-      <div id="d-down-reason" style="font-size:10px;color:#8A5A2A;font-weight:700;margin-top:3px;line-height:1.5"></div>
-      <div id="d-down-external" style="font-size:10px;color:#0369A1;font-weight:700;margin-top:2px;line-height:1.5"></div>
+      <div id="d-down-split" style="display:none;margin-top:8px">
+        <div id="d-down-col-internal" style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:7px;padding:7px 9px;margin-bottom:6px">
+          <div style="font-size:12px;font-weight:900;color:#9A3412;margin-bottom:3px">🔧 أعطال / صيانات / معايرات</div>
+          <div id="d-down-reason" style="font-size:12.5px;color:#7C2D12;font-weight:800;line-height:1.7"></div>
+        </div>
+        <div id="d-down-col-external" style="background:#EFF6FF;border:1px solid #93C5FD;border-radius:7px;padding:7px 9px">
+          <div style="font-size:12px;font-weight:900;color:#1E40AF;margin-bottom:3px">⛔ خارج الإرادة (غير محسوب)</div>
+          <div id="d-down-external" style="font-size:12.5px;color:#1E3A8A;font-weight:800;line-height:1.7"></div>
+        </div>
+      </div>
     </div>
   </div>
   <div id="d-maint-section" style="margin-bottom:10px"></div>
@@ -1032,7 +1041,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
   </div>
   <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);min-height:340px;overflow:auto;position:relative">
-    <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:940px;width:100%;font-size:12px">
+    <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:1040px;width:100%;font-size:12px">
       <thead>
         <tr>
           <th class="mg-h mg-fz1">الكود</th>
@@ -1045,6 +1054,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
           <th class="mg-h">PF%</th>
           <th class="mg-h">كفاءة التشغيل%</th>
           <th class="mg-h">مدة التوقف</th>
+          <th class="mg-h">خارج الإرادة</th>
           <th class="mg-h">هوزات متوقفة</th>
         </tr>
       </thead>
@@ -4062,8 +4072,16 @@ function downloadSummaryImage(){
     const unit=typeLabel?typeLabel.split(':')[0]+' — ':'';
     internalReasons.push(unit+(details||reason));
   });
-  if(reasonEl) reasonEl.textContent=internalReasons.length?('السبب: '+internalReasons.join(' / ')):'';
-  if(extEl) extEl.textContent=externalReasons.length?('⛔ خارج الإرادة (غير محسوب): '+externalReasons.join(' / ')):'';
+  if(reasonEl) reasonEl.innerHTML=internalReasons.length?internalReasons.map(r=>'• '+r).join('<br>'):'';
+  if(extEl) extEl.innerHTML=externalReasons.length?externalReasons.map(r=>'• '+r).join('<br>'):'';
+  // نظهر التقسيم ونخفى العمود الفاضى
+  const splitEl=document.getElementById('d-down-split');
+  const colInt=document.getElementById('d-down-col-internal');
+  const colExt=document.getElementById('d-down-col-external');
+  const hadSplit = internalReasons.length>0 || externalReasons.length>0;
+  if(splitEl) splitEl.style.display = hadSplit?'block':'none';
+  if(colInt) colInt.style.display = internalReasons.length>0?'block':'none';
+  if(colExt) colExt.style.display = externalReasons.length>0?'block':'none';
   // اسم المحطة + التاريخ فى البوكس
   const stationEl=document.getElementById('d-capture-station');
   const oldStation=stationEl?stationEl.textContent:'';
@@ -4076,8 +4094,9 @@ function downloadSummaryImage(){
   node.classList.add('capture-2col');
   captureNode(node,{scale:4,width:node.offsetWidth,windowWidth:840}).then(canvas=>{
     if(stationEl) stationEl.textContent=oldStation;
-    if(reasonEl) reasonEl.textContent=oldReason;
-    if(extEl) extEl.textContent=oldExt;
+    if(reasonEl) reasonEl.innerHTML='';
+    if(extEl) extEl.innerHTML='';
+    if(splitEl) splitEl.style.display='none';
     if(hdr) hdr.style.display='none';
     node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad;
     node.classList.remove('capture-2col');
@@ -4088,7 +4107,7 @@ function downloadSummaryImage(){
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(()=>URL.revokeObjectURL(url),1000);
     },'image/png');
-  }).catch(()=>{ if(stationEl)stationEl.textContent=oldStation; if(hdr)hdr.style.display='none'; node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; node.classList.remove('capture-2col'); alert('تعذّر إنشاء الصورة'); });
+  }).catch(()=>{ if(stationEl)stationEl.textContent=oldStation; if(splitEl)splitEl.style.display='none'; if(hdr)hdr.style.display='none'; node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; node.classList.remove('capture-2col'); alert('تعذّر إنشاء الصورة'); });
 }
 function dashboardBackToHub(){
   document.getElementById('dashboard-screen').style.display='none';
@@ -4661,38 +4680,36 @@ function renderMgrDay(j){
       '<td style="background:'+C.pf+';font-weight:800;color:#0369A1">'+fmt(s.pf)+'</td>'+
       '<td style="background:'+C.util+';font-weight:800;color:#0F766E">'+fmt(s.util)+'</td>'+
       '<td style="color:#C2410C;font-weight:800;background:'+C.down+'">'+dtCell(s)+'</td>'+
+      '<td style="font-weight:800;background:'+C.down+'">'+purgeCell(s)+'</td>'+
       '<td style="color:#B91C1C;font-weight:800;background:'+C.hose+'">'+(s.hoses>0?s.hoses:'—')+'</td>'+
     '</tr>';
   });
   tb.innerHTML=html;
   buildOilPanel(j.oils||{});
 }
-// خلية مدة التوقف (clickable لو فيه توقف) + رمز ⛽ لتفريغ البنزين
+// خلية مدة التوقف (الأعطال/الصيانات فقط — clickable)
 function dtCell(s){
   const dt=s.downtime||'—';
   const hasStop=(s.stopReason&&s.stopReason.trim())||(s.stopDetails&&s.stopDetails.trim());
-  const hasPurge=(s.purgeBox&&s.purgeBox.trim())||(s.purgeDowntime&&s.purgeDowntime.trim());
-  let out='';
-  // مدة الأعطال/الصيانات (بدون تفريغ بنزين)
   if(hasStop && dt!=='—' && dt!=='0 س 0 د'){
     const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:dt,reason:s.stopReason||'',details:s.stopDetails||''}));
-    out='<span onclick="showStopReason(\''+payload+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+dt+' <span style="font-size:10px">ℹ️</span></span>';
-  } else {
-    out=(hasStop?dt:(dt==='—'?'—':dt));
+    return '<span onclick="showStopReason(\''+payload+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+dt+' <span style="font-size:10px">ℹ️</span></span>';
   }
-  // رمز الأسباب الخارجة عن الإرادة (⛽ بنزين / ⚡ كهرباء / 🚧 شارع أو حفر)
-  if(hasPurge){
-    const pb=s.purgeBox||'';
-    const pp=encodeURIComponent(JSON.stringify({name:s.name,purge:pb,dur:s.purgeDowntime||''}));
-    let icons='';
-    if(pb.indexOf('تفريغ بنزين')>=0) icons+='⛽';
-    if(pb.indexOf('انقطاع الكهرباء')>=0) icons+='⚡';
-    if(pb.indexOf('غلق الشارع')>=0||pb.indexOf('حفر')>=0) icons+='🚧';
-    if(!icons) icons='⛔';
-    out+=' <span onclick="showPurge(\''+pp+'\')" title="توقف خارج الإرادة" style="cursor:pointer;font-size:14px">'+icons+'</span>';
-    if(!hasStop && (dt==='—'||dt==='0 س 0 د')) out=out.replace('—','').trim();
-  }
-  return out||'—';
+  return (dt==='—'?'—':dt);
+}
+// خلية خارج الإرادة (منفصلة — clickable برموز)
+function purgeCell(s){
+  const hasPurge=(s.purgeBox&&s.purgeBox.trim())||(s.purgeDowntime&&s.purgeDowntime.trim());
+  if(!hasPurge) return '<span style="color:#CBD5E1">—</span>';
+  const pb=s.purgeBox||'';
+  const pp=encodeURIComponent(JSON.stringify({name:s.name,purge:pb,dur:s.purgeDowntime||''}));
+  let icons='';
+  if(pb.indexOf('تفريغ بنزين')>=0) icons+='⛽';
+  if(pb.indexOf('انقطاع الكهرباء')>=0) icons+='⚡';
+  if(pb.indexOf('غلق الشارع')>=0||pb.indexOf('حفر')>=0) icons+='🚧';
+  if(!icons) icons='⛔';
+  const dur=(s.purgeDowntime&&s.purgeDowntime.trim())?s.purgeDowntime:'';
+  return '<span onclick="showPurge(\''+pp+'\')" title="توقف خارج الإرادة" style="cursor:pointer;color:#0369A1">'+icons+(dur?' <span style="font-size:11px">'+dur+'</span>':'')+'</span>';
 }
 function showPurge(payload){
   let d;
