@@ -829,15 +829,15 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div style="font-size:11px;opacity:0.85;margin-top:3px" id="dash-sub"></div>
   </div>
   <div id="dashboard-capture" style="background:#fff">
-  <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:11px 16px;border-radius:10px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:10px">
-    <div style="display:inline-block;font-size:15px;font-weight:800;color:#0D2B4E;background:#fff;padding:7px 15px;border-radius:8px">غازتك | منطقة القناة وسيناء | برنامج المتابعة اليومى</div>
-    <div style="font-size:14px;font-weight:800;color:#fff">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
+  <div id="d-capture-header" style="display:none;background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:13px 18px;border-radius:10px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:10px">
+    <div style="display:inline-block;font-size:18px;font-weight:900;color:#0D2B4E;background:#fff;padding:9px 17px;border-radius:8px">غازتك | منطقة القناة وسيناء | برنامج المتابعة اليومى</div>
+    <div style="font-size:17px;font-weight:900;color:#fff">تصميم وتنفيذ : مهندس / محمد أبو النجا</div>
   </div>
   <div id="d-capture-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-    <div style="flex:1;background:var(--blue-pale);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:17px;font-weight:800;color:var(--blue-dark)" id="d-capture-station">إعرف وتابع محطتك</div>
-    <div style="background:#1A4A7A;border-radius:8px;padding:8px 22px;text-align:center;color:#fff">
-      <div style="font-size:11px;opacity:.85">المبيعات م³</div>
-      <div class="kpi-val" id="d-sales" style="font-size:24px;direction:ltr;color:#fff">—</div>
+    <div style="flex:1;background:var(--blue-pale);border:2px solid var(--border);border-radius:8px;padding:12px 16px;font-size:22px;font-weight:900;color:var(--blue-dark)" id="d-capture-station">إعرف وتابع محطتك</div>
+    <div style="background:#1A4A7A;border-radius:8px;padding:10px 24px;text-align:center;color:#fff">
+      <div style="font-size:12px;opacity:.9;font-weight:800">المبيعات م³</div>
+      <div class="kpi-val" id="d-sales" style="font-size:26px;direction:ltr;color:#fff">—</div>
     </div>
   </div>
   <div class="cap-grid">
@@ -3058,12 +3058,13 @@ async function submitForm(){
       boxText = bits.length ? bits.join(' — ') : 'تفريغ بنزين';
     }
     const durVal=document.getElementById('ft-dur-'+fi)?.value||'';
-    // الأعطال/الصيانات فى box، الخارجة عن الإرادة فى purge (مع النوع والمدة)
+    const durTxt=(durVal&&!durVal.includes('⚠'))?' ('+durVal+')':'';
+    // الأعطال/الصيانات فى box (مع المدة)، الخارجة عن الإرادة فى purge (مع النوع والمدة)
     if(!isExternal){
-      _box.push(boxText);
+      _box.push(boxText+durTxt);
     } else {
       const tag = unitTag ? (unitTag+' — ') : '';
-      _purge.push(tag+stopReason+(durVal&&!durVal.includes('⚠')?' ('+durVal+')':''));
+      _purge.push(tag+stopReason+durTxt);
     }
     // كل توقف يدفع عنصر لكل مصفوفة (حتى لو فاضى — نحافظ على التوازى)
     _sF.push(tmS('f')||'—');
