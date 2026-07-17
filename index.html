@@ -250,9 +250,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 /* وضع التصوير: كروت الأداء عمودين جنب بعض (يقلل الارتفاع) */
 #dashboard-capture.capture-2col .cap-grid{display:grid !important;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
 #dashboard-capture.capture-2col .cap-grid > *{margin-bottom:0 !important}
-/* إخفاء الرسم البياني لمعامل القدرة فى الصورة فقط */
+/* إخفاء الرسم البياني والشريط المكرر لمعامل القدرة فى الصورة فقط */
 #dashboard-capture.capture-2col .pf-bar-wrap,
-#dashboard-capture.capture-2col .pf-markers{display:none !important}
+#dashboard-capture.capture-2col .pf-markers,
+#dashboard-capture.capture-2col .pf-result{display:none !important}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -813,9 +814,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
   <div id="d-capture-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
     <div style="flex:1;background:var(--blue-pale);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:800;color:var(--blue-dark)" id="d-capture-station">إعرف وتابع محطتك</div>
-    <div style="background:#1A4A7A;border-radius:8px;padding:6px 16px;text-align:center;color:#fff">
-      <div style="font-size:9px;opacity:.85">المبيعات م³</div>
-      <div class="kpi-val" id="d-sales" style="font-size:18px;direction:ltr;color:#fff">—</div>
+    <div style="background:#1A4A7A;border-radius:8px;padding:8px 22px;text-align:center;color:#fff">
+      <div style="font-size:10px;opacity:.85">المبيعات م³</div>
+      <div class="kpi-val" id="d-sales" style="font-size:24px;direction:ltr;color:#fff">—</div>
     </div>
   </div>
   <div class="cap-grid">
@@ -889,6 +890,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="kpi-card">
       <div class="kpi-label">إجمالى ساعات التوقف</div>
       <div class="kpi-val" id="d-down" style="direction:rtl">—</div>
+      <div id="d-down-reason" style="font-size:10px;color:#8A5A2A;font-weight:700;margin-top:3px;line-height:1.5"></div>
+      <div id="d-down-external" style="font-size:10px;color:#0369A1;font-weight:700;margin-top:2px;line-height:1.5"></div>
     </div>
   </div>
   <div id="d-maint-section" style="margin-bottom:10px"></div>
@@ -3221,7 +3224,7 @@ async function submitForm(){
     setTimeout(()=>_pollVerify(1), 800);
   }).catch(()=>_fail('فشل الاتصال بالسيرفر — تأكد من الإنترنت وأعد المحاولة. (لم يُحفظ شىء)'));
   const hasGasMotor=activeComps.some(i=>st.comps[i]?.motor==='gas');
-  const costDecimals=hasGasMotor?5:2;
+  const costDecimals=2;
   const fmtEn=(n,d=0)=>n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
   document.getElementById('dash-sub').textContent=st.name+' — '+(document.getElementById('f-date')?.value||new Date().toLocaleDateString('ar-EG'));
   // KPI CARDS
@@ -3405,12 +3408,11 @@ async function submitForm(){
     lubeSection.appendChild(card);
   });
 
-  // ⑧ Safety — يظهر بالسالب لو متأخر
+  // ⑧ Safety — رقم دائماً (سالب لو تعدى 90 يوم من آخر فحص)
   const safetyRem=parseNum(document.getElementById('f-safety-remain')?.value)||0;
   const safetyEl=document.getElementById('d-safety');
-  if(safetyRem>0) safetyEl.textContent=fmtEn(safetyRem,0);
-  else if(safetyRem<0) safetyEl.textContent='−'+fmtEn(Math.abs(safetyRem),0);
-  else safetyEl.textContent='—';
+  if(safetyRem<0) safetyEl.textContent='−'+fmtEn(Math.abs(safetyRem),0);
+  else safetyEl.textContent=fmtEn(safetyRem,0);
   safetyEl.className='kpi-val '+(safetyRem>15?'ok':safetyRem>0?'warn':'bad');
   // ── أمر الشغل: يظهر لو صيانة/تشحيم متبقى ≤150 ساعة أو فحص أمان متبقى ≤7 أيام ──
   buildWorkOrderBtn(st, safetyRem);
@@ -4009,6 +4011,24 @@ function downloadSummaryImage(){
   if(!node || typeof html2canvas==='undefined'){ alert('تعذّر إنشاء الصورة — أعد المحاولة'); return; }
   const stName=currentStation?.name||'المحطة';
   const dateStr=document.getElementById('f-date')?.value||new Date().toISOString().slice(0,10);
+  // نجمّع أسباب التوقف (الداخلية) + خارج الإرادة لعرضها فى الصورة
+  const reasonEl=document.getElementById('d-down-reason');
+  const extEl=document.getElementById('d-down-external');
+  const oldReason=reasonEl?reasonEl.textContent:'', oldExt=extEl?extEl.textContent:'';
+  const EXTERNAL_R={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1};
+  const internalReasons=[], externalReasons=[];
+  document.querySelectorAll('[id^="ft-dur-"]').forEach(el=>{
+    const t=el.value; if(!t||t.includes('⚠'))return;
+    const id=el.id.replace('ft-dur-','');
+    const reason=document.getElementById('ft-stop-reason-'+id)?.value||'';
+    const typeEl=document.getElementById('ft-type-'+id);
+    const typeLabel=typeEl?(typeEl.options[typeEl.selectedIndex]?.text||''):'';
+    if(!reason)return;
+    if(EXTERNAL_R[reason]) externalReasons.push(reason+' ('+t+')');
+    else internalReasons.push((typeLabel?typeLabel.split(':')[0]+' — ':'')+reason);
+  });
+  if(reasonEl) reasonEl.textContent=internalReasons.length?('السبب: '+internalReasons.join(' / ')):'';
+  if(extEl) extEl.textContent=externalReasons.length?('⛔ خارج الإرادة (غير محسوب): '+externalReasons.join(' / ')):'';
   // اسم المحطة + التاريخ فى البوكس
   const stationEl=document.getElementById('d-capture-station');
   const oldStation=stationEl?stationEl.textContent:'';
@@ -4021,6 +4041,8 @@ function downloadSummaryImage(){
   node.classList.add('capture-2col');
   html2canvas(node,{scale:4,backgroundColor:'#ffffff',useCORS:true,width:node.offsetWidth,windowWidth:840}).then(canvas=>{
     if(stationEl) stationEl.textContent=oldStation;
+    if(reasonEl) reasonEl.textContent=oldReason;
+    if(extEl) extEl.textContent=oldExt;
     if(hdr) hdr.style.display='none';
     node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad;
     node.classList.remove('capture-2col');
