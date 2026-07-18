@@ -863,7 +863,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V81</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V82</span>
       </div>
     </div>
   </div>
@@ -1245,6 +1245,23 @@ function loadTariffSettings(){
 loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
+// ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
+const APP_BUILD = 82; // ← يرتفع مع كل إصدار جديد من الواجهة
+function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
+  try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
+}
+setTimeout(function(){
+  try{
+    fetch(APPS_SCRIPT_URL+'?action=appver').then(r=>r.json()).then(function(j){
+      var latest = parseInt((j&&j.v)||0,10)||0;
+      if(latest > APP_BUILD){
+        var k='gz_reload_v';
+        try{ if(localStorage.getItem(k)===String(latest)) return; localStorage.setItem(k,String(latest)); }catch(e){}
+        location.replace(location.pathname+'?v='+(1000+latest));
+      }
+    }).catch(function(){});
+  }catch(e){}
+}, 2500);
 // ══════════ إعدادات التعريفة (المسؤول فقط) ══════════
 function openTariffSettings(){
   const m=document.getElementById('tariff-modal');
@@ -1518,7 +1535,7 @@ function setLoginMode(mode){
 }
 function doLogin(){
   const code=document.getElementById('station-code').value.trim();
-  if(loginMode==='admin'){if(code===ADMIN_CODE){showMgr();return;}document.getElementById('login-err').style.display='block';return;}
+  if(loginMode==='admin'){if(code===ADMIN_CODE){pushAppVer();showMgr();return;}document.getElementById('login-err').style.display='block';return;}
   if(loginMode==='maint'){if(code===MAINT_CODE){showMaintPanel();return;}document.getElementById('login-err').style.display='block';return;}
   const st=STATIONS[code];
   if(!st){document.getElementById('login-err').style.display='block';return;}
