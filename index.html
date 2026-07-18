@@ -863,7 +863,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V79</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V80</span>
       </div>
     </div>
   </div>
@@ -3059,6 +3059,9 @@ async function submitForm(){
     const tyEl=document.getElementById('ft-type-'+fi);
     const compName = (tyEl&&tyEl.value) ? tyEl.options[tyEl.selectedIndex].text : '';
     const stopReason = gv('stop-reason'); // عطل / صيانة دورية / تفريغ بنزين / انقطاع الكهرباء / أخرى
+    // بطاقة فاضية تماماً (لا فترة ولا سبب ولا نوع) — تُتجاهل كما فى التحقق، حتى لا تُسجَّل بيانات وهمية
+    const _tyElChk=document.getElementById('ft-type-'+fi);
+    if(gv('fh')==='' && gv('th')==='' && !stopReason && !(_tyElChk&&_tyElChk.value)) continue;
     // الأسباب الخارجة عن الإرادة (تظهر منفصلة برمز عند المسؤول)
     const EXTERNAL={'تفريغ بنزين':1,'انقطاع الكهرباء':1,'غلق الشارع الرئيسى':1,'حفر أمام المحطة':1};
     const isExternal = !!EXTERNAL[stopReason];
@@ -3082,14 +3085,13 @@ async function submitForm(){
     let boxText;
     if(isExternal){
       boxText = stopReason;
-    } else if(!raRaw && !stopReason){
-      boxText = 'تفريغ بنزين';
     } else {
+      // (أُلغيت افتراضية "تفريغ بنزين" القديمة — كانت تُلصق بالتوقفات الناقصة خطأً)
       const bits=[];
       if(unitTag) bits.push(unitTag);
       if(stopReason) bits.push(stopReason);
       if(raRaw) bits.push(raRaw);
-      boxText = bits.length ? bits.join(' — ') : 'تفريغ بنزين';
+      boxText = bits.length ? bits.join(' — ') : 'توقف';
     }
     const durVal=document.getElementById('ft-dur-'+fi)?.value||'';
     const durTxt=(durVal&&!durVal.includes('⚠'))?' ('+durVal+')':'';
