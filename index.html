@@ -10,8 +10,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="غازتك">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
 :root{
   --blue-dark:#0D2B4E;--blue-mid:#1A4A7A;--blue-light:#2E7BB8;--blue-pale:#EBF4FC;
   --green:#1A7A45;--green-pale:#E8F5EE;
@@ -297,6 +299,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 <script src="https://cdn.jsdelivr.net/npm/@zumer/snapdom@1.9.5/dist/snapdom.min.js"></script>
 </head>
 <body>
+<!-- تسخين وزن 900 من بداية التشغيل حتى يكون محمّلاً وقت التصوير -->
+<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;font-family:Cairo;font-weight:900;font-size:16px">غازتك 0123456789 Power</div>
 <div class="app-header">
   <div class="header-main">
     <div class="logo">
@@ -3883,8 +3887,16 @@ function unifiedHeaderHTML(){
 function captureNode(node, opts){
   opts = opts || {};
   const scale = opts.scale||3;
+  // تحميل صريح لأوزان الخط الثقيلة قبل التصوير (الأوزان غير المستخدمة على الشاشة لا تُحمَّل تلقائياً)
+  const warmup = (document.fonts && document.fonts.load)
+    ? Promise.all([
+        document.fonts.load('900 20px Cairo','غازتك محطة تكلفة الكهرباء 0123456789'),
+        document.fonts.load('800 20px Cairo','غازتك'),
+        document.fonts.load('700 20px Cairo','غازتك')
+      ]).catch(()=>{})
+    : Promise.resolve();
   const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-  return fontsReady.then(()=> new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res))))
+  return warmup.then(()=>fontsReady).then(()=> new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res))))
     .then(()=>{
       // snapdom: أدق فى العربى ويحافظ على المسافات
       if(typeof window.snapdom!=='undefined'){
