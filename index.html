@@ -863,7 +863,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V80</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V81</span>
       </div>
     </div>
   </div>
@@ -2449,6 +2449,7 @@ function updateStopReason(id){
   if(translations[reason]&&!document.getElementById('ft-reason-'+id)?.value){
     document.getElementById('ft-reason-en-'+id).value=translations[reason];
   }
+  updateTotalDT(); // تغيير السبب يعيد حساب الإجمالى فوراً (فصل خارج الإرادة)
 }
 // ترجمة تلقائية عربى → إنجليزى — قاموس محلى + API احتياطى
 const FAULT_TRANSLATIONS={
@@ -2922,6 +2923,9 @@ function niceConfirm(title, body, yesText, noText){
   });
 }
 async function submitForm(){
+  // إعادة حساب إلزامية قبل الإرسال: تضمن استبعاد التوقف خارج الإرادة من الإجمالى
+  // مهما كان ترتيب إدخال المشرف (كان تغيير السبب بعد كتابة المدة لا يعيد الحساب)
+  updateTotalDT();
   window.__firstErr=null;
   checkSalesTotal();
   const isStopped = checkStationStopped();
