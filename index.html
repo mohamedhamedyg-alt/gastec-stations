@@ -305,7 +305,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 </head>
 <body>
 <!-- تسخين وزن 900 من بداية التشغيل حتى يكون محمّلاً وقت التصوير -->
-<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;font-family:Cairo;font-weight:900;font-size:16px">غازتك 0123456789 Power</div>
+<div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;font-size:16px"><span style="font-family:Cairo;font-weight:900">غازتك 0123456789 Power</span><span style="font-family:'CairoCapture';font-weight:900">غازتك 0123456789 Power</span></div>
 <div class="app-header">
   <div class="header-main">
     <div class="logo">
@@ -857,15 +857,13 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
   <div id="dashboard-capture" style="background:#fff">
   <div id="d-capture-header" style="display:none;flex-direction:column;background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:13px 18px;border-radius:12px;margin-bottom:9px">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <div>
-        <div style="display:inline-block;font-size:19px;font-weight:800;color:#0D2B4E;background:#fff;padding:10px 20px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.2);line-height:1.3">غازتك | برنامج متابعة وتشغيل المحطات</div>
-        <div style="font-size:14px;font-weight:700;color:#B8D4E8;margin-top:7px">منطقة القناة وسيناء</div>
+    <div style="display:inline-block;align-self:flex-start;font-size:19px;font-weight:800;color:#0D2B4E;background:#fff;padding:10px 20px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.2);line-height:1.3">غازتك | برنامج متابعة وتشغيل المحطات</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px">
+      <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V77</span>
       </div>
-    </div>
-    <div style="text-align:left;padding-top:11px;border-top:1px solid rgba(255,255,255,0.18);margin-top:11px">
-      <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);margin-right:10px;direction:ltr;unicode-bidi:isolate;display:inline-block">V76</span>
     </div>
   </div>
   <div id="d-capture-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
@@ -3896,6 +3894,7 @@ function captureNode(node, opts){
   // تحميل صريح لأوزان الخط الثقيلة قبل التصوير (الأوزان غير المستخدمة على الشاشة لا تُحمَّل تلقائياً)
   const warmup = (document.fonts && document.fonts.load)
     ? Promise.all([
+        document.fonts.load('900 20px CairoCapture','غازتك محطة تكلفة الكهرباء 0123456789 Power Factor'),
         document.fonts.load('900 20px Cairo','غازتك محطة تكلفة الكهرباء 0123456789'),
         document.fonts.load('800 20px Cairo','غازتك'),
         document.fonts.load('700 20px Cairo','غازتك')
