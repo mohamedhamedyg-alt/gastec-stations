@@ -863,7 +863,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V78</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V79</span>
       </div>
     </div>
   </div>
@@ -3902,17 +3902,36 @@ function captureNode(node, opts){
       ]).catch(()=>{})
     : Promise.resolve();
   const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  // فحص هل الصورة خرجت فاضية (بدون نصوص): نعدّ البكسلات الغامقة — النصوص لو موجودة تعطى نسبة واضحة
+  function canvasLooksBlank(cv){
+    try{
+      const w=200, h=Math.max(1,Math.round(cv.height*200/cv.width));
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      const ctx=c.getContext('2d'); ctx.drawImage(cv,0,0,w,h);
+      const d=ctx.getImageData(0,0,w,h).data;
+      let dark=0;
+      for(let i=0;i<d.length;i+=4){ if(d[i]<120 && d[i+1]<120 && d[i+2]<120) dark++; }
+      return (dark/(w*h))<0.005;
+    }catch(e){ return false; }
+  }
+  const h2c=()=> html2canvas(node, Object.assign({backgroundColor:'#ffffff',useCORS:true,scale:scale,letterRendering:true},opts));
   return warmup.then(()=>fontsReady).then(()=> new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res))))
     .then(()=>{
       // snapdom: أدق فى العربى ويحافظ على المسافات
-      if(typeof window.snapdom!=='undefined'){
-        // تصويرة إحماء مصغّرة مهملة: تجهّز كاش الخطوط داخل snapdom حتى تخرج أول تحميلة كاملة
-        return window.snapdom.toCanvas(node,{scale:0.4,backgroundColor:'#ffffff',embedFonts:true})
-          .catch(()=>null)
-          .then(()=> window.snapdom.toCanvas(node,{scale:scale,backgroundColor:'#ffffff',embedFonts:true}))
-          .catch(()=> html2canvas(node, Object.assign({backgroundColor:'#ffffff',useCORS:true,scale:scale,letterRendering:true},opts)));
-      }
-      return html2canvas(node, Object.assign({backgroundColor:'#ffffff',useCORS:true,scale:scale,letterRendering:true},opts));
+      if(typeof window.snapdom==='undefined') return h2c();
+      const snapOnce=()=> window.snapdom.toCanvas(node,{scale:scale,backgroundColor:'#ffffff',embedFonts:true});
+      const wait=(ms)=> new Promise(r=>setTimeout(r,ms));
+      // محاولة 1 → لو فاضية: انتظار وإعادة (محاولة 2) → ثم (محاولة 3) → ثم html2canvas كملاذ أخير
+      return snapOnce().then(cv=>{
+        if(!canvasLooksBlank(cv)) return cv;
+        return wait(800).then(snapOnce).then(cv2=>{
+          if(!canvasLooksBlank(cv2)) return cv2;
+          return wait(1200).then(snapOnce).then(cv3=>{
+            if(!canvasLooksBlank(cv3)) return cv3;
+            return h2c();
+          });
+        });
+      }).catch(()=> h2c());
     });
 }
 function generateWorkOrder(){
