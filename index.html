@@ -863,7 +863,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V86</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V87</span>
       </div>
     </div>
   </div>
@@ -1246,7 +1246,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 86; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 87; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4993,11 +4993,12 @@ function renderSubmissionStatus(ss, color){
   // اللى بعتت + آخر إرسال
   if(sent.length>0){
     h+='<details style="padding:8px 14px"><summary style="cursor:pointer;font-weight:800;color:#166534;font-size:12px">✅ أرسلت ('+sent.length+') — اضغط للتفاصيل</summary>';
-    h+='<div style="margin-top:8px;max-height:200px;overflow-y:auto">';
+    h+='<div style="font-size:10.5px;color:#6B7280;margin-top:5px;font-weight:700">🟢 الأخضر = أرسلت اليوم • 🟠 البرتقالى = إرسال أقدم</div>';
+    h+='<div style="margin-top:6px;max-height:200px;overflow-y:auto">';
     sent.forEach(s=>{
       h+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #F1F5F9;font-size:12px">';
       h+='<span style="font-weight:700">'+s.name+'</span>';
-      h+='<span style="color:#888;direction:ltr">'+(s.sentTime||s.lastDate||'')+'</span></div>';
+      h+='<span style="font-weight:800;direction:ltr;color:'+(s.today?'#15803D':'#B45309')+'">'+(s.sentTime||s.lastDate||'')+'</span></div>';
     });
     h+='</div></details>';
   }
