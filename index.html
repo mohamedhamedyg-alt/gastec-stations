@@ -863,7 +863,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V82</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V83</span>
       </div>
     </div>
   </div>
@@ -1246,7 +1246,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 82; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 83; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3691,7 +3691,7 @@ function loadCompComparison(){
     .then(j=>{
       const groups=j.groups||[];
       if(groups.length===0){ c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد بيانات للمقارنة بعد</div>'; return; }
-      let html='';
+      let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.8">📊 FR والحيود والكفاءة وKWH/م³ = متوسط آخر 7 أيام • الزيت لتر/100س = إجمالى التعويض والأعطال ÷ ساعات التشغيل على نافذة 30 يوم (زيت الضاغط) — الرقم بين الأقواس = عدد أيام الحساب حتى تكتمل النافذة</div>';
       groups.forEach(g=>{
         html+='<div style="border:1px solid #99F6E4;border-radius:10px;margin-bottom:12px;overflow:hidden">';
         html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px">'+(g.brand?g.brand+' — ':'')+g.model+(g.units.length>1?' <span style="opacity:.85;font-size:11px">('+g.units.length+')</span>':'')+'</div>';
