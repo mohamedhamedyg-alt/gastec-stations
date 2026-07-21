@@ -866,7 +866,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V90</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V91</span>
       </div>
     </div>
   </div>
@@ -1295,7 +1295,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 90; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 91; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3973,14 +3973,15 @@ function openWorkOrderModal(idx){
 function closeWorkOrderModal(){ document.getElementById('workorder-modal').style.display='none'; }
 // الهيدر الموحّد (نفس شكل الواجهة) — للصور (أوامر الشغل + البيان)
 function unifiedHeaderHTML(){
-  return '<div style="background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:10px 16px">'
+  // white-space:nowrap + text-size-adjust: حماية من تضخيم خط الموبايل وكسر السطور فى اللقطة (نفس حماية صورة الملخص)
+  return '<div style="background:linear-gradient(135deg,#1A4A7A,#2E6BA8);padding:10px 16px;-webkit-text-size-adjust:100%;text-size-adjust:100%">'
     +'<div style="display:flex;align-items:center;justify-content:space-between">'
     +'<div style="flex:1">'
-    +'<div style="display:inline-block;font-size:14px;font-weight:800;color:#0D2B4E;line-height:1.3;background:#fff;padding:6px 15px;border-radius:10px">غازتك | برنامج متابعة وتشغيل المحطات</div>'
-    +'<div style="font-size:11px;font-weight:700;color:#B8D4E8;margin-top:4px">منطقة القناة وسيناء</div>'
+    +'<div style="display:inline-block;white-space:nowrap;font-size:14px;font-weight:800;color:#0D2B4E;line-height:1.3;background:#fff;padding:6px 15px;border-radius:10px">غازتك | برنامج متابعة وتشغيل المحطات</div>'
+    +'<div style="font-size:11px;font-weight:700;color:#B8D4E8;margin-top:4px;white-space:nowrap">منطقة القناة وسيناء</div>'
     +'</div></div>'
     +'<div style="text-align:left;padding-top:7px;border-top:1px solid rgba(255,255,255,0.15);margin-top:6px">'
-    +'<span style="display:inline-block;background:#fff;color:#0D2B4E;font-size:12.5px;font-weight:800;padding:6px 18px;border-radius:20px">تصميم وتنفيذ : مهندس / محمد أبو النجا</span>'
+    +'<span style="display:inline-block;white-space:nowrap;background:#fff;color:#0D2B4E;font-size:12.5px;font-weight:800;padding:6px 18px;border-radius:20px">تصميم وتنفيذ : مهندس / محمد أبو النجا</span>'
     +'</div></div>';
 }
 // تصوير موحّد: snapdom أولاً (يحافظ على المسافات العربية ودقة عالية)، مع fallback
