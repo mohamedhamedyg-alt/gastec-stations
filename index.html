@@ -863,7 +863,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V87</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V89</span>
       </div>
     </div>
   </div>
@@ -1223,6 +1223,52 @@ function sanInt(el){el.value=el.value.replace(/[^\d]/g,'');}
 function fmtBlur(el){const n=parseNum(el.value);if(!el.value)return;el.value=n.toLocaleString('en-US',{maximumFractionDigits:2});}
 function unfmt(el){el.value=String(el.value).replace(/,/g,'');}
 // ── CONSTANTS ──
+// ══════════ المرجع الموحّد لكل ضاغط (نفس جدول مقارنة الضواغط — مصدر واحد للحيود) ══════════
+const COMP_SPECS_UNIFIED = {
+  '28': [{suction:30,  flow:600}],
+  '29': [{suction:6,   flow:1200}],
+  '62': [{suction:4.54, flow:1248.5}],
+  '104':[{suction:5.5, flow:800}],
+  '231':[{suction:5.5, flow:830}],
+  '250':[{suction:5.5, flow:800}],
+  '202':[{suction:5.5, flow:794}],
+  '174':[{suction:5.5, flow:794}],
+  '197':[{suction:5.5, flow:794},{suction:5.5,flow:794}],
+  '180':[{suction:5.5, flow:794}],
+  '32': [{suction:3,   flow:800}],
+  '91': [{suction:4,   flow:900}],
+  '50': [{suction:4,   flow:978},{suction:3,flow:800}],
+  '117':[{suction:4,   flow:1117}],
+  '258':[{suction:4,   flow:800}],
+  '200':[{suction:5.5, flow:794}],
+  '460':[{suction:5.5, flow:794}],
+  '469':[{suction:3,   flow:830},{suction:3,flow:830}],
+  '33': [{suction:2,   flow:2000},{suction:4,flow:1850}],
+  '60': [{suction:4,   flow:1850},{suction:3,flow:800}],
+  '78': [{suction:3,   flow:800},{suction:5.5,flow:800}],
+  '92': [{suction:4,   flow:900}],
+  '178':[{suction:3,   flow:800},{suction:3,flow:950}],
+  '67': [{suction:4,   flow:978}],
+  '208':[{suction:4,   flow:978}],
+  '206':[{suction:4,   flow:978}],
+  '207':[{suction:4,   flow:978}],
+  '218':[{suction:4,   flow:978}],
+  '213':[{suction:4,   flow:978}],
+  '242':[{suction:5.5, flow:800}],
+  '212':[{suction:4,   flow:401}],
+  '27': [{suction:28,  flow:600},{suction:28,flow:600}],
+  '105':[{suction:5.5, flow:830}],
+  '124':[{suction:5.5, flow:794}],
+  '294':[{suction:5.5, flow:794}],
+  '68': [{suction:6,   flow:778},{suction:6,flow:778}],
+  '173':[{suction:5.5, flow:1118}],
+  '87': [{suction:5.5, flow:830},{suction:5.5,flow:800}],
+  '209':[{suction:5.5, flow:830}],
+  '278':[{suction:5.5, flow:800}],
+  '283':[{suction:5.5, flow:830}],
+  '156':[{suction:3,   flow:800}],
+};
+
 const ADMIN_CODE='ADMIN2024';
 const MAINT_CODE='MAINT2024';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyB81Q2UuGMEjHe44zEk8pP_R4wup8j7r56KOq4vIFhGiYgi0VQap0MBHyg-aOnsIpYZg/exec';
@@ -1246,7 +1292,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 87; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 89; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3335,18 +3381,40 @@ async function submitForm(){
     "200":5.3,"460":5,"469":3.2,"33":3.2,"60":2.7,"78":2.8,"92":3.2,
     "178":2.8,"67":3.6,"208":3.7,"206":3.8,"207":3.5,"218":3.5,"213":3.5,
     "242":3.6,"212":4,"27":25,"105":5.5,"124":5,"294":5,"68":5.2,
-    "173":5.1,"87":4.5,"209":4.6,"278":null,"283":5,"156":null
+    "173":5.1,"87":4.5,"209":4.6,"278":5.5,"283":5,"156":3
   }[currentStation?.code]||null;
   // Adjusted ref flow based on actual pressure
   let adjRefFlow=refFlow;
   if(refFlow&&stRefPress&&pressPlc>0){
     adjRefFlow=refFlow*(pressPlc/stRefPress);
   }
+  // المرجع الموحّد: عند تشغيل ضاغط واحد فقط نستخدم استاندرد هذا الضاغط بعينه (نفس جدول مقارنة الضواغط)
+  const _uSpec=(onlyOne&&activeIdx>=0)?((COMP_SPECS_UNIFIED[currentStation?.code]||[])[activeIdx]||null):null;
+  if(_uSpec&&_uSpec.flow>0&&_uSpec.suction>0&&pressPlc>0){
+    adjRefFlow=_uSpec.flow*(pressPlc/_uSpec.suction);
+  }
+  // الانحراف المشترك المرجّح: الضاغطان يعملان معاً → الفعلى المشترك مقابل معيارى مرجّح بساعات كل ضاغط
+  let sharedMode=false;
+  if(!onlyOne && c1tf_>0 && c2tf_>0 && sales>0 && pressPlc>0){
+    const _usp=(COMP_SPECS_UNIFIED[currentStation?.code]||[]);
+    const _s0=_usp[0], _s1=_usp[1];
+    if(_s0&&_s1&&_s0.flow>0&&_s0.suction>0&&_s1.flow>0&&_s1.suction>0){
+      const _r0=_s0.flow*(pressPlc/_s0.suction), _r1=_s1.flow*(pressPlc/_s1.suction);
+      const _tsum=c1tf_+c2tf_;
+      flow=sales/_tsum;
+      adjRefFlow=(_r0*c1tf_+_r1*c2tf_)/_tsum;
+      sharedMode=true;
+    }
+  }
   const flowAdj=flow&&adjRefFlow?((flow-adjRefFlow)/adjRefFlow*100):null;
   // Flow rate display
   document.getElementById('d-flow-ref-label').textContent='عند ضغط الدخول المعيارى';
   const pressPlcShow=pressPlc>0?parseFloat(pressPlc.toFixed(1)):pressPlc; // رقم عشرى واحد
   const actualLbl=document.getElementById('d-flow-actual-label');if(actualLbl)actualLbl.textContent=pressPlc>0?`عند ضغط الدخول الفعلى (${pressPlcShow} bar)`:'عند ضغط الدخول الفعلى';
+  if(sharedMode){
+    document.getElementById('d-flow-ref-label').textContent='المعيارى المرجّح (الضاغطان معاً)';
+    if(actualLbl)actualLbl.textContent=pressPlc>0?`الفعلى المشترك (${pressPlcShow} bar)`:'الفعلى المشترك';
+  }
   document.getElementById('d-flow-ref-val').textContent=adjRefFlow?fmtEn(adjRefFlow,0):'—';
   document.getElementById('d-flow-actual').textContent=flow?fmtEn(flow,0):'—';
   const flowDevEl=document.getElementById('d-flow-dev-val');
