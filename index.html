@@ -866,7 +866,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V91</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V92</span>
       </div>
     </div>
   </div>
@@ -1295,10 +1295,12 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 91; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 92; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
+// فحص خط اللقطات فى الخلفية مبكراً — النتيجة تُخزن فلا يضيف زر التحميل أى وقت
+setTimeout(function(){ try{ if(typeof _svgFontProbe==='function') _svgFontProbe(); }catch(e){} }, 4000);
 setTimeout(function(){
   try{
     fetch(APPS_SCRIPT_URL+'?action=appver').then(r=>r.json()).then(function(j){
@@ -3984,6 +3986,56 @@ function unifiedHeaderHTML(){
     +'<span style="display:inline-block;white-space:nowrap;background:#fff;color:#0D2B4E;font-size:12.5px;font-weight:800;padding:6px 18px;border-radius:20px">تصميم وتنفيذ : مهندس / محمد أبو النجا</span>'
     +'</div></div>';
 }
+  // ── فحص قدرة المتصفح على رسم الخط المدمج داخل اللقطات (بعض المتصفحات تفشل → خط رفيع) ──
+// نرسم نفس النص مرتين داخل صورة SVG: مرة بخط التصوير ومرة بالخط الافتراضى، ونقارن كثافة الحبر
+function _svgFontProbe(){
+  if(window.__svgFontOK!==undefined) return Promise.resolve(window.__svgFontOK);
+  return new Promise(function(resolve){
+    var done=false;
+    var finish=function(ok){ if(done)return; done=true; window.__svgFontOK=ok; resolve(ok); };
+    try{
+      // نص الـ@font-face المدمج (data URL) من أوراق الأنماط
+      var faceCss='';
+      for(var si=0; si<document.styleSheets.length && !faceCss; si++){
+        try{
+          var rules=document.styleSheets[si].cssRules||[];
+          for(var ri=0; ri<rules.length; ri++){
+            var t=rules[ri].cssText||'';
+            if(t.indexOf('CairoCapture')>=0 && t.indexOf('@font-face')===0){ faceCss+=t; }
+          }
+        }catch(se){}
+      }
+      if(!faceCss){ finish(true); return; } // تعذر القراءة — نُبقى السلوك الحالى
+      function inkOf(fontCss, cb){
+        var svg='<svg xmlns="http://www.w3.org/2000/svg" width="140" height="50">'
+          +'<style>'+fontCss+'</style>'
+          +'<foreignObject width="140" height="50"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:CairoCapture;font-weight:900;font-size:32px;color:#000">غازتك 12</div></foreignObject></svg>';
+        var img=new Image();
+        img.onload=function(){
+          try{
+            var c=document.createElement('canvas'); c.width=140; c.height=50;
+            var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,140,50); x.drawImage(img,0,0);
+            var d=x.getImageData(0,0,140,50).data, ink=0;
+            for(var i=0;i<d.length;i+=4){ if(d[i]<128) ink++; }
+            cb(ink);
+          }catch(e){ cb(-1); }
+        };
+        img.onerror=function(){ cb(-1); };
+        img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+      }
+      setTimeout(function(){ finish(true); }, 2500); // مهلة أمان
+      inkOf(faceCss, function(inkWith){
+        if(inkWith<0){ finish(true); return; }
+        inkOf('', function(inkWithout){
+          if(inkWithout<0){ finish(true); return; }
+          // لو الخط اتحمّل فعلاً فالحبر أكثف بوضوح من البديل الرفيع
+          finish(inkWith >= inkWithout*1.18 && inkWith>50);
+        });
+      });
+    }catch(e){ finish(true); }
+  });
+}
+
 // تصوير موحّد: snapdom أولاً (يحافظ على المسافات العربية ودقة عالية)، مع fallback
 function captureNode(node, opts){
   opts = opts || {};
@@ -4017,6 +4069,9 @@ function captureNode(node, opts){
       if(typeof window.snapdom==='undefined') return h2c();
       const snapOnce=()=> window.snapdom.toCanvas(node,{scale:scale,backgroundColor:'#ffffff',embedFonts:true});
       const wait=(ms)=> new Promise(r=>setTimeout(r,ms));
+      // متصفح لا يرسم الخط المدمج داخل اللقطات → المصوّر المباشر (خط الصفحة الحى — تخين مضمون)
+      return _svgFontProbe().then(fontOK=>{
+      if(!fontOK) return h2c();
       // محاولة 1 → لو فاضية: انتظار وإعادة (محاولة 2) → ثم (محاولة 3) → ثم html2canvas كملاذ أخير
       return snapOnce().then(cv=>{
         if(!canvasLooksBlank(cv)) return cv;
@@ -4028,6 +4083,7 @@ function captureNode(node, opts){
           });
         });
       }).catch(()=> h2c());
+      });
     });
 }
 function generateWorkOrder(){
@@ -4272,7 +4328,7 @@ function downloadSummaryImage(){
   const _oldWs=_fitEls.map(e=>e?e.style.whiteSpace:null);
   _fitEls.forEach(e=>{ if(e) e.style.whiteSpace='nowrap'; });
   const _restoreFs=()=>{ _fitEls.forEach((e,i)=>{ if(e){ e.style.fontSize=_oldFs[i]||''; e.style.whiteSpace=_oldWs[i]||''; } }); };
-  captureNode(node,{scale:5,width:node.offsetWidth,windowWidth:840}).then(canvas=>{
+  captureNode(node,{scale:4,width:node.offsetWidth,windowWidth:840}).then(canvas=>{
     _restoreFs();
     if(stationEl) stationEl.textContent=oldStation;
     if(reasonEl) reasonEl.innerHTML='';
