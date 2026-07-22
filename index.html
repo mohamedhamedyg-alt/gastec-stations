@@ -1306,7 +1306,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 94; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 95; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4542,18 +4542,23 @@ function submitTadamon(){
   fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(()=>{
       let done=false;
+      // 12 محاولة على ~13 ثانية — نفس أسلوب البيان اليومى (cold start)
       function pollTad(attempt){
         fetch(APPS_SCRIPT_URL+'?action=verifyTadamon&date='+encodeURIComponent(curDate)+'&code='+st.code)
           .then(r=>r.json())
           .then(j=>{
             if(done)return;
             if(j.found){ done=true; showSectionSuccess('tadamon','تم إرسال محضر التضامن بنجاح'); }
-            else if(attempt<6){ setTimeout(()=>pollTad(attempt+1),700); }
-            else { done=true; showSectionSuccess('tadamon','تم الإرسال — تعذّر التأكيد التلقائى، راجع شاشة المسؤول'); }
+            else if(attempt<12){ statusEl.textContent='⏳ جارى تأكيد الوصول... ('+attempt+')'; setTimeout(()=>pollTad(attempt+1),1000); }
+            else {
+              done=true;
+              statusEl.style.color='#C2410C';
+              statusEl.innerHTML='⚠️ <b>لم نتمكن من تأكيد وصول المحضر.</b><br>اضغط "إرسال محضر التضامن" مرة أخرى للتأكيد — لو كان وصل فى المرة الأولى هيتأكد فوراً.';
+            }
           })
-          .catch(()=>{ if(!done && attempt<6) setTimeout(()=>pollTad(attempt+1),700); });
+          .catch(()=>{ if(!done && attempt<12) setTimeout(()=>pollTad(attempt+1),1000); else if(!done){ done=true; statusEl.style.color='#C2410C'; statusEl.innerHTML='⚠️ <b>لم نتمكن من تأكيد وصول المحضر.</b><br>تأكد من الإنترنت واضغط إرسال مرة أخرى.'; } });
       }
-      setTimeout(()=>pollTad(1),500);
+      setTimeout(()=>pollTad(1),800);
     })
     .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
 }
@@ -4809,18 +4814,23 @@ function submitFireSafety(){
   fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
     .then(()=>{
       let done=false;
+      // 12 محاولة على ~13 ثانية — سيرفر جوجل ساعات بياخد وقت يصحى (cold start)
       function pollFire(attempt){
         fetch(APPS_SCRIPT_URL+'?action=verifyFire&date='+encodeURIComponent(dateEl.value)+'&code='+st.code)
           .then(r=>r.json())
           .then(j=>{
             if(done)return;
             if(j.found){ done=true; showSectionSuccess('fire','تم إرسال بيان منظومات الحريق بنجاح'); }
-            else if(attempt<6){ setTimeout(()=>pollFire(attempt+1),700); }
-            else { done=true; showSectionSuccess('fire','تم الإرسال — تعذّر التأكيد التلقائى، راجع شاشة المسؤول'); }
+            else if(attempt<12){ statusEl.textContent='⏳ جارى تأكيد الوصول... ('+attempt+')'; setTimeout(()=>pollFire(attempt+1),1000); }
+            else {
+              done=true;
+              statusEl.style.color='#C2410C';
+              statusEl.innerHTML='⚠️ <b>لم نتمكن من تأكيد وصول البيان.</b><br>اضغط "إرسال بيان منظومات الحريق" مرة أخرى للتأكيد — لو كان وصل فى المرة الأولى هيتأكد فوراً بدون تكرار.';
+            }
           })
-          .catch(()=>{ if(!done && attempt<6) setTimeout(()=>pollFire(attempt+1),700); });
+          .catch(()=>{ if(!done && attempt<12) setTimeout(()=>pollFire(attempt+1),1000); else if(!done){ done=true; statusEl.style.color='#C2410C'; statusEl.innerHTML='⚠️ <b>لم نتمكن من تأكيد وصول البيان.</b><br>تأكد من الإنترنت واضغط إرسال مرة أخرى.'; } });
       }
-      setTimeout(()=>pollFire(1),500);
+      setTimeout(()=>pollFire(1),800);
     })
     .catch(e=>{ statusEl.style.color='#B91C1C'; statusEl.textContent='❌ تعذر الإرسال: '+e; });
 }
