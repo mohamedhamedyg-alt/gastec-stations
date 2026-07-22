@@ -877,7 +877,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V93</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V96</span>
       </div>
     </div>
   </div>
@@ -1306,7 +1306,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 95; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 96; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4357,14 +4357,39 @@ function downloadSummaryImage(){
     if(hdr) hdr.style.display='none';
     node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad;
     node.classList.remove('capture-2col');
-    canvas.toBlob(blob=>{
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download='ملخص_'+stName.replace(/\s/g,'_')+'_'+dateStr+'.png';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(url),1000);
-    },'image/png');
-  }).catch(()=>{ _restoreFs(); if(stationEl)stationEl.textContent=oldStation; if(splitEl)splitEl.style.display='none'; if(hdr)hdr.style.display='none'; node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; node.classList.remove('capture-2col'); alert('تعذّر إنشاء الصورة'); });
+    // ── حفظ مُقوّى: تنزيل + معاينة على الشاشة (لو المتصفح منع التنزيل الصامت يقدر يحفظ من المعاينة) ──
+    const fname='ملخص_'+stName.replace(/\s/g,'_')+'_'+dateStr+'.png';
+    const _showPreview=(src)=>{
+      try{
+        let ov=document.getElementById('img-preview-overlay');
+        if(!ov){ ov=document.createElement('div'); ov.id='img-preview-overlay'; document.body.appendChild(ov); }
+        ov.style.cssText='position:fixed;inset:0;background:rgba(10,20,35,.96);z-index:99999;display:flex;flex-direction:column;align-items:center;padding:14px;overflow:auto';
+        ov.innerHTML='<div style="color:#fff;font-family:Cairo;font-weight:800;font-size:13px;margin-bottom:10px;text-align:center">✅ تم إنشاء الصورة — لو ما نزلتش تلقائياً فى التنزيلات:<br>اضغط مطوّلاً على الصورة ← حفظ الصورة</div>'
+          +'<img src="'+src+'" style="max-width:100%;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.5)">'
+          +'<button onclick="(function(o){o.style.display=\'none\';o.innerHTML=\'\';})(document.getElementById(\'img-preview-overlay\'))" style="margin-top:14px;background:#fff;color:#0D2B4E;border:none;border-radius:12px;padding:12px 40px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer">إغلاق</button>';
+        ov.style.display='flex';
+      }catch(pe){}
+    };
+    const _dataUrlFallback=()=>{
+      try{
+        const du=canvas.toDataURL('image/png');
+        try{ const a2=document.createElement('a'); a2.href=du; a2.download='summary_'+dateStr+'.png'; document.body.appendChild(a2); a2.click(); document.body.removeChild(a2); }catch(e2){}
+        _showPreview(du);
+      }catch(e3){ alert('تعذّر حفظ الصورة: '+(e3&&e3.message||e3)); }
+    };
+    try{
+      canvas.toBlob(blob=>{
+        try{
+          if(!blob) throw new Error('blob فارغ');
+          const url=URL.createObjectURL(blob);
+          const a=document.createElement('a');
+          a.href=url; a.download=fname;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          _showPreview(url); // المعاينة بتستخدم نفس الرابط — يتلغى عند الإغلاق مع تنظيف الصفحة
+        }catch(e){ _dataUrlFallback(); }
+      },'image/png');
+    }catch(e){ _dataUrlFallback(); }
+  }).catch(e=>{ _restoreFs(); if(stationEl)stationEl.textContent=oldStation; if(splitEl)splitEl.style.display='none'; if(hdr)hdr.style.display='none'; node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; node.classList.remove('capture-2col'); alert('تعذّر إنشاء الصورة: '+(e&&e.message||e)); });
 }
 // ضبط ذاتى: لو سطر حرج اتكسر لسطرين (تضخيم خط الموبايل مثلاً) نصغّر خطه تدريجياً حتى يستقيم
 function _lineCount(el){
