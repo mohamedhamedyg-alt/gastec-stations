@@ -877,7 +877,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V98</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V99</span>
       </div>
     </div>
   </div>
@@ -1306,7 +1306,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 98; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 99; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3446,12 +3446,16 @@ async function submitForm(){
   if(pf!==null){
     pfEl.textContent=fmtEn(pf*100,1)+'%';
     pfEl.className='kpi-val '+(pf>=0.92?'ok':pf>=0.70?'warn':'bad');
-    // "حافز/غرامة: رقم جنيه" — نص واحد متصل (تشكيل عربى سليم زى الليبل الذى يظهر صحيحاً) مع عزل
-    // الرقم فقط بمحارف تحكم يونيكود (FSI…PDI) داخل نفس النص. العناصر المنفصلة (span) كانت تكسر
-    // تشكيل العربى وقت التصوير على بعض الموبايلات، والعزل بالمحارف يمنع تداخل الرقم دون كسر التشكيل.
+    // "حافز/غرامة: رقم جنيه" — الكلمات العربية نصوص عادية (تشكيل سليم زى الليبل)، والرقم وحده
+    // داخل span مضمّن (inline) معزول اتجاهياً بـCSS فقط — بدون display:inline-block (الذى كان
+    // يكسر التشكيل) وبدون أى محارف تحكم مخفية (كى لا يظهر تحذير GitHub).
     const pfAmtEl=document.getElementById('d-pf-amount');
     const pfM=(pfAmount||'').match(/^(حافز|غرامة): ([\d.,]+) جنيه$/);
-    pfAmtEl.textContent = pfM ? (pfM[1]+': ⁨'+pfM[2]+'⁩ جنيه') : (pfAmount||'—');
+    if(pfM){
+      pfAmtEl.innerHTML = pfM[1]+': <span style="unicode-bidi:isolate;direction:ltr">'+pfM[2]+'</span> جنيه';
+    } else {
+      pfAmtEl.textContent = pfAmount||'—';
+    }
     pfAmtEl.style.direction='rtl';
     pfAmtEl.className='kpi-val '+(pfResult==='good'?'ok':pfResult==='fine'?'warn':'bad');
     document.getElementById('pf-card-dash').style.display='block';
