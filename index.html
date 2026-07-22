@@ -1306,7 +1306,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 93; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 94; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3446,8 +3446,17 @@ async function submitForm(){
   if(pf!==null){
     pfEl.textContent=fmtEn(pf*100,1)+'%';
     pfEl.className='kpi-val '+(pf>=0.92?'ok':pf>=0.70?'warn':'bad');
-    document.getElementById('d-pf-amount').textContent=pfAmount||'—';
-    document.getElementById('d-pf-amount').className='kpi-val '+(pfResult==='good'?'ok':pfResult==='fine'?'warn':'bad');
+    // فصل "حافز/غرامة: رقم جنيه" لوحدات معزولة — يمنع لخبطة الترتيب فى صورة التصوير عند التفاف السطر
+    const pfAmtEl=document.getElementById('d-pf-amount');
+    const pfM=(pfAmount||'').match(/^(حافز|غرامة): ([\d.,]+) جنيه$/);
+    if(pfM){
+      pfAmtEl.innerHTML='<span style="display:inline-block;white-space:nowrap">'+pfM[1]+':</span> '
+        +'<span style="direction:ltr;unicode-bidi:isolate;display:inline-block;white-space:nowrap">'+pfM[2]+'</span> '
+        +'<span style="display:inline-block;white-space:nowrap">جنيه</span>';
+    } else {
+      pfAmtEl.textContent=pfAmount||'—';
+    }
+    pfAmtEl.className='kpi-val '+(pfResult==='good'?'ok':pfResult==='fine'?'warn':'bad');
     document.getElementById('pf-card-dash').style.display='block';
     const bar=document.getElementById('pf-bar');
     bar.style.width=fmtEn(pf*100,1)+'%';
