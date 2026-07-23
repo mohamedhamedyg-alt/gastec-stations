@@ -190,9 +190,9 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-l2{display:flex;gap:10px;margin-top:8px}
 .mc-lcol{flex:1;min-width:0}
 .mc-lt{font-size:11px;font-weight:800;margin-bottom:5px;text-align:center}
-.mc-lr{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;font-weight:800;padding:4px 6px;border-radius:5px}
-.mc-lr span:first-child{color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800}
-.mc-lr span:last-child{direction:ltr;flex-shrink:0;font-weight:900}
+.mc-lr{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;font-size:11px;font-weight:800;padding:4px 6px;border-radius:5px}
+.mc-lr span:first-child{color:#1E293B;font-weight:800;word-break:break-word;line-height:1.35}
+.mc-lr span:last-child{direction:ltr;flex-shrink:0;font-weight:900;white-space:nowrap}
 #mgr-tip{position:fixed;background:#0D2B4E;color:#fff;padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;display:none;z-index:9999;text-align:center}
 #mgr-tip b{display:block;font-size:13px;margin-bottom:2px}
 .flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
@@ -916,7 +916,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V108</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V109</span>
       </div>
     </div>
   </div>
@@ -1333,7 +1333,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 108; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 109; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5122,7 +5122,8 @@ function _mcCurve(title,dotColor,data,opts){
   [ [opts.ref,opts.refLbl],[opts.ref2,opts.ref2Lbl] ].forEach(rf=>{ if(rf[0]!=null){const zy=y(rf[0]);s+='<line x1="'+padX+'" y1="'+zy.toFixed(1)+'" x2="'+(W-padX)+'" y2="'+zy.toFixed(1)+'" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 3"/><text x="'+(W-padX)+'" y="'+(zy-2).toFixed(1)+'" font-size="6.5" fill="#94A3B8" text-anchor="end">'+rf[1]+'</text>';} });
   let path='';data.forEach((d,i)=>{path+=(i?'L':'M')+x(i).toFixed(1)+' '+y(d.v).toFixed(1)+' ';});
   s+='<path d="'+path+'" fill="none" stroke="#CBD5E1" stroke-width="1.4"/>';
-  const topSet={},lowSet={};for(let k=0;k<5&&k<n;k++){lowSet[k]=1;topSet[n-1-k]=1;}
+  const listN=opts.listN||5, labelN=Math.min(listN,5);
+  const topSet={},lowSet={};for(let k=0;k<listN&&k<n;k++){lowSet[k]=1;topSet[n-1-k]=1;}
   data.forEach((d,i)=>{const isTop=topSet[i],isLow=lowSet[i];let col;
     if(opts.mode==='dev')col=d.v>=0?'#16A34A':'#DC2626';
     else if(opts.mode==='pf')col=d.v>=opts.threshold?'#16A34A':'#DC2626';
@@ -5130,11 +5131,11 @@ function _mcCurve(title,dotColor,data,opts){
     else col=isTop?'#16A34A':(isLow?'#DC2626':'#94A3B8');
     const big=isTop||isLow;
     s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(d.v).toFixed(1)+'" r="'+(big?3.2:2)+'" fill="'+(big?col:'#94A3B8')+'" stroke="#fff" stroke-width="'+(big?1:0.5)+'" style="cursor:pointer" data-n="'+_esc(d.name)+'" data-v="'+_esc(opts.fmt(d.v))+'"/>';
-    if(isTop)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)-5).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
-    if(isLow)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)+9).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
+    if(i>=n-labelN)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)-5).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
+    if(i<labelN)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)+9).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
   });
   s+='</svg>';
-  const top5=data.slice(-5).reverse(),low5=data.slice(0,5);
+  const top5=data.slice(-listN).reverse(),low5=data.slice(0,listN);
   function c2(t,arr,color){let h='<div class="mc-lcol"><div class="mc-lt" style="color:'+color+'">'+t+'</div>';arr.forEach((d,i)=>{h+='<div class="mc-lr" style="background:'+(i%2?'#F8FAFC':'#fff')+'"><span>'+d.name+'</span><span style="color:'+color+'">'+opts.fmt(d.v)+'</span></div>';});return h+'</div>';}
   const lists='<div class="mc-l2">'+c2(opts.topTitle,top5,opts.topColor)+'<div style="width:1px;background:#E2E8F0"></div>'+c2(opts.lowTitle,low5,opts.lowColor)+'</div>';
   return '<div class="mc-card"><div class="mc-title"><span class="dot" style="background:'+dotColor+'"></span>'+title+'</div>'+s+'<div class="mc-hint">👆 اضغط أى نقطة لعرض اسم المحطة وقيمتها</div>'+lists+'</div>';
@@ -5145,7 +5146,7 @@ function buildMgrCharts(j){
   let H='';
   // ── منحنيات الـ42 محطة ──
   const salesD=S.filter(s=>s.sales!=null&&s.sales>0).map(s=>({name:s.name,v:s.sales}));
-  H+=_mcCurve('المبيعات — كل المحطات (م³)','#2563EB',salesD,{mode:'plain',fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),fmtShort:v=>Math.round(v/1000)+'k',topTitle:'🟢 أعلى 5 مبيعاً',lowTitle:'🔴 أقل 5 مبيعاً',topColor:'#16A34A',lowColor:'#DC2626'});
+  H+=_mcCurve('المبيعات — كل المحطات (م³)','#2563EB',salesD,{mode:'plain',listN:10,fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),fmtShort:v=>Math.round(v/1000)+'k',topTitle:'🟢 أعلى 10 مبيعاً',lowTitle:'🔴 أقل 10 مبيعاً',topColor:'#16A34A',lowColor:'#DC2626'});
   const devD=S.map(s=>({name:s.name,v:_devNum(s.frDev)})).filter(x=>x.v!=null);
   H+=_mcCurve('حيود معدل التدفق — كل المحطات (%)','#7C3AED',devD,{ref:0,refLbl:'0%',mode:'dev',fmt:v=>(v>0?'+':'')+v+'%',fmtShort:v=>(v>0?'+':'')+v,topTitle:'🟢 أعلى 5 (فوق المعيار)',lowTitle:'🔴 أقل 5 (تحت المعيار)',topColor:'#16A34A',lowColor:'#DC2626'});
   const kwhD=S.map(s=>({name:s.name,v:_numOr(s.kwhM3)})).filter(x=>x.v!=null&&x.v>0);
