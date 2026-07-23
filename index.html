@@ -190,9 +190,9 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-l2{display:flex;gap:10px;margin-top:8px}
 .mc-lcol{flex:1;min-width:0}
 .mc-lt{font-size:11px;font-weight:800;margin-bottom:5px;text-align:center}
-.mc-lr{display:flex;justify-content:space-between;gap:6px;font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:5px}
-.mc-lr span:first-child{color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mc-lr span:last-child{direction:ltr;flex-shrink:0}
+.mc-lr{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;font-weight:800;padding:4px 6px;border-radius:5px}
+.mc-lr span:first-child{color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800}
+.mc-lr span:last-child{direction:ltr;flex-shrink:0;font-weight:900}
 #mgr-tip{position:fixed;background:#0D2B4E;color:#fff;padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;display:none;z-index:9999;text-align:center}
 #mgr-tip b{display:block;font-size:13px;margin-bottom:2px}
 .flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
@@ -916,7 +916,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V105</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V108</span>
       </div>
     </div>
   </div>
@@ -1333,7 +1333,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 105; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 108; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3643,8 +3643,8 @@ async function submitForm(){
   if(safetyRem<0) safetyEl.textContent='−'+fmtEn(Math.abs(safetyRem),0);
   else safetyEl.textContent=fmtEn(safetyRem,0);
   safetyEl.className='kpi-val '+(safetyRem>15?'ok':safetyRem>0?'warn':'bad');
-  // ── أمر الشغل: يظهر لو صيانة/تشحيم متبقى ≤150 ساعة أو فحص أمان متبقى ≤7 أيام ──
-  buildWorkOrderBtn(st, safetyRem);
+  // ── أمر الشغل: صيانة/تشحيم/أمان مستحقة + انخفاض معامل القدرة (<92%) ──
+  buildWorkOrderBtn(st, safetyRem, pf);
   // PF bar handled above
   // WEEK (اختيارى — أُزيل من الشاشة)
   const wc=document.getElementById('week-bars');
@@ -3983,10 +3983,15 @@ function backToHub(){
 // الرجوع من داشبورد البيان اليومى للقائمة الرئيسية
 // ══════════ أمر شغل الصيانة ══════════
 // يظهر لو: صيانة دورية أو تشحيم متبقى ≤150 ساعة، أو فحص أمان متبقى ≤7 أيام
-function buildWorkOrderBtn(st, safetyRem){
+function buildWorkOrderBtn(st, safetyRem, pfFrac){
   const btnWrap=document.getElementById('d-workorder-btn');
   if(!btnWrap) return;
   const dueItems=[];
+  // انخفاض معامل القدرة (<92%) — أمر شغل كهربائى
+  if(pfFrac!=null && pfFrac>0 && pfFrac<0.92){
+    const _mdl=(activeComps.map(idx=>st.comps[idx]).map(c=>c.name+' '+c.model).join(' / '))||'المحطة';
+    dueItems.push({type:'إصلاح انخفاض معامل القدرة', unit:_mdl, pfMode:true, pfVal:pfFrac*100, overdue:true});
+  }
   activeComps.forEach(idx=>{
     const c=st.comps[idx];
     // الصيانة الدورية
@@ -4017,13 +4022,14 @@ function buildWorkOrderBtn(st, safetyRem){
   }
   if(dueItems.length===0){ btnWrap.innerHTML=''; window.__workOrderItems=null; return; }
   window.__workOrderItems=dueItems;
-  let btnsHtml='<div style="font-size:13px;font-weight:800;color:#B45309;margin-bottom:8px;text-align:center">🔧 أوامر شغل الصيانة المستحقة</div>';
+  let btnsHtml='<div style="font-size:13px;font-weight:800;color:#B45309;margin-bottom:8px;text-align:center">🔧 أوامر الشغل المستحقة</div>';
   dueItems.forEach((it,i)=>{
-    const bg = it.overdue ? '#B91C1C,#EF4444' : '#B45309,#F59E0B';
-    const remTxt = it.overdue ? ('متأخر '+Math.abs(it.rem)+' '+it.unitLabel) : ('باقى '+it.rem+' '+it.unitLabel);
+    const bg = it.pfMode ? '#B91C1C,#EF4444' : (it.overdue ? '#B91C1C,#EF4444' : '#B45309,#F59E0B');
+    const icon = it.pfMode ? '⚡' : '🔧';
+    const badge = it.pfMode ? ('PF '+Number(it.pfVal).toFixed(1)+'%') : (it.overdue ? ('متأخر '+Math.abs(it.rem)+' '+it.unitLabel) : ('باقى '+it.rem+' '+it.unitLabel));
     btnsHtml+='<button onclick="openWorkOrderModal('+i+')" style="width:100%;background:linear-gradient(135deg,'+bg+');color:#fff;border:none;border-radius:12px;padding:12px 14px;font-family:Cairo;font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.15);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px">';
-    btnsHtml+='<span>🔧 '+it.type+' — '+it.unit+'</span>';
-    btnsHtml+='<span style="font-size:11px;background:rgba(255,255,255,.25);padding:3px 9px;border-radius:10px;white-space:nowrap">'+remTxt+'</span></button>';
+    btnsHtml+='<span>'+icon+' '+it.type+' — '+it.unit+'</span>';
+    btnsHtml+='<span style="font-size:11px;background:rgba(255,255,255,.25);padding:3px 9px;border-radius:10px;white-space:nowrap">'+badge+'</span></button>';
   });
   btnWrap.innerHTML=btnsHtml;
 }
@@ -4163,11 +4169,38 @@ function generateWorkOrder(){
   st.style.color='#166534'; st.textContent='⏳ جارى إنشاء أمر الشغل...';
   const stat=currentStation;
   const dateStr=document.getElementById('f-date')?.value||new Date().toISOString().slice(0,10);
+  let html;
+  if(it.pfMode){
+    // ── أمر شغل كهربائى: إصلاح انخفاض معامل القدرة ──
+    const woNum='PF-'+stat.code+'-'+dateStr.replace(/-/g,'');
+    const eDept=(dept&&dept.indexOf('كهرب')>=0)?dept:'إدارة الصيانة الكهربائية';
+    html='<div id="wo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
+      +unifiedHeaderHTML()
+      +'<div style="padding:20px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #DC2626;padding-bottom:10px;margin-bottom:14px">'
+      +'<div style="font-size:18px;font-weight:800;color:#DC2626">⚡ أمر شغل — إصلاح انخفاض معامل القدرة</div>'
+      +'<div style="text-align:left"><div style="font-size:11px;color:#888">رقم الأمر</div><div style="font-size:14px;font-weight:800;direction:ltr">'+woNum+'</div></div></div>'
+      +'<table style="width:100%;font-size:13px;margin-bottom:14px">'
+      +'<tr><td style="padding:5px 0;color:#666;width:130px">المحطة</td><td style="font-weight:800">'+stat.name+'</td></tr>'
+      +'<tr><td style="padding:5px 0;color:#666">المنطقة</td><td style="font-weight:700">'+(stat.region||'')+'</td></tr>'
+      +'<tr><td style="padding:5px 0;color:#666">الضاغط</td><td style="font-weight:700;direction:ltr;text-align:right">'+it.unit+'</td></tr>'
+      +'<tr><td style="padding:5px 0;color:#666">التاريخ</td><td style="font-weight:700;direction:ltr">'+dateStr+'</td></tr>'
+      +'<tr><td style="padding:5px 0;color:#666">الإدارة المعنية</td><td style="font-weight:800;color:#DC2626">'+eDept+'</td></tr></table>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #E5E7EB">'
+      +'<tr style="background:#FEE2E2;font-weight:800"><th style="padding:9px 8px;text-align:right">نوع العطل</th><th style="padding:9px 8px;text-align:center">القيمة الحالية</th><th style="padding:9px 8px;text-align:right">المطلوب</th></tr>'
+      +'<tr><td style="padding:10px 8px;font-weight:700;border-top:1px solid #E5E7EB">انخفاض معامل القدرة (Power Factor)</td>'
+      +'<td style="padding:10px 8px;font-weight:800;color:#DC2626;border-top:1px solid #E5E7EB;direction:ltr;text-align:center">'+Number(it.pfVal).toFixed(1)+'%</td>'
+      +'<td style="padding:10px 8px;font-weight:700;border-top:1px solid #E5E7EB">عمل الصيانة اللازمة لرفع معامل القدرة إلى أعلى من 92% وأكثر</td></tr>'
+      +'</table>'
+      +'<div style="margin-top:16px;padding:11px;background:#FEF2F2;border-radius:8px;font-size:12px;color:#7F1D1D">📋 انخفاض معامل القدرة عن 92% يُعرّض المحطة لغرامة كهرباء. برجاء التنفيذ فى أقرب وقت — رقم الأمر: '+woNum+'</div>'
+      +'<div style="margin-top:14px;display:flex;justify-content:space-between;font-size:12px;color:#555;border-top:1px dashed #ccc;padding-top:10px"><span>مقدّم الطلب: <b>'+supName+'</b></span><span>الإدارة: <b>'+eDept+'</b></span></div>'
+      +'</div></div>';
+  } else {
   const woNum='WO-'+stat.code+'-'+dateStr.replace(/-/g,'');
   const remTxt=it.overdue?('متأخر بـ '+Math.abs(it.rem)+' '+it.unitLabel):('باقى '+it.rem+' '+it.unitLabel);
   const remColor=it.overdue?'#DC2626':'#B45309';
   // هيدر بنفس تدرّج الشاشة الافتتاحية (أخف للطباعة)
-  const html='<div id="wo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
+  html='<div id="wo-capture" style="background:#fff;width:600px;font-family:Cairo;color:#1F2937;border:1px solid #E5E7EB">'
     +unifiedHeaderHTML()
     +'<div style="padding:20px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #B45309;padding-bottom:10px;margin-bottom:14px">'
@@ -4185,6 +4218,7 @@ function generateWorkOrder(){
     +'<div style="margin-top:16px;padding:11px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#475569">📋 برجاء التنفيذ في أقرب وقت. المحطة: '+stat.name+' — رقم الأمر: '+woNum+'</div>'
     +'<div style="margin-top:14px;display:flex;justify-content:space-between;font-size:12px;color:#555;border-top:1px dashed #ccc;padding-top:10px"><span>مقدّم الطلب: <b>'+supName+'</b></span><span>الإدارة: <b>'+dept+'</b></span></div>'
     +'</div></div>';
+  }
   const holder=document.createElement('div');
   holder.style.cssText='position:fixed;left:-9999px;top:0';
   holder.innerHTML=html;
@@ -5116,7 +5150,7 @@ function buildMgrCharts(j){
   H+=_mcCurve('حيود معدل التدفق — كل المحطات (%)','#7C3AED',devD,{ref:0,refLbl:'0%',mode:'dev',fmt:v=>(v>0?'+':'')+v+'%',fmtShort:v=>(v>0?'+':'')+v,topTitle:'🟢 أعلى 5 (فوق المعيار)',lowTitle:'🔴 أقل 5 (تحت المعيار)',topColor:'#16A34A',lowColor:'#DC2626'});
   const kwhD=S.map(s=>({name:s.name,v:_numOr(s.kwhM3)})).filter(x=>x.v!=null&&x.v>0);
   H+=_mcCurve('استهلاك الكهرباء KWH/م³ — كل المحطات','#0891B2',kwhD,{mode:'cost',fmt:v=>v.toFixed(2),fmtShort:v=>v.toFixed(2),topTitle:'🔴 أعلى 5 استهلاكاً',lowTitle:'🟢 أقل 5 استهلاكاً',topColor:'#DC2626',lowColor:'#16A34A'});
-  const pfD=S.map(s=>({name:s.name,v:_pfNum(s.pf)})).filter(x=>x.v!=null&&x.v>0);
+  const pfD=S.map(s=>({name:s.name,code:s.code,v:_pfNum(s.pf)})).filter(x=>x.v!=null&&x.v>0);
   H+=_mcCurve('معامل القدرة Power Factor — كل المحطات (%)','#9333EA',pfD,{ref:92,refLbl:'92%',ref2:95,ref2Lbl:'95%',band:[92,95],mode:'pf',threshold:92,fmt:v=>v.toFixed(1)+'%',fmtShort:v=>Math.round(v),topTitle:'🟢 أعلى 5 معامل قدرة',lowTitle:'🔴 أقل 5 معامل قدرة',topColor:'#16A34A',lowColor:'#DC2626'});
   // ── المحطات المتوقفة (أعطال/صيانات/معايرات — clickable) ──
   const stopped=S.filter(s=>{const has=(s.stopReason&&s.stopReason.trim())||(s.stopDetails&&s.stopDetails.trim());return has&&s.downtime&&s.downtime!=='—'&&s.downtime!=='0 س 0 د';})
@@ -5147,16 +5181,19 @@ function buildMgrCharts(j){
   // تفعيل التولتيب على نقط المنحنيات
   let tip=document.getElementById('mgr-tip'); if(!tip){tip=document.createElement('div');tip.id='mgr-tip';document.body.appendChild(tip);}
   host.querySelectorAll('svg circle[data-n]').forEach(c=>{
-    c.addEventListener('click',()=>{
+    c.addEventListener('click',(ev)=>{
+      ev.stopPropagation();  // كى لا يُخفيها معالج الضغط برّة فوراً
       tip.innerHTML='<b>'+c.getAttribute('data-n')+'</b>'+c.getAttribute('data-v');
       const r=c.getBoundingClientRect();
       tip.style.display='block';
       tip.style.left=Math.max(6,Math.min(window.innerWidth-120,r.left-45))+'px';
       tip.style.top=Math.max(6,r.top-48)+'px';
-      clearTimeout(window.__mtt);window.__mtt=setTimeout(()=>tip.style.display='none',2500);
     });
   });
+  // أى ضغطة برّة النقط تُخفى بيان المحطة فوراً (بدون انتظار)
+  if(!window.__mtipInit){ window.__mtipInit=true; document.addEventListener('click',()=>{ const t=document.getElementById('mgr-tip'); if(t) t.style.display='none'; }); }
 }
+
 // خلية FR/الحيود قابلة للضغط → تفتح تفصيل معدل التدفق (نفس سلسلة صورة الملخص)
 function _frClick(s, inner){
   if(!s.frChain) return inner;
