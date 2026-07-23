@@ -181,6 +181,20 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-vmodel{writing-mode:vertical-rl;color:#fff;font-size:9px;font-weight:800;white-space:nowrap;padding:7px 0;direction:ltr}
 .mc-vst{font-size:9px;font-weight:800;color:#334155;margin-top:5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mc-vdiv{width:1px;background:#E2E8F0;align-self:stretch;margin:0 2px}
+.b2{margin-bottom:9px}
+.b2-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:3px}
+.b2-name{font-size:11px;font-weight:800;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.b2-val{font-size:11px;font-weight:800;flex-shrink:0}
+.b2-track{background:#F1F5F9;border-radius:5px;height:12px;overflow:hidden}
+.b2-fill{height:100%;border-radius:5px}
+.mc-l2{display:flex;gap:10px;margin-top:8px}
+.mc-lcol{flex:1;min-width:0}
+.mc-lt{font-size:11px;font-weight:800;margin-bottom:5px;text-align:center}
+.mc-lr{display:flex;justify-content:space-between;gap:6px;font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:5px}
+.mc-lr span:first-child{color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-lr span:last-child{direction:ltr;flex-shrink:0}
+#mgr-tip{position:fixed;background:#0D2B4E;color:#fff;padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;display:none;z-index:9999;text-align:center}
+#mgr-tip b{display:block;font-size:13px;margin-bottom:2px}
 .flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
 .flow-lbl{font-size:12px;font-weight:800;color:#1A4A2A;flex-shrink:0}
 .flow-chain{direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left;line-height:1.5}
@@ -902,7 +916,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V104</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V105</span>
       </div>
     </div>
   </div>
@@ -1319,7 +1333,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 104; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 105; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5059,19 +5073,52 @@ function _shortModel(code){ const st=STATIONS[String(code)]; return (st&&st.comp
 function _devNum(v){ if(v==null)return null; const m=String(v).match(/^([+-]?\d+(?:\.\d+)?)%$/); return m?parseFloat(m[1]):null; }
 function _numOr(v){ if(v==null||v==='—'||v==='N/A')return null; const n=parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)?null:n; }
 function _dtMin(str){ if(!str)return 0; str=String(str); let m=0; const h=str.match(/(\d+)\s*س/); const d=str.match(/(\d+)\s*د/); if(h)m+=parseInt(h[1],10)*60; if(d)m+=parseInt(d[1],10); return m; }
+function _pfNum(v){ if(v==null||v==='—')return null; const m=String(v).match(/([\d.]+)/); return m?parseFloat(m[1]):null; }
+function _esc(t){ return String(t).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+// بناء منحنى SVG لكل الـ42 محطة + قائمتين (أعلى 5/أقل 5)
+function _mcCurve(title,dotColor,data,opts){
+  // data: [{name,v}] — نرتّب تصاعدياً
+  data=data.slice().sort((a,b)=>a.v-b.v);
+  const n=data.length; if(n<2) return '';
+  const W=400,H=170,padX=16,padTop=26,padBot=20;
+  const vals=data.map(d=>d.v),mx=Math.max(...vals),mn=Math.min(...vals),rng=(mx-mn)||1;
+  const x=i=>padX+i*(W-2*padX)/(n-1), y=v=>padTop+(mx-v)/rng*(H-padTop-padBot);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;overflow:visible">';
+  if(opts.band){const y1=y(opts.band[1]),y2=y(opts.band[0]);s+='<rect x="'+padX+'" y="'+Math.min(y1,y2).toFixed(1)+'" width="'+(W-2*padX)+'" height="'+Math.abs(y2-y1).toFixed(1)+'" fill="#16A34A" opacity="0.08"/>';}
+  [ [opts.ref,opts.refLbl],[opts.ref2,opts.ref2Lbl] ].forEach(rf=>{ if(rf[0]!=null){const zy=y(rf[0]);s+='<line x1="'+padX+'" y1="'+zy.toFixed(1)+'" x2="'+(W-padX)+'" y2="'+zy.toFixed(1)+'" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 3"/><text x="'+(W-padX)+'" y="'+(zy-2).toFixed(1)+'" font-size="6.5" fill="#94A3B8" text-anchor="end">'+rf[1]+'</text>';} });
+  let path='';data.forEach((d,i)=>{path+=(i?'L':'M')+x(i).toFixed(1)+' '+y(d.v).toFixed(1)+' ';});
+  s+='<path d="'+path+'" fill="none" stroke="#CBD5E1" stroke-width="1.4"/>';
+  const topSet={},lowSet={};for(let k=0;k<5&&k<n;k++){lowSet[k]=1;topSet[n-1-k]=1;}
+  data.forEach((d,i)=>{const isTop=topSet[i],isLow=lowSet[i];let col;
+    if(opts.mode==='dev')col=d.v>=0?'#16A34A':'#DC2626';
+    else if(opts.mode==='pf')col=d.v>=opts.threshold?'#16A34A':'#DC2626';
+    else if(opts.mode==='cost')col=isTop?'#DC2626':(isLow?'#16A34A':'#94A3B8');
+    else col=isTop?'#16A34A':(isLow?'#DC2626':'#94A3B8');
+    const big=isTop||isLow;
+    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(d.v).toFixed(1)+'" r="'+(big?3.2:2)+'" fill="'+(big?col:'#94A3B8')+'" stroke="#fff" stroke-width="'+(big?1:0.5)+'" style="cursor:pointer" data-n="'+_esc(d.name)+'" data-v="'+_esc(opts.fmt(d.v))+'"/>';
+    if(isTop)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)-5).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
+    if(isLow)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)+9).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
+  });
+  s+='</svg>';
+  const top5=data.slice(-5).reverse(),low5=data.slice(0,5);
+  function c2(t,arr,color){let h='<div class="mc-lcol"><div class="mc-lt" style="color:'+color+'">'+t+'</div>';arr.forEach((d,i)=>{h+='<div class="mc-lr" style="background:'+(i%2?'#F8FAFC':'#fff')+'"><span>'+d.name+'</span><span style="color:'+color+'">'+opts.fmt(d.v)+'</span></div>';});return h+'</div>';}
+  const lists='<div class="mc-l2">'+c2(opts.topTitle,top5,opts.topColor)+'<div style="width:1px;background:#E2E8F0"></div>'+c2(opts.lowTitle,low5,opts.lowColor)+'</div>';
+  return '<div class="mc-card"><div class="mc-title"><span class="dot" style="background:'+dotColor+'"></span>'+title+'</div>'+s+'<div class="mc-hint">👆 اضغط أى نقطة لعرض اسم المحطة وقيمتها</div>'+lists+'</div>';
+}
 function buildMgrCharts(j){
   const host=document.getElementById('mgr-charts'); if(!host) return;
   const S=(j.stations||[]);
   let H='';
-  // 1) أعلى 8 محطات مبيعاً
-  const sales=S.filter(s=>s.sales!=null&&s.sales>0).sort((a,b)=>b.sales-a.sales).slice(0,8);
-  if(sales.length){
-    const mx=Math.max(...sales.map(s=>s.sales));
-    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#2563EB"></span>أعلى المحطات مبيعاً اليوم (م³)</div>';
-    sales.forEach(s=>{const w=Math.max(14,s.sales/mx*100);H+='<div class="mc-brow"><div class="mc-bname">'+s.name+'</div><div class="mc-btrack"><div class="mc-bfill" style="width:'+w+'%;background:linear-gradient(90deg,#3B82F6,#2563EB)"><span class="mc-bval">'+s.sales.toLocaleString('en-US',{maximumFractionDigits:0})+'</span></div></div></div>';});
-    H+='</div>';
-  }
-  // 2) المحطات المتوقفة (أعطال/صيانات/معايرات — clickable) — نستبعد خارج الإرادة
+  // ── منحنيات الـ42 محطة ──
+  const salesD=S.filter(s=>s.sales!=null&&s.sales>0).map(s=>({name:s.name,v:s.sales}));
+  H+=_mcCurve('المبيعات — كل المحطات (م³)','#2563EB',salesD,{mode:'plain',fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),fmtShort:v=>Math.round(v/1000)+'k',topTitle:'🟢 أعلى 5 مبيعاً',lowTitle:'🔴 أقل 5 مبيعاً',topColor:'#16A34A',lowColor:'#DC2626'});
+  const devD=S.map(s=>({name:s.name,v:_devNum(s.frDev)})).filter(x=>x.v!=null);
+  H+=_mcCurve('حيود معدل التدفق — كل المحطات (%)','#7C3AED',devD,{ref:0,refLbl:'0%',mode:'dev',fmt:v=>(v>0?'+':'')+v+'%',fmtShort:v=>(v>0?'+':'')+v,topTitle:'🟢 أعلى 5 (فوق المعيار)',lowTitle:'🔴 أقل 5 (تحت المعيار)',topColor:'#16A34A',lowColor:'#DC2626'});
+  const kwhD=S.map(s=>({name:s.name,v:_numOr(s.kwhM3)})).filter(x=>x.v!=null&&x.v>0);
+  H+=_mcCurve('استهلاك الكهرباء KWH/م³ — كل المحطات','#0891B2',kwhD,{mode:'cost',fmt:v=>v.toFixed(2),fmtShort:v=>v.toFixed(2),topTitle:'🔴 أعلى 5 استهلاكاً',lowTitle:'🟢 أقل 5 استهلاكاً',topColor:'#DC2626',lowColor:'#16A34A'});
+  const pfD=S.map(s=>({name:s.name,v:_pfNum(s.pf)})).filter(x=>x.v!=null&&x.v>0);
+  H+=_mcCurve('معامل القدرة Power Factor — كل المحطات (%)','#9333EA',pfD,{ref:92,refLbl:'92%',ref2:95,ref2Lbl:'95%',band:[92,95],mode:'pf',threshold:92,fmt:v=>v.toFixed(1)+'%',fmtShort:v=>Math.round(v),topTitle:'🟢 أعلى 5 معامل قدرة',lowTitle:'🔴 أقل 5 معامل قدرة',topColor:'#16A34A',lowColor:'#DC2626'});
+  // ── المحطات المتوقفة (أعطال/صيانات/معايرات — clickable) ──
   const stopped=S.filter(s=>{const has=(s.stopReason&&s.stopReason.trim())||(s.stopDetails&&s.stopDetails.trim());return has&&s.downtime&&s.downtime!=='—'&&s.downtime!=='0 س 0 د';})
                  .map(s=>({s,min:_dtMin(s.downtime)})).sort((a,b)=>b.min-a.min);
   if(stopped.length){
@@ -5080,40 +5127,35 @@ function buildMgrCharts(j){
     const totLbl=(Math.floor(totMin/60)>0?Math.floor(totMin/60)+'س ':'')+(totMin%60)+'د';
     H+='<div class="mc-card"><div class="mc-title" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot" style="background:#EA580C"></span>المحطات المتوقفة اليوم</span><span style="font-size:11px;color:#C2410C;background:#FFEDD5;padding:2px 10px;border-radius:20px">الإجمالى '+totLbl+'</span></div>';
     stopped.forEach(x=>{
-      const s=x.s; const w=Math.max(20,x.min/mx*100);
+      const s=x.s; const w=Math.max(3,x.min/mx*100);
       const rs=(s.stopReason||''); const tag=rs.indexOf('معاير')>=0?'📏':(rs.indexOf('صيان')>=0?'🔧':'⚠️');
       const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:s.downtime,reason:s.stopReason||'',details:s.stopDetails||'',model:stationModels(s.code)}));
-      H+='<div class="mc-brow" style="cursor:pointer" onclick="showStopReason(\''+payload+'\')"><div class="mc-bname">'+tag+' '+s.name+'</div><div class="mc-btrack"><div class="mc-bfill" style="width:'+w+'%;background:linear-gradient(90deg,#FB923C,#EA580C)"><span class="mc-bval">'+s.downtime+' ℹ️</span></div></div></div>';
+      H+='<div class="b2" style="cursor:pointer" onclick="showStopReason(\''+payload+'\')"><div class="b2-head"><span class="b2-name">'+tag+' '+s.name+'</span><span class="b2-val" style="color:#C2410C"><span style="direction:rtl;unicode-bidi:isolate">'+s.downtime+'</span> ℹ️</span></div><div class="b2-track"><div class="b2-fill" style="width:'+w+'%;background:#EA580C"></div></div></div>';
     });
     H+='<div class="mc-hint">👆 اضغط على أى محطة لعرض تفاصيل العطل</div></div>';
   }
-  // 3) رصيد الزيوت بالنوع
+  // ── رصيد الزيوت بالنوع (أعمدة محسّنة) ──
   const oils=j.oils||{}; const ok=Object.keys(oils);
   if(ok.length){
     const arr=ok.map(k=>[k,parseFloat(oils[k])||0]).sort((a,b)=>b[1]-a[1]);
     const mx=Math.max(...arr.map(a=>a[1]),1); const LOW=50;
-    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#B45309"></span>🛢️ رصيد الزيوت بالمنطقة (لتر لكل نوع)</div>';
-    arr.forEach(([n,v])=>{const w=Math.max(14,v/mx*100);const low=v<LOW;const col=low?'linear-gradient(90deg,#F87171,#DC2626)':'linear-gradient(90deg,#D97706,#B45309)';H+='<div class="mc-brow"><div class="mc-bname" style="width:120px">'+n+'</div><div class="mc-btrack"><div class="mc-bfill" style="width:'+w+'%;background:'+col+'"><span class="mc-bval">'+v.toLocaleString('en-US',{maximumFractionDigits:1})+' لتر'+(low?' ⚠️':'')+'</span></div></div></div>';});
+    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#B45309"></span>🛢️ رصيد الزيوت بالمنطقة (لكل نوع)</div>';
+    arr.forEach(([n,v])=>{const w=Math.max(3,v/mx*100);const low=v<LOW;const col=low?'#DC2626':'#B45309';H+='<div class="b2"><div class="b2-head"><span class="b2-name">'+n+'</span><span class="b2-val" style="color:'+col+'"><span style="direction:ltr;unicode-bidi:isolate">'+v.toLocaleString('en-US',{maximumFractionDigits:1})+'</span> لتر'+(low?' ⚠️':'')+'</span></div><div class="b2-track"><div class="b2-fill" style="width:'+w+'%;background:'+col+'"></div></div></div>';});
     H+='<div class="mc-legend"><span><i style="background:#B45309"></i> رصيد كافٍ</span><span><i style="background:#DC2626"></i> رصيد منخفض</span></div></div>';
   }
-  // 4) الحيود — أعمدة رأسية (5 محطات، تبدأ بالأحمر = الأكثر سلباً)
-  const dev=S.map(s=>({s,d:_devNum(s.frDev)})).filter(x=>x.d!=null).sort((a,b)=>a.d-b.d).slice(0,5);
-  if(dev.length){
-    const mxA=Math.max(...dev.map(x=>Math.abs(x.d)),1);
-    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#7C3AED"></span>أعلى المحطات حيوداً عن المعيار (%)</div><div class="mc-vchart">';
-    dev.forEach(x=>{const v=x.d;const bh=Math.round(78+Math.abs(v)/mxA*80);const col=v>=0?'#16A34A':'#DC2626';const md=_shortModel(x.s.code)||'—';H+='<div class="mc-vcol"><div class="mc-vnum" style="color:'+col+'">'+(v>0?'+':'')+v+'%</div><div class="mc-vbar" style="height:'+bh+'px;background:linear-gradient(180deg,'+col+','+col+'CC)"><span class="mc-vmodel">'+md+'</span></div><div class="mc-vst">'+x.s.name+'</div></div>';});
-    H+='</div><div class="mc-hint">رقم الحيود فوق العمود • موديل الضاغط جوّاه • أحمر تحت المعيار / أخضر فوقه</div></div>';
-  }
-  // 5) تكلفة الكهرباء (KWH/م³) — أعلى 3 (أحمر) وأقل 3 (أخضر)
-  const cost=S.map(s=>({s,c:_numOr(s.kwhM3)})).filter(x=>x.c!=null&&x.c>0).sort((a,b)=>b.c-a.c);
-  if(cost.length>=2){
-    const top=cost.slice(0,3); const low=cost.slice(-3).reverse(); // أعلى ثم أقل
-    const pick=top.concat(low); const mxC=Math.max(...pick.map(x=>x.c),0.01);
-    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#0891B2"></span>تكلفة م³ من الكهرباء (KWH/م³) — الأعلى والأقل</div><div class="mc-vchart">';
-    pick.forEach((x,i)=>{const v=x.c;const bh=Math.round(78+v/mxC*80);const col=i<top.length?'#DC2626':'#16A34A';const md=_shortModel(x.s.code)||'—';if(i===top.length)H+='<div class="mc-vdiv"></div>';H+='<div class="mc-vcol"><div class="mc-vnum" style="color:'+col+'">'+v.toFixed(2)+'</div><div class="mc-vbar" style="height:'+bh+'px;background:linear-gradient(180deg,'+col+','+col+'CC)"><span class="mc-vmodel">'+md+'</span></div><div class="mc-vst">'+x.s.name+'</div></div>';});
-    H+='</div><div class="mc-legend"><span><i style="background:#DC2626"></i> الأعلى تكلفة</span><span><i style="background:#16A34A"></i> الأقل تكلفة</span></div></div>';
-  }
   host.innerHTML=H;
+  // تفعيل التولتيب على نقط المنحنيات
+  let tip=document.getElementById('mgr-tip'); if(!tip){tip=document.createElement('div');tip.id='mgr-tip';document.body.appendChild(tip);}
+  host.querySelectorAll('svg circle[data-n]').forEach(c=>{
+    c.addEventListener('click',()=>{
+      tip.innerHTML='<b>'+c.getAttribute('data-n')+'</b>'+c.getAttribute('data-v');
+      const r=c.getBoundingClientRect();
+      tip.style.display='block';
+      tip.style.left=Math.max(6,Math.min(window.innerWidth-120,r.left-45))+'px';
+      tip.style.top=Math.max(6,r.top-48)+'px';
+      clearTimeout(window.__mtt);window.__mtt=setTimeout(()=>tip.style.display='none',2500);
+    });
+  });
 }
 // خلية FR/الحيود قابلة للضغط → تفتح تفصيل معدل التدفق (نفس سلسلة صورة الملخص)
 function _frClick(s, inner){
