@@ -877,7 +877,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V100</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V99</span>
       </div>
     </div>
   </div>
@@ -941,8 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         </div>
         <div style="text-align:center;padding:8px">
           <div class="kpi-label">حافز / غرامة</div>
-          <div class="kpi-val" id="d-pf-amount" style="direction:ltr">—</div>
-          <div class="kpi-unit" id="d-pf-amount-unit"></div>
+          <div class="kpi-val" id="d-pf-amount" style="direction:rtl;font-size:14px">—</div>
         </div>
       </div>
       <div class="pf-bar-wrap"><div class="pf-bar-fill" id="pf-bar" style="width:0%"></div></div>
@@ -1307,7 +1306,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 100; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 99; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3077,11 +3076,10 @@ async function submitForm(){
     totalElecLE=kwhIndTotal*2.74; // إجمالى تكلفة الكهرباء — صناعى فقط
     costPerM3LE=sales>0?(kwhIndTotal*2.74)/sales:null; // جنيه/م³
     const indCost=kwhInd*2.74;
-    // حافز/غرامة معامل القدرة: تقريب لرقم صحيح (بدون كسور عشرية) — للعرض فقط، لا يؤثر على أى حساب
-    if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${Math.round(indCost*(0.92-pf)*1)} جنيه`;}
-    else if(pf<0.92){pfResult='fine';pfAmount=`غرامة: ${Math.round(indCost*(0.92-pf)*0.5)} جنيه`;}
-    else if(pf<=0.95){pfResult='good';pfAmount=`حافز: ${Math.round(indCost*(pf-0.92)*0.5)} جنيه`;}
-    else{pfResult='good';pfAmount=`حافز: ${Math.round(indCost*(0.95-0.92)*0.5)} جنيه`;}
+    if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${(indCost*(0.92-pf)*1).toFixed(2)} جنيه`;}
+    else if(pf<0.92){pfResult='fine';pfAmount=`غرامة: ${(indCost*(0.92-pf)*0.5).toFixed(2)} جنيه`;}
+    else if(pf<=0.95){pfResult='good';pfAmount=`حافز: ${(indCost*(pf-0.92)*0.5).toFixed(2)} جنيه`;}
+    else{pfResult='good';pfAmount=`حافز: ${(indCost*(0.95-0.92)*0.5).toFixed(2)} جنيه`;}
   } else if(!mi&&kwhCom>0){
     // ── تعريفة تجارية فقط: لا يوجد Power Factor — التكلفة من التجارى ──
     pf=null; pfResult=''; pfAmount='لا يوجد PF — تعريفة تجارية';
@@ -3448,21 +3446,17 @@ async function submitForm(){
   if(pf!==null){
     pfEl.textContent=fmtEn(pf*100,1)+'%';
     pfEl.className='kpi-val '+(pf>=0.92?'ok':pf>=0.70?'warn':'bad');
-    // حافز/غرامة: الرقم فى سطر مستقل (بدون أى عربى بجانبه) و"جنيه — حافز/غرامة" فى سطر الوحدة
-    // العربى الخالص تحته — نفس بنية باقى الكروت (رقم + وحدة) التى تظهر سليمة على كل الأجهزة.
-    // هذا يمنع تداخل الرقم مع العربى فى نفس السطر الذى كان يكسر التشكيل وقت التصوير.
+    // "حافز/غرامة: رقم جنيه" — الكلمات العربية نصوص عادية (تشكيل سليم زى الليبل)، والرقم وحده
+    // داخل span مضمّن (inline) معزول اتجاهياً بـCSS فقط — بدون display:inline-block (الذى كان
+    // يكسر التشكيل) وبدون أى محارف تحكم مخفية (كى لا يظهر تحذير GitHub).
     const pfAmtEl=document.getElementById('d-pf-amount');
-    const pfAmtUnit=document.getElementById('d-pf-amount-unit');
     const pfM=(pfAmount||'').match(/^(حافز|غرامة): ([\d.,]+) جنيه$/);
     if(pfM){
-      pfAmtEl.textContent = pfM[2];                 // الرقم وحده
-      pfAmtEl.style.direction='ltr';
-      if(pfAmtUnit) pfAmtUnit.textContent = 'جنيه — '+pfM[1];
+      pfAmtEl.innerHTML = pfM[1]+': <span style="unicode-bidi:isolate;direction:ltr">'+pfM[2]+'</span> جنيه';
     } else {
-      pfAmtEl.textContent = pfAmount||'—';          // "لا يوجد PF..." نص عربى خالص
-      pfAmtEl.style.direction='rtl';
-      if(pfAmtUnit) pfAmtUnit.textContent = '';
+      pfAmtEl.textContent = pfAmount||'—';
     }
+    pfAmtEl.style.direction='rtl';
     pfAmtEl.className='kpi-val '+(pfResult==='good'?'ok':pfResult==='fine'?'warn':'bad');
     document.getElementById('pf-card-dash').style.display='block';
     const bar=document.getElementById('pf-bar');
@@ -3865,14 +3859,14 @@ function loadHolding(){
     .then(j=>{
       // عمار قائمة الفترات لو فاضية
       if(sel.options.length===0 && j.periods){
-        j.periods.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+        j.periods.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p.replace('(16-نهاية)','(16-نهاية الشهر)');sel.appendChild(o);});
         if(j.periods.length){sel.value=j.periods[j.periods.length-1];return loadHolding();}
       }
       window.__holding=j;
       const stns=(j.stations||[]).slice().sort((a,b)=>b.sales-a.sales);
       let html='<div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;text-align:center">';
       html+='<div style="font-size:15px;font-weight:800">بيان مبيعات المنطقة للقابضة</div>';
-      html+='<div style="font-size:12px;opacity:.9;margin-top:3px">الفترة: '+period+' — عدد المحطات: '+stns.length+'</div></div>';
+      html+='<div style="font-size:12px;opacity:.9;margin-top:3px">الفترة: '+period.replace('(16-نهاية)','(16-نهاية الشهر)')+' — عدد المحطات: '+stns.length+'</div></div>';
       html+='<table style="width:100%;border-collapse:collapse;font-size:13px">';
       html+='<tr style="background:#4A148C;color:#fff"><th style="padding:9px 6px;width:38px">#</th><th style="padding:9px 6px">الكود</th><th style="padding:9px 6px;text-align:right">المحطة</th><th style="padding:9px 6px;text-align:left">إجمالى الـ15 يوم (م³)</th></tr>';
       stns.forEach((s,i)=>{
@@ -4911,7 +4905,7 @@ function loadMyHolding(){
     .then(r=>r.json())
     .then(j=>{
       if(sel.options.length===0 && j.periods){
-        j.periods.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+        j.periods.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p.replace('(16-نهاية)','(16-نهاية الشهر)');sel.appendChild(o);});
         if(j.periods.length){sel.value=j.periods[j.periods.length-1];return loadMyHolding();}
       }
       // بيان محطتى فقط
@@ -5015,7 +5009,7 @@ function renderMgrDay(j){
       '<td class="mg-fz1" style="font-weight:800">'+s.code+'</td>'+
       '<td class="mg-fz2" style="font-weight:800">'+s.name+'</td>'+
       '<td style="direction:ltr;font-weight:800;color:#334155;background:'+C.time+'">'+sentTime+'</td>'+
-      '<td style="font-weight:800;background:'+C.sales+';color:#1E40AF">'+fmt(s.sales)+'</td>'+
+      '<td style="font-weight:800;background:'+C.sales+';color:#1E40AF">'+(s.sales==null?'—':Number(s.sales).toLocaleString('en-US',{maximumFractionDigits:0}))+'</td>'+
       '<td style="background:'+C.kwh+';font-weight:800;color:#6D28D9">'+fmt(s.kwhM3)+'</td>'+
       '<td style="background:'+C.fr+';font-weight:800;color:#854D0E">'+fmt(s.fr)+'</td>'+
       '<td style="background:'+C.dev+';font-weight:800;'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
@@ -5173,10 +5167,10 @@ function loadTadamonMgr(){
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-size:10px">'+r.prevDate+' ←<br>'+r.curDate+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center">'+r.days+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:700">'+Number(r.cons).toLocaleString('en-US',{maximumFractionDigits:1})+'</td>';
-          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:'+pfColor+'">'+(pfVal>0?pfVal.toFixed(1)+'%':'—')+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:'+pfColor+'">'+(pfVal>0?Math.round(pfVal)+'%':'—')+'</td>';
           html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:'+incColor+'">'+incTxt+'</td>';
-          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+Number(r.sales).toLocaleString('en-US',{maximumFractionDigits:1})+'</td>';
-          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:#0369A1">'+Number(r.kwhM3).toFixed(3)+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+Number(r.sales).toLocaleString('en-US',{maximumFractionDigits:0})+'</td>';
+          html+='<td style="padding:6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;color:#0369A1">'+Number(r.kwhM3).toFixed(2)+'</td>';
           html+='</tr>';
         });
         html+='</table></div>';
