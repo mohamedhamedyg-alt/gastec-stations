@@ -161,6 +161,29 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .kpi-val{font-size:22px;font-weight:800;direction:ltr}
 .kpi-val.ok{color:var(--green)}.kpi-val.warn{color:var(--amber)}.kpi-val.bad{color:var(--red)}.kpi-val.blue{color:var(--blue-dark)}
 .kpi-unit{font-size:10px;color:var(--gray-light);margin-top:2px}
+/* رسومات لوحة المسؤول */
+.mc-card{background:#fff;border-radius:14px;padding:13px;margin-bottom:11px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
+.mc-title{font-size:13px;font-weight:800;color:#0D2B4E;margin-bottom:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mc-title .dot{width:9px;height:9px;border-radius:50%}
+.mc-brow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.mc-bname{font-size:10.5px;font-weight:700;color:#334155;width:82px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-btrack{flex:1;background:#F1F5F9;border-radius:6px;height:19px;position:relative;overflow:hidden}
+.mc-bfill{height:100%;border-radius:6px;display:flex;align-items:center;padding-right:7px}
+.mc-bval{font-size:10px;font-weight:800;color:#fff;direction:ltr;white-space:nowrap}
+.mc-legend{display:flex;gap:14px;justify-content:center;font-size:10.5px;font-weight:700;color:#475569;margin-top:7px;flex-wrap:wrap}
+.mc-legend span{display:flex;align-items:center;gap:5px}
+.mc-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.mc-hint{font-size:10px;color:#94A3B8;text-align:center;margin-top:7px;font-weight:600}
+.mc-vchart{display:flex;gap:5px;align-items:flex-end;justify-content:space-between;padding:4px 0 0}
+.mc-vcol{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0}
+.mc-vnum{font-size:11px;font-weight:900;direction:ltr;margin-bottom:3px;white-space:nowrap}
+.mc-vbar{width:86%;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.mc-vmodel{writing-mode:vertical-rl;color:#fff;font-size:9px;font-weight:800;white-space:nowrap;padding:7px 0;direction:ltr}
+.mc-vst{font-size:9px;font-weight:800;color:#334155;margin-top:5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mc-vdiv{width:1px;background:#E2E8F0;align-self:stretch;margin:0 2px}
+.flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
+.flow-lbl{font-size:12px;font-weight:800;color:#1A4A2A;flex-shrink:0}
+.flow-chain{direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left;line-height:1.5}
 .kpi-dev{font-size:11px;margin-top:4px;font-weight:700;direction:ltr}
 .kpi-dev.ok{color:var(--green)}.kpi-dev.warn{color:var(--amber)}.kpi-dev.bad{color:var(--red)}
 .pf-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:12px}
@@ -284,7 +307,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 #dashboard-capture.capture-2col .section-body{padding:9px !important}
 #dashboard-capture.capture-2col .section-body .form-grid > div{padding:4px !important}
 #dashboard-capture.capture-2col .kpi-card{padding:9px !important}
-#dashboard-capture.capture-2col #d-flow-dev-wrap{margin-top:5px !important;padding:5px !important}
+#dashboard-capture.capture-2col #d-flow-dev-wrap{margin-top:5px !important;padding:7px 10px !important}
+#dashboard-capture.capture-2col .flow-lbl{font-size:16px !important}
+#dashboard-capture.capture-2col .flow-chain{font-size:15px !important;font-weight:900 !important}
 #dashboard-capture.capture-2col #d-capture-title{margin-bottom:7px !important}
 #dashboard-capture.capture-2col #d-capture-station{padding:9px 14px !important;font-size:26px !important}
 /* منع تضخيم خط الموبايل (accessibility text scaling) داخل الصورة فقط — لا يقلل التصميم، يمنع الزيادة الكاسرة */
@@ -877,7 +902,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V99</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V104</span>
       </div>
     </div>
   </div>
@@ -913,22 +938,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <div class="section-card" style="margin-bottom:10px">
     <div class="section-head" style="background:#EDF7EE;color:#1A4A2A;font-size:12px;font-weight:800"><div class="dot" style="background:var(--green)"></div>معدل التدفق — Flow Rate</div>
     <div class="section-body">
-      <div class="form-grid">
-        <div style="text-align:center;padding:8px">
-          <div class="kpi-label" id="d-flow-ref-label">عند ضغط الدخول المعيارى</div>
-          <div class="kpi-val blue" id="d-flow-ref-val" style="direction:ltr">—</div>
-          <div class="kpi-unit">م³/س</div>
-        </div>
-        <div style="text-align:center;padding:8px">
-          <div class="kpi-label" id="d-flow-actual-label">عند ضغط الدخول الفعلى</div>
-          <div class="kpi-val" id="d-flow-actual" style="direction:ltr">—</div>
-          <div class="kpi-unit">م³/س</div>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:8px;padding:8px;border-radius:8px" id="d-flow-dev-wrap">
-        <span style="font-size:11px;font-weight:700;color:var(--gray-mid)">الانحراف: </span>
-        <span style="font-size:16px;font-weight:800;direction:ltr" id="d-flow-dev-val">—</span>
-      </div>
+      <div class="flow-line"><span class="flow-lbl" id="d-flow-std-lbl">المعيارى</span><span class="flow-chain" id="d-flow-std">—</span></div>
+      <div class="flow-line"><span class="flow-lbl" id="d-flow-act-lbl">الفعلى</span><span class="flow-chain" id="d-flow-act">—</span></div>
+      <div class="flow-line" id="d-flow-dev-wrap" style="border-bottom:none;border-radius:8px;margin-top:4px"><span class="flow-lbl">الحيود</span><span class="flow-chain" id="d-flow-dev-val" style="font-size:17px">—</span></div>
     </div>
   </div>
   <div class="section-card" style="margin-bottom:10px" id="pf-card-dash">
@@ -1093,6 +1105,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
   </div>
+  <div id="mgr-charts" style="margin-bottom:12px"></div>
   <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);min-height:340px;overflow:auto;position:relative">
     <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:1040px;width:100%;font-size:12px">
       <thead>
@@ -1306,7 +1319,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 99; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 104; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3423,16 +3436,34 @@ async function submitForm(){
     }
   }
   const flowAdj=flow&&adjRefFlow?((flow-adjRefFlow)/adjRefFlow*100):null;
-  // Flow rate display
-  document.getElementById('d-flow-ref-label').textContent='عند ضغط الدخول المعيارى';
-  const pressPlcShow=pressPlc>0?parseFloat(pressPlc.toFixed(1)):pressPlc; // رقم عشرى واحد
-  const actualLbl=document.getElementById('d-flow-actual-label');if(actualLbl)actualLbl.textContent=pressPlc>0?`عند ضغط الدخول الفعلى (${pressPlcShow} bar)`:'عند ضغط الدخول الفعلى';
+  // ── عرض معدل التدفق بالتفصيل: المعيارى الأصلى → المعدّل عند الضغط الفعلى، ثم الفعلى، ثم الحيود ──
+  // نستخدم "bar" لاتينى وأرقام معزولة (بدون كلمات عربية بجانب الأرقام) — آمن فى التصوير
+  const pShow=pressPlc>0?(Number.isInteger(pressPlc)?pressPlc:parseFloat(pressPlc.toFixed(1))):null;
+  const stdEl=document.getElementById('d-flow-std');
+  const actEl=document.getElementById('d-flow-act');
+  const stdLbl=document.getElementById('d-flow-std-lbl');
+  const actLbl=document.getElementById('d-flow-act-lbl');
+  const _fu=n=>fmtEn(n,0)+' m³/hr';           // رقم + وحدة (لاتينى — آمن)
+  const _at=p=>p?(' @ '+p+' bar'):'';
   if(sharedMode){
-    document.getElementById('d-flow-ref-label').textContent='المعيارى المرجّح (الضاغطان معاً)';
-    if(actualLbl)actualLbl.textContent=pressPlc>0?`الفعلى المشترك (${pressPlcShow} bar)`:'الفعلى المشترك';
+    if(stdLbl)stdLbl.textContent='المعيارى المرجّح';
+    if(actLbl)actLbl.textContent='الفعلى المشترك';
+    if(stdEl)stdEl.textContent = adjRefFlow ? (_fu(adjRefFlow)+_at(pShow)) : '—';
+    if(actEl)actEl.textContent = flow ? (_fu(flow)+_at(pShow)) : '—';
+  } else {
+    if(stdLbl)stdLbl.textContent='المعيارى';
+    if(actLbl)actLbl.textContent='الفعلى';
+    const _origFlow=_uSpec?_uSpec.flow:refFlow;
+    const _origPress=_uSpec?_uSpec.suction:stRefPress;
+    if(_origFlow&&_origPress&&adjRefFlow&&pShow){
+      // سطران مرتّبان: الأصلى فوق، والمعدّل تحته مسبوقاً بسهم
+      stdEl.innerHTML = '<span style="display:block">'+_fu(_origFlow)+' @ '+_origPress+' bar</span>'
+                      + '<span style="display:block">→ '+_fu(adjRefFlow)+_at(pShow)+'</span>';
+    } else if(adjRefFlow){
+      stdEl.textContent = _fu(adjRefFlow)+_at(pShow);
+    } else stdEl.textContent='—';
+    if(actEl)actEl.textContent = flow ? (_fu(flow)+_at(pShow)) : '—';
   }
-  document.getElementById('d-flow-ref-val').textContent=adjRefFlow?fmtEn(adjRefFlow,0):'—';
-  document.getElementById('d-flow-actual').textContent=flow?fmtEn(flow,0):'—';
   const flowDevEl=document.getElementById('d-flow-dev-val');
   const flowWrap=document.getElementById('d-flow-dev-wrap');
   if(flowAdj!==null){
@@ -5011,8 +5042,8 @@ function renderMgrDay(j){
       '<td style="direction:ltr;font-weight:800;color:#334155;background:'+C.time+'">'+sentTime+'</td>'+
       '<td style="font-weight:800;background:'+C.sales+';color:#1E40AF">'+(s.sales==null?'—':Number(s.sales).toLocaleString('en-US',{maximumFractionDigits:0}))+'</td>'+
       '<td style="background:'+C.kwh+';font-weight:800;color:#6D28D9">'+fmt(s.kwhM3)+'</td>'+
-      '<td style="background:'+C.fr+';font-weight:800;color:#854D0E">'+fmt(s.fr)+'</td>'+
-      '<td style="background:'+C.dev+';font-weight:800;'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+fmt(s.frDev)+'</td>'+
+      '<td style="background:'+C.fr+';font-weight:800;color:#854D0E">'+_frClick(s,fmt(s.fr))+'</td>'+
+      '<td style="background:'+C.dev+';font-weight:800;'+(s.frDev!=='—'&&s.frDev!=='N/A'?devColor:'')+'">'+_frClick(s,fmt(s.frDev))+'</td>'+
       '<td style="background:'+C.pf+';font-weight:800;color:#0369A1">'+fmt(s.pf)+'</td>'+
       '<td style="background:'+C.util+';font-weight:800;color:#0F766E">'+fmt(s.util)+'</td>'+
       '<td style="color:#C2410C;font-weight:800;background:'+C.down+'">'+dtCell(s)+'</td>'+
@@ -5021,14 +5052,114 @@ function renderMgrDay(j){
     '</tr>';
   });
   tb.innerHTML=html;
-  buildOilPanel(j.oils||{});
+  buildMgrCharts(j);
+}
+// ══════════ رسومات لوحة المسؤول (من بيانات اليوم الموجودة — بدون داتا جديدة) ══════════
+function _shortModel(code){ const st=STATIONS[String(code)]; return (st&&st.comps&&st.comps[0]&&st.comps[0].model)||''; }
+function _devNum(v){ if(v==null)return null; const m=String(v).match(/^([+-]?\d+(?:\.\d+)?)%$/); return m?parseFloat(m[1]):null; }
+function _numOr(v){ if(v==null||v==='—'||v==='N/A')return null; const n=parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)?null:n; }
+function _dtMin(str){ if(!str)return 0; str=String(str); let m=0; const h=str.match(/(\d+)\s*س/); const d=str.match(/(\d+)\s*د/); if(h)m+=parseInt(h[1],10)*60; if(d)m+=parseInt(d[1],10); return m; }
+function buildMgrCharts(j){
+  const host=document.getElementById('mgr-charts'); if(!host) return;
+  const S=(j.stations||[]);
+  let H='';
+  // 1) أعلى 8 محطات مبيعاً
+  const sales=S.filter(s=>s.sales!=null&&s.sales>0).sort((a,b)=>b.sales-a.sales).slice(0,8);
+  if(sales.length){
+    const mx=Math.max(...sales.map(s=>s.sales));
+    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#2563EB"></span>أعلى المحطات مبيعاً اليوم (م³)</div>';
+    sales.forEach(s=>{const w=Math.max(14,s.sales/mx*100);H+='<div class="mc-brow"><div class="mc-bname">'+s.name+'</div><div class="mc-btrack"><div class="mc-bfill" style="width:'+w+'%;background:linear-gradient(90deg,#3B82F6,#2563EB)"><span class="mc-bval">'+s.sales.toLocaleString('en-US',{maximumFractionDigits:0})+'</span></div></div></div>';});
+    H+='</div>';
+  }
+  // 2) المحطات المتوقفة (أعطال/صيانات/معايرات — clickable) — نستبعد خارج الإرادة
+  const stopped=S.filter(s=>{const has=(s.stopReason&&s.stopReason.trim())||(s.stopDetails&&s.stopDetails.trim());return has&&s.downtime&&s.downtime!=='—'&&s.downtime!=='0 س 0 د';})
+                 .map(s=>({s,min:_dtMin(s.downtime)})).sort((a,b)=>b.min-a.min);
+  if(stopped.length){
+    const mx=Math.max(...stopped.map(x=>x.min),1);
+    let totMin=0; stopped.forEach(x=>totMin+=x.min);
+    const totLbl=(Math.floor(totMin/60)>0?Math.floor(totMin/60)+'س ':'')+(totMin%60)+'د';
+    H+='<div class="mc-card"><div class="mc-title" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot" style="background:#EA580C"></span>المحطات المتوقفة اليوم</span><span style="font-size:11px;color:#C2410C;background:#FFEDD5;padding:2px 10px;border-radius:20px">الإجمالى '+totLbl+'</span></div>';
+    stopped.forEach(x=>{
+      const s=x.s; const w=Math.max(20,x.min/mx*100);
+      const rs=(s.stopReason||''); const tag=rs.indexOf('معاير')>=0?'📏':(rs.indexOf('صيان')>=0?'🔧':'⚠️');
+      const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:s.downtime,reason:s.stopReason||'',details:s.stopDetails||'',model:stationModels(s.code)}));
+      H+='<div class="mc-brow" style="cursor:pointer" onclick="showStopReason(\''+payload+'\')"><div class="mc-bname">'+tag+' '+s.name+'</div><div class="mc-btrack"><div class="mc-bfill" style="width:'+w+'%;background:linear-gradient(90deg,#FB923C,#EA580C)"><span class="mc-bval">'+s.downtime+' ℹ️</span></div></div></div>';
+    });
+    H+='<div class="mc-hint">👆 اضغط على أى محطة لعرض تفاصيل العطل</div></div>';
+  }
+  // 3) رصيد الزيوت بالنوع
+  const oils=j.oils||{}; const ok=Object.keys(oils);
+  if(ok.length){
+    const arr=ok.map(k=>[k,parseFloat(oils[k])||0]).sort((a,b)=>b[1]-a[1]);
+    const mx=Math.max(...arr.map(a=>a[1]),1); const LOW=50;
+    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#B45309"></span>🛢️ رصيد الزيوت بالمنطقة (لتر لكل نوع)</div>';
+    arr.forEach(([n,v])=>{const w=Math.max(14,v/mx*100);const low=v<LOW;const col=low?'linear-gradient(90deg,#F87171,#DC2626)':'linear-gradient(90deg,#D97706,#B45309)';H+='<div class="mc-brow"><div class="mc-bname" style="width:120px">'+n+'</div><div class="mc-btrack"><div class="mc-bfill" style="width:'+w+'%;background:'+col+'"><span class="mc-bval">'+v.toLocaleString('en-US',{maximumFractionDigits:1})+' لتر'+(low?' ⚠️':'')+'</span></div></div></div>';});
+    H+='<div class="mc-legend"><span><i style="background:#B45309"></i> رصيد كافٍ</span><span><i style="background:#DC2626"></i> رصيد منخفض</span></div></div>';
+  }
+  // 4) الحيود — أعمدة رأسية (5 محطات، تبدأ بالأحمر = الأكثر سلباً)
+  const dev=S.map(s=>({s,d:_devNum(s.frDev)})).filter(x=>x.d!=null).sort((a,b)=>a.d-b.d).slice(0,5);
+  if(dev.length){
+    const mxA=Math.max(...dev.map(x=>Math.abs(x.d)),1);
+    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#7C3AED"></span>أعلى المحطات حيوداً عن المعيار (%)</div><div class="mc-vchart">';
+    dev.forEach(x=>{const v=x.d;const bh=Math.round(78+Math.abs(v)/mxA*80);const col=v>=0?'#16A34A':'#DC2626';const md=_shortModel(x.s.code)||'—';H+='<div class="mc-vcol"><div class="mc-vnum" style="color:'+col+'">'+(v>0?'+':'')+v+'%</div><div class="mc-vbar" style="height:'+bh+'px;background:linear-gradient(180deg,'+col+','+col+'CC)"><span class="mc-vmodel">'+md+'</span></div><div class="mc-vst">'+x.s.name+'</div></div>';});
+    H+='</div><div class="mc-hint">رقم الحيود فوق العمود • موديل الضاغط جوّاه • أحمر تحت المعيار / أخضر فوقه</div></div>';
+  }
+  // 5) تكلفة الكهرباء (KWH/م³) — أعلى 3 (أحمر) وأقل 3 (أخضر)
+  const cost=S.map(s=>({s,c:_numOr(s.kwhM3)})).filter(x=>x.c!=null&&x.c>0).sort((a,b)=>b.c-a.c);
+  if(cost.length>=2){
+    const top=cost.slice(0,3); const low=cost.slice(-3).reverse(); // أعلى ثم أقل
+    const pick=top.concat(low); const mxC=Math.max(...pick.map(x=>x.c),0.01);
+    H+='<div class="mc-card"><div class="mc-title"><span class="dot" style="background:#0891B2"></span>تكلفة م³ من الكهرباء (KWH/م³) — الأعلى والأقل</div><div class="mc-vchart">';
+    pick.forEach((x,i)=>{const v=x.c;const bh=Math.round(78+v/mxC*80);const col=i<top.length?'#DC2626':'#16A34A';const md=_shortModel(x.s.code)||'—';if(i===top.length)H+='<div class="mc-vdiv"></div>';H+='<div class="mc-vcol"><div class="mc-vnum" style="color:'+col+'">'+v.toFixed(2)+'</div><div class="mc-vbar" style="height:'+bh+'px;background:linear-gradient(180deg,'+col+','+col+'CC)"><span class="mc-vmodel">'+md+'</span></div><div class="mc-vst">'+x.s.name+'</div></div>';});
+    H+='</div><div class="mc-legend"><span><i style="background:#DC2626"></i> الأعلى تكلفة</span><span><i style="background:#16A34A"></i> الأقل تكلفة</span></div></div>';
+  }
+  host.innerHTML=H;
+}
+// خلية FR/الحيود قابلة للضغط → تفتح تفصيل معدل التدفق (نفس سلسلة صورة الملخص)
+function _frClick(s, inner){
+  if(!s.frChain) return inner;
+  const p=encodeURIComponent(JSON.stringify({name:s.name,model:stationModels(s.code),chain:s.frChain,dev:s.frDev}));
+  return '<span onclick="showFlowChain(\''+p+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+inner+'</span>';
+}
+function showFlowChain(payload){
+  let d; try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
+  const c=d.chain||{}; const fu=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:0})+' m³/hr'; const at=p=>p?(' @ '+p+' bar'):'';
+  const box=document.getElementById('stop-reason-modal');
+  const body=document.getElementById('stop-reason-body');
+  let h='<div style="font-weight:800;color:#1A4A2A;font-size:16px;margin-bottom:4px">'+d.name+'</div>';
+  if(d.model&&d.model.trim()) h+='<div style="font-size:12px;font-weight:700;color:#0F766E;direction:ltr;text-align:right;margin-bottom:10px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">🔩 '+d.model+'</div>';
+  h+='<div style="background:#EDF7EE;border:1px solid #86EFAC;border-radius:10px;padding:12px">';
+  h+='<div style="font-weight:800;color:#1A4A2A;font-size:13px;margin-bottom:10px">📊 معدل التدفق — Flow Rate</div>';
+  function row(lbl,val){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #BBF7D0"><span style="font-size:13px;font-weight:800;color:#1A4A2A">'+lbl+'</span><span style="direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left">'+val+'</span></div>'; }
+  if(c.shared){
+    h+=row('المعيارى المرجّح', c.adj?(fu(c.adj)+at(c.actP)):'—');
+    h+=row('الفعلى المشترك', c.act?(fu(c.act)+at(c.actP)):'—');
+  } else {
+    const std = (c.orig&&c.origP&&c.adj)
+      ? (fu(c.orig)+' @ '+c.origP+' bar<br>→ '+fu(c.adj)+at(c.actP))
+      : (c.adj?(fu(c.adj)+at(c.actP)):'—');
+    h+=row('المعيارى', std);
+    h+=row('الفعلى', c.act?(fu(c.act)+at(c.actP)):'—');
+  }
+  const devTxt=(d.dev&&d.dev!=='—'&&d.dev!=='N/A')?d.dev:'—';
+  const devCol=String(d.dev).startsWith('-')?'#B91C1C':'#1A7A45';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0"><span style="font-size:13px;font-weight:800;color:#1A4A2A">الحيود</span><span style="direction:ltr;font-size:18px;font-weight:900;color:'+devCol+'">'+devTxt+'</span></div>';
+  h+='</div>';
+  body.innerHTML=h;
+  box.style.display='flex';
 }
 // خلية مدة التوقف (الأعطال/الصيانات فقط — clickable)
+// موديلات ضواغط محطة معينة (اسم + موديل) — تظهر داخل مودال العطل
+function stationModels(code){
+  const st=STATIONS[String(code)];
+  if(!st||!st.comps) return '';
+  return st.comps.map(c=>((c.name?c.name+' — ':'')+(c.model||''))).filter(x=>x.trim()).join(' / ');
+}
 function dtCell(s){
   const dt=s.downtime||'—';
   const hasStop=(s.stopReason&&s.stopReason.trim())||(s.stopDetails&&s.stopDetails.trim());
   if(hasStop && dt!=='—' && dt!=='0 س 0 د'){
-    const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:dt,reason:s.stopReason||'',details:s.stopDetails||''}));
+    const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:dt,reason:s.stopReason||'',details:s.stopDetails||'',model:stationModels(s.code)}));
     return '<span onclick="showStopReason(\''+payload+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+dt+' <span style="font-size:10px">ℹ️</span></span>';
   }
   return (dt==='—'?'—':dt);
@@ -5078,7 +5209,11 @@ function showStopReason(payload){
   try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
   const box=document.getElementById('stop-reason-modal');
   const body=document.getElementById('stop-reason-body');
-  let h='<div style="font-weight:800;color:#C2410C;font-size:15px;margin-bottom:12px">'+d.name+'</div>';
+  let h='<div style="font-weight:800;color:#C2410C;font-size:15px;margin-bottom:4px">'+d.name+'</div>';
+  // موديل الضاغط
+  if(d.model && d.model.trim()){
+    h+='<div style="font-size:12px;font-weight:700;color:#0F766E;direction:ltr;text-align:right;margin-bottom:12px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">🔩 '+d.model+'</div>';
+  } else { h+='<div style="margin-bottom:8px"></div>'; }
   // مدة التوقف (زى ما بيظهر فى خارج الإرادة)
   if(d.dt && d.dt.trim() && d.dt!=='—'){
     h+='<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px;margin-bottom:10px;text-align:center">';
