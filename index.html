@@ -197,7 +197,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
 #mgr-tip b{display:block;font-size:13px;margin-bottom:2px}
 .flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
 .flow-lbl{font-size:12px;font-weight:800;color:#1A4A2A;flex-shrink:0}
-.flow-chain{direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left;line-height:1.5}
+.flow-chain{direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left;line-height:1.5;white-space:nowrap}
 .kpi-dev{font-size:11px;margin-top:4px;font-weight:700;direction:ltr}
 .kpi-dev.ok{color:var(--green)}.kpi-dev.warn{color:var(--amber)}.kpi-dev.bad{color:var(--red)}
 .pf-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:12px}
@@ -916,7 +916,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V110</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V111</span>
       </div>
     </div>
   </div>
@@ -1333,7 +1333,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 110; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 111; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3103,10 +3103,10 @@ async function submitForm(){
     totalElecLE=kwhIndTotal*2.74; // إجمالى تكلفة الكهرباء — صناعى فقط
     costPerM3LE=sales>0?(kwhIndTotal*2.74)/sales:null; // جنيه/م³
     const indCost=kwhInd*2.74;
-    if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${(indCost*(0.92-pf)*1).toFixed(2)} جنيه`;}
-    else if(pf<0.92){pfResult='fine';pfAmount=`غرامة: ${(indCost*(0.92-pf)*0.5).toFixed(2)} جنيه`;}
-    else if(pf<=0.95){pfResult='good';pfAmount=`حافز: ${(indCost*(pf-0.92)*0.5).toFixed(2)} جنيه`;}
-    else{pfResult='good';pfAmount=`حافز: ${(indCost*(0.95-0.92)*0.5).toFixed(2)} جنيه`;}
+    if(pf<0.70){pfResult='bad';pfAmount=`غرامة: ${Math.round(indCost*(0.92-pf)*1)} جنيه`;}
+    else if(pf<0.92){pfResult='fine';pfAmount=`غرامة: ${Math.round(indCost*(0.92-pf)*0.5)} جنيه`;}
+    else if(pf<=0.95){pfResult='good';pfAmount=`حافز: ${Math.round(indCost*(pf-0.92)*0.5)} جنيه`;}
+    else{pfResult='good';pfAmount=`حافز: ${Math.round(indCost*(0.95-0.92)*0.5)} جنيه`;}
   } else if(!mi&&kwhCom>0){
     // ── تعريفة تجارية فقط: لا يوجد Power Factor — التكلفة من التجارى ──
     pf=null; pfResult=''; pfAmount='لا يوجد PF — تعريفة تجارية';
