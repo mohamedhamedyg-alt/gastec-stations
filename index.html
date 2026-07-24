@@ -916,7 +916,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V111</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V113</span>
       </div>
     </div>
   </div>
@@ -1333,7 +1333,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 111; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 113; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -2950,6 +2950,13 @@ function validateAll(){
     [['maint-hrs','maint-cur','ساعات الصيانة'],['gm-hrs','gm-cur','ساعات صيانة المحرك'],['lube-hrs','lube-cur','ساعات التشحيم']].forEach(([a,b,lbl])=>{
       const av=parseNum(document.getElementById(a+'-'+ix)?.value), bv=parseNum(document.getElementById(b+'-'+ix)?.value);
       if(av>0&&bv>0&&bv<av){errors.push(lbl+': الحالية أصغر من ساعات آخر مرة — ضاغط '+(ix+1));markErr(b+'-'+ix,'أصغر من آخر مرة');}
+    });
+  });
+  // ── ساعات كلية حالية غير منطقية (إدخال خاطئ ضخم) — يمنع أرقام صيانة مستحيلة ──
+  _acH.forEach(ix=>{
+    [['maint-hrs','maint-cur','الصيانة'],['gm-hrs','gm-cur','صيانة المحرك'],['lube-hrs','lube-cur','التشحيم']].forEach(([a,b,lbl])=>{
+      const av=parseNum(document.getElementById(a+'-'+ix)?.value)||0, bv=parseNum(document.getElementById(b+'-'+ix)?.value)||0;
+      if(bv-av>100000){errors.push('الساعات الكلية الحالية غير منطقية ('+lbl+') — ضاغط '+(ix+1));markErr(b+'-'+ix,'رقم غير منطقى');}
     });
   });
   // ── فاليديشن التوقفات (لكل بطاقة توقف بفترة محددة) ──
