@@ -916,7 +916,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V115</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V116</span>
       </div>
     </div>
   </div>
@@ -1334,7 +1334,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 115; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 116; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3450,10 +3450,11 @@ async function submitForm(){
     const _usp=(COMP_SPECS_UNIFIED[currentStation?.code]||[]);
     const _s0=_usp[0], _s1=_usp[1];
     if(_s0&&_s1&&_s0.flow>0&&_s0.suction>0&&_s1.flow>0&&_s1.suction>0){
-      const _r0=_s0.flow*(pressPlc/_s0.suction), _r1=_s1.flow*(pressPlc/_s1.suction);
+      const _pi0=(_p0>0?_p0:pressPlc), _pi1=(_p1>0?_p1:pressPlc);
+      const _r0=_s0.flow*(_pi0/_s0.suction), _r1=_s1.flow*(_pi1/_s1.suction);
       const _tsum=c1tf_+c2tf_;
-      flow=sales/_tsum;
-      adjRefFlow=(_r0*c1tf_+_r1*c2tf_)/_tsum;
+      flow=sales/_tsum;                 // الفعلى = المبيعات ÷ مجموع ساعات الضاغطين
+      adjRefFlow=_r0+_r1;               // المعيارى الكلى = مجموع معيارى كل ضاغط عند ضغط دخوله
       sharedMode=true;
     }
   }
@@ -3468,10 +3469,10 @@ async function submitForm(){
   const _fu=n=>fmtEn(n,0)+' m³/hr';           // رقم + وحدة (لاتينى — آمن)
   const _at=p=>p?(' @ '+p+' bar'):'';
   if(sharedMode){
-    if(stdLbl)stdLbl.textContent='المعيارى المرجّح';
+    if(stdLbl)stdLbl.textContent='المعيارى الكلى';
     if(actLbl)actLbl.textContent='الفعلى المشترك';
-    if(stdEl)stdEl.textContent = adjRefFlow ? (_fu(adjRefFlow)+_at(pShow)) : '—';
-    if(actEl)actEl.textContent = flow ? (_fu(flow)+_at(pShow)) : '—';
+    if(stdEl)stdEl.textContent = adjRefFlow ? _fu(adjRefFlow) : '—';   // مجموع — بدون ضغط موحّد (لكل ضاغط ضغطه)
+    if(actEl)actEl.textContent = flow ? _fu(flow) : '—';
   } else {
     if(stdLbl)stdLbl.textContent='المعيارى';
     if(actLbl)actLbl.textContent='الفعلى';
@@ -5236,8 +5237,14 @@ function showFlowChain(payload){
   h+='<div style="font-weight:800;color:#1A4A2A;font-size:13px;margin-bottom:10px">📊 معدل التدفق — Flow Rate</div>';
   function row(lbl,val){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #BBF7D0"><span style="font-size:13px;font-weight:800;color:#1A4A2A">'+lbl+'</span><span style="direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left">'+val+'</span></div>'; }
   if(c.shared){
-    h+=row('المعيارى المرجّح', c.adj?(fu(c.adj)+at(c.actP)):'—');
-    h+=row('الفعلى المشترك', c.act?(fu(c.act)+at(c.actP)):'—');
+    if(c.comps&&c.comps.length){
+      c.comps.forEach((cp,ix)=>{ h+=row('معيارى ض'+(ix+1), fu(cp.spec)+' @ '+cp.specP+' bar → '+fu(cp.exp)+' @ '+cp.inletP+' bar'); });
+      h+=row('المعيارى الكلى (مجموع)', c.adj?fu(c.adj):'—');
+      h+=row('الفعلى المشترك', c.act?fu(c.act):'—');
+    } else {
+      h+=row('المعيارى المرجّح', c.adj?(fu(c.adj)+at(c.actP)):'—');
+      h+=row('الفعلى المشترك', c.act?(fu(c.act)+at(c.actP)):'—');
+    }
   } else {
     const std = (c.orig&&c.origP&&c.adj)
       ? (fu(c.orig)+' @ '+c.origP+' bar<br>→ '+fu(c.adj)+at(c.actP))
