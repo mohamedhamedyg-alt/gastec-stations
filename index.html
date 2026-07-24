@@ -375,32 +375,32 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div style="padding:16px;width:100%;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 72px)">
-    <div class="login-card" style="max-width:400px;padding:0;overflow:hidden">
+  <div style="padding:10px;width:100%;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 60px)">
+    <div class="login-card" style="max-width:400px;padding:0;overflow:hidden;margin:6px">
       <!-- بانر علوى مبهج -->
-      <div style="background:linear-gradient(135deg,#0EA5E9 0%,#6366F1 50%,#A855F7 100%);padding:12px 18px 11px;text-align:center;position:relative;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#0EA5E9 0%,#6366F1 50%,#A855F7 100%);padding:8px 16px 8px;text-align:center;position:relative;overflow:hidden">
         <div style="position:absolute;top:-30px;right:-30px;width:80px;height:80px;background:rgba(255,255,255,.12);border-radius:50%"></div>
         <div style="position:absolute;bottom:-40px;left:-20px;width:90px;height:90px;background:rgba(255,255,255,.08);border-radius:50%"></div>
-        <div style="font-size:20px;margin-bottom:1px;position:relative">⛽</div>
-        <div style="font-size:18px;font-weight:900;color:#fff;position:relative">غازتك</div>
-        <div style="font-size:11.5px;color:#fff;font-weight:800;margin-top:2px;position:relative">برنامج متابعة وتشغيل المحطات</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.9);font-weight:700;margin-top:1px;position:relative">منطقة القناة وسيناء</div>
+        <div style="font-size:16px;margin-bottom:0;position:relative">⛽</div>
+        <div style="font-size:17px;font-weight:900;color:#fff;position:relative">غازتك</div>
+        <div style="font-size:11px;color:#fff;font-weight:800;margin-top:1px;position:relative">برنامج متابعة وتشغيل المحطات</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,.9);font-weight:700;margin-top:1px;position:relative">منطقة القناة وسيناء</div>
       </div>
-      <div style="padding:16px">
-        <div style="font-size:13px;font-weight:800;color:#334155;text-align:center;margin-bottom:11px">اختر نوع الدخول</div>
+      <div style="padding:12px 14px">
+        <div style="font-size:12.5px;font-weight:800;color:#334155;text-align:center;margin-bottom:8px">اختر نوع الدخول</div>
         <!-- كروت الأدوار بألوان مميزة -->
-        <div style="display:grid;gap:8px;margin-bottom:13px">
-          <div id="role-station" onclick="setLoginMode('station')" style="cursor:pointer;border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 3px 10px rgba(16,185,129,.3);border:2.5px solid #10B981;transition:.15s">
+        <div style="display:grid;gap:6px;margin-bottom:10px">
+          <div id="role-station" onclick="setLoginMode('station')" style="cursor:pointer;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 3px 10px rgba(16,185,129,.3);border:2.5px solid #10B981;transition:.15s">
             <div style="font-size:22px">👷</div>
             <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#fff">مشرف محطة</div><div style="font-size:10px;color:rgba(255,255,255,.85)">إدخال البيان اليومي والمحاضر</div></div>
             <div id="check-station" style="font-size:18px;color:#fff">●</div>
           </div>
-          <div id="role-admin" onclick="setLoginMode('admin')" style="cursor:pointer;border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:11px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);border:2.5px solid #E2E8F0;transition:.15s">
+          <div id="role-admin" onclick="setLoginMode('admin')" style="cursor:pointer;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);border:2.5px solid #E2E8F0;transition:.15s">
             <div style="font-size:22px">📊</div>
             <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#1E40AF">المسؤول</div><div style="font-size:10px;color:#64748B">متابعة الأداء والتقارير</div></div>
             <div id="check-admin" style="font-size:18px;color:#CBD5E1">○</div>
           </div>
-          <div id="role-maint" onclick="setLoginMode('maint')" style="cursor:pointer;border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:11px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);border:2.5px solid #E2E8F0;transition:.15s">
+          <div id="role-maint" onclick="setLoginMode('maint')" style="cursor:pointer;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.08);border:2.5px solid #E2E8F0;transition:.15s">
             <div style="font-size:19px;white-space:nowrap">⚙️⚡</div>
             <div style="flex:1"><div style="font-size:14px;font-weight:800;color:#C2410C">الصيانة</div><div style="font-size:10px;color:#64748B">الصيانات والفحوصات المستحقة</div></div>
             <div id="check-maint" style="font-size:18px;color:#CBD5E1">○</div>
@@ -916,7 +916,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V113</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V114</span>
       </div>
     </div>
   </div>
@@ -1119,6 +1119,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
   </div>
+  <div id="mgr-notsent" style="margin-bottom:12px"></div>
   <div id="mgr-charts" style="margin-bottom:12px"></div>
   <div class="mgr-table-wrap" style="max-height:calc(100vh - 360px);min-height:340px;overflow:auto;position:relative">
     <table id="mgr-grid" style="border-collapse:separate;border-spacing:0;min-width:1040px;width:100%;font-size:12px">
@@ -1333,7 +1334,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 113; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 114; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5081,6 +5082,17 @@ function renderMgrDay(j){
   document.getElementById('mgr-c-sent').textContent=j.sent+'/'+(j.sent+j.pending);
   document.getElementById('mgr-c-kwhm3').textContent=j.totals.kwhm3;
   document.getElementById('mgr-c-down').textContent=j.totals.downtime;
+  // ── المحطات التى لم ترسل (فوق الجدول) ──
+  const _ns=document.getElementById('mgr-notsent');
+  if(_ns){
+    const notSent=(j.stations||[]).filter(s=>!s.sent);
+    if(notSent.length===0){
+      _ns.innerHTML='<div style="background:#DCFCE7;border:1px solid #86EFAC;border-radius:12px;padding:11px 15px;text-align:center;color:#166534;font-weight:800;font-size:14px">✅ تم إرسال البيانات من جميع المحطات</div>';
+    } else {
+      const names=notSent.map(s=>s.name).join(' · ');
+      _ns.innerHTML='<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:11px 15px;color:#991B1B;font-weight:700;font-size:13px;line-height:1.7"><span style="font-weight:800">🔴 محطات لم ترسل ('+notSent.length+'): </span>'+names+'</div>';
+    }
+  }
   // إجمالى الهوزات المتوقفة (فى خانة الملخص)
   let totalHoses=0;
   j.stations.forEach(s=>{ totalHoses+=parseInt(s.hoses)||0; });
@@ -5139,7 +5151,8 @@ function _mcCurve(title,dotColor,data,opts){
     else if(opts.mode==='cost')col=isTop?'#DC2626':(isLow?'#16A34A':'#94A3B8');
     else col=isTop?'#16A34A':(isLow?'#DC2626':'#94A3B8');
     const big=isTop||isLow;
-    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(d.v).toFixed(1)+'" r="'+(big?3.2:2)+'" fill="'+(big?col:'#94A3B8')+'" stroke="#fff" stroke-width="'+(big?1:0.5)+'" style="cursor:pointer" data-n="'+_esc(d.name)+'" data-v="'+_esc(opts.fmt(d.v))+'"/>';
+    const _fc=(opts.detail==='flow'&&d.frChain)?(' data-fc="'+encodeURIComponent(JSON.stringify({name:d.name,model:stationModels(d.code),chain:d.frChain,dev:d.frDev}))+'"'):'';
+    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(d.v).toFixed(1)+'" r="'+(big?3.2:2)+'" fill="'+(big?col:'#94A3B8')+'" stroke="#fff" stroke-width="'+(big?1:0.5)+'" style="cursor:pointer" data-n="'+_esc(d.name)+'" data-v="'+_esc(opts.fmt(d.v))+'"'+_fc+'/>';
     if(i>=n-labelN)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)-5).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
     if(i<labelN)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)+9).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
   });
@@ -5156,8 +5169,8 @@ function buildMgrCharts(j){
   // ── منحنيات الـ42 محطة ──
   const salesD=S.filter(s=>s.sales!=null&&s.sales>0).map(s=>({name:s.name,v:s.sales}));
   H+=_mcCurve('المبيعات — كل المحطات (م³)','#2563EB',salesD,{mode:'plain',listN:10,fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),fmtShort:v=>Math.round(v/1000)+'k',topTitle:'🟢 أعلى 10 مبيعاً',lowTitle:'🔴 أقل 10 مبيعاً',topColor:'#16A34A',lowColor:'#DC2626'});
-  const devD=S.map(s=>({name:s.name,v:_devNum(s.frDev)})).filter(x=>x.v!=null);
-  H+=_mcCurve('حيود معدل التدفق — كل المحطات (%)','#7C3AED',devD,{ref:0,refLbl:'0%',mode:'dev',fmt:v=>(v>0?'+':'')+v+'%',fmtShort:v=>(v>0?'+':'')+v,topTitle:'🟢 أعلى 5 (فوق المعيار)',lowTitle:'🔴 أقل 5 (تحت المعيار)',topColor:'#16A34A',lowColor:'#DC2626'});
+  const devD=S.map(s=>({name:s.name,v:_devNum(s.frDev),code:s.code,frChain:s.frChain,frDev:s.frDev})).filter(x=>x.v!=null);
+  H+=_mcCurve('حيود معدل التدفق — كل المحطات (%)','#7C3AED',devD,{ref:0,refLbl:'0%',mode:'dev',detail:'flow',fmt:v=>(v>0?'+':'')+v+'%',fmtShort:v=>(v>0?'+':'')+v,topTitle:'🟢 أعلى 5 (فوق المعيار)',lowTitle:'🔴 أقل 5 (تحت المعيار)',topColor:'#16A34A',lowColor:'#DC2626'});
   const kwhD=S.map(s=>({name:s.name,v:_numOr(s.kwhM3)})).filter(x=>x.v!=null&&x.v>0);
   H+=_mcCurve('استهلاك الكهرباء KWH/م³ — كل المحطات','#0891B2',kwhD,{mode:'cost',fmt:v=>v.toFixed(2),fmtShort:v=>v.toFixed(2),topTitle:'🔴 أعلى 5 استهلاكاً',lowTitle:'🟢 أقل 5 استهلاكاً',topColor:'#DC2626',lowColor:'#16A34A'});
   const pfD=S.map(s=>({name:s.name,code:s.code,v:_pfNum(s.pf)})).filter(x=>x.v!=null&&x.v>0);
@@ -5193,6 +5206,8 @@ function buildMgrCharts(j){
   host.querySelectorAll('svg circle[data-n]').forEach(c=>{
     c.addEventListener('click',(ev)=>{
       ev.stopPropagation();  // كى لا يُخفيها معالج الضغط برّة فوراً
+      const fc=c.getAttribute('data-fc');
+      if(fc){ tip.style.display='none'; showFlowChain(fc); return; }  // منحنى الحيود → بوكس تفاصيل التدفق
       tip.innerHTML='<b>'+c.getAttribute('data-n')+'</b>'+c.getAttribute('data-v');
       const r=c.getBoundingClientRect();
       tip.style.display='block';
@@ -5216,7 +5231,7 @@ function showFlowChain(payload){
   const box=document.getElementById('stop-reason-modal');
   const body=document.getElementById('stop-reason-body');
   let h='<div style="font-weight:800;color:#1A4A2A;font-size:16px;margin-bottom:4px">'+d.name+'</div>';
-  if(d.model&&d.model.trim()) h+='<div style="font-size:12px;font-weight:700;color:#0F766E;direction:ltr;text-align:right;margin-bottom:10px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">🔩 '+d.model+'</div>';
+  if(d.model&&d.model.trim()){const _ms=d.model.split(' / ');const _mh=_ms.map(m=>'<div style="direction:ltr;text-align:right;padding:'+(_ms.length>1?'3px 0':'0')+'">🔩 '+m+'</div>').join('');h+='<div style="font-size:12px;font-weight:700;color:#0F766E;margin-bottom:10px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">'+_mh+'</div>';}
   h+='<div style="background:#EDF7EE;border:1px solid #86EFAC;border-radius:10px;padding:12px">';
   h+='<div style="font-weight:800;color:#1A4A2A;font-size:13px;margin-bottom:10px">📊 معدل التدفق — Flow Rate</div>';
   function row(lbl,val){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #BBF7D0"><span style="font-size:13px;font-weight:800;color:#1A4A2A">'+lbl+'</span><span style="direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left">'+val+'</span></div>'; }
@@ -5299,9 +5314,11 @@ function showStopReason(payload){
   const box=document.getElementById('stop-reason-modal');
   const body=document.getElementById('stop-reason-body');
   let h='<div style="font-weight:800;color:#C2410C;font-size:15px;margin-bottom:4px">'+d.name+'</div>';
-  // موديل الضاغط
+  // موديل الضاغط (لو ضاغطين → كل واحد فى سطر تحت التانى)
   if(d.model && d.model.trim()){
-    h+='<div style="font-size:12px;font-weight:700;color:#0F766E;direction:ltr;text-align:right;margin-bottom:12px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">🔩 '+d.model+'</div>';
+    const _ms=d.model.split(' / ');
+    const _mh=_ms.map(m=>'<div style="direction:ltr;text-align:right;padding:'+(_ms.length>1?'3px 0':'0')+'">🔩 '+m+'</div>').join('');
+    h+='<div style="font-size:12px;font-weight:700;color:#0F766E;margin-bottom:12px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">'+_mh+'</div>';
   } else { h+='<div style="margin-bottom:8px"></div>'; }
   // مدة التوقف (زى ما بيظهر فى خارج الإرادة)
   if(d.dt && d.dt.trim() && d.dt!=='—'){
