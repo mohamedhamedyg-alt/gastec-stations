@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V121</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V122</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 121; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 122; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5249,10 +5249,10 @@ function _frClick(s, inner){
 function _flowChainInner(d){
   const c=d.chain||{}; const fu=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:0})+' m³/hr'; const at=p=>p?(' @ '+p+' bar'):'';
   let h='<div style="font-weight:800;color:#1A4A2A;font-size:16px;margin-bottom:4px">'+d.name+'</div>';
-  if(d.model&&d.model.trim()){const _ms=d.model.split(' / ');const _mh=_ms.map(m=>'<div style="direction:ltr;text-align:right;padding:'+(_ms.length>1?'3px 0':'0')+'">🔩 '+m+'</div>').join('');h+='<div style="font-size:12px;font-weight:700;color:#0F766E;margin-bottom:10px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">'+_mh+'</div>';}
+  if(d.model&&d.model.trim()){const _ms=d.model.split(' / ');const _mh=_ms.map(m=>'<div style="direction:ltr;text-align:right;padding:'+(_ms.length>1?'3px 0':'0')+'">🔩 '+m+'</div>').join('');h+='<div style="font-size:12px;font-weight:700;color:#0F766E;margin-bottom:10px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:5px 9px">'+_mh+'</div>';}
   h+='<div style="background:#EDF7EE;border:1px solid #86EFAC;border-radius:10px;padding:12px">';
   h+='<div style="font-weight:800;color:#1A4A2A;font-size:13px;margin-bottom:10px">📊 معدل التدفق — Flow Rate</div>';
-  function row(lbl,val){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #BBF7D0"><span style="font-size:13px;font-weight:800;color:#1A4A2A">'+lbl+'</span><span style="direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left">'+val+'</span></div>'; }
+  function row(lbl,val){ return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed #BBF7D0"><span style="font-size:13px;font-weight:800;color:#1A4A2A">'+lbl+'</span><span style="direction:ltr;unicode-bidi:isolate;font-size:13px;font-weight:800;color:#0D2B4E;text-align:left">'+val+'</span></div>'; }
   if(c.shared){
     if(c.comps&&c.comps.length){
       c.comps.forEach((cp,ix)=>{ h+=row('معيارى ض'+(ix+1), fu(cp.spec)+' @ '+cp.specP+' bar → '+fu(cp.exp)+' @ '+cp.inletP+' bar'); });
@@ -5284,25 +5284,26 @@ function showFlowChain(payload){
 function _showDetailTip(rect, html){
   let ft=document.getElementById('mgr-flowtip');
   if(!ft){ ft=document.createElement('div'); ft.id='mgr-flowtip'; document.body.appendChild(ft); }
-  // نصفّر أى تحديد ارتفاع سابق قبل القياس
-  ft.style.maxHeight='none'; ft.style.overflowY='visible';
+  // نصفّر أى إعدادات سابقة قبل القياس (البوكس دايماً بدون سكرول داخلى)
+  ft.style.maxHeight='none'; ft.style.overflowY='visible'; ft.style.pointerEvents='none';
   ft.innerHTML=html; ft.style.display='block';
-  const vw=window.innerWidth, vh=window.innerHeight, M=8; // هامش من حواف الشاشة
+  const vw=window.innerWidth, vh=window.innerHeight, M=8, GAP=10; // هامش من الحواف + مسافة عن النقطة
   const w=ft.offsetWidth||270;
   let hh=ft.offsetHeight||180;
-  // المساحة المتاحة فوق النقطة وتحتها — نختار الأوسع
-  const spaceAbove=rect.top - M, spaceBelow=vh - rect.bottom - M;
-  const placeBelow = spaceBelow >= spaceAbove;
-  const room = Math.max(spaceAbove, spaceBelow, 120);
-  // لو البوكس أطول من المساحة → نحدّد ارتفاعه ونخليه يسكرول جوّه نفسه (مش الصفحة)
-  if(hh > room){ ft.style.maxHeight=room+'px'; ft.style.overflowY='auto'; ft.style.pointerEvents='auto'; hh=room; }
-  else { ft.style.pointerEvents='none'; }
-  // رأسياً: فوق أو تحت النقطة حسب الأوسع، ومقفول جوّه الشاشة دايماً
-  let top = placeBelow ? (rect.bottom + 10) : (rect.top - hh - 10);
-  top = Math.max(M, Math.min(vh - hh - M, top));
   // أفقياً: متمركز على النقطة ومقفول جوّه الشاشة
   let left = rect.left + rect.width/2 - w/2;
   left = Math.max(M, Math.min(vw - w - M, left));
+  // رأسياً: الأولوية فوق النقطة كامل، وإلا تحتها كامل، وإلا نثبّته يظهر كامل جوّه الشاشة (ولو غطّى النقطة — عادى، الماوس بيعدّي من خلاله)
+  let top;
+  if(rect.top - GAP - hh >= M){
+    top = rect.top - GAP - hh;                       // فوق النقطة وكامل
+  } else if(rect.bottom + GAP + hh <= vh - M){
+    top = rect.bottom + GAP;                          // تحت النقطة وكامل
+  } else {
+    top = Math.max(M, Math.min(vh - hh - M, rect.top - GAP - hh)); // يظهر كامل جوّه الشاشة
+  }
+  // آخر حل فقط لو البوكس أطول من الشاشة كلها (نادر جداً) — يتثبّت من فوق بأقصى ارتفاع
+  if(hh > vh - 2*M){ ft.style.maxHeight=(vh - 2*M)+'px'; ft.style.overflowY='auto'; ft.style.pointerEvents='auto'; top=M; }
   ft.style.left=left+'px'; ft.style.top=top+'px';
 }
 function _showFlowTip(c, fc){ let d; try{ d=JSON.parse(decodeURIComponent(fc)); }catch(e){ return; } _showDetailTip(c.getBoundingClientRect(), _flowChainInner(d)); }
@@ -5370,7 +5371,7 @@ function _stopReasonInner(d){
   if(d.model && d.model.trim()){
     const _ms=d.model.split(' / ');
     const _mh=_ms.map(m=>'<div style="direction:ltr;text-align:right;padding:'+(_ms.length>1?'3px 0':'0')+'">🔩 '+m+'</div>').join('');
-    h+='<div style="font-size:12px;font-weight:700;color:#0F766E;margin-bottom:12px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">'+_mh+'</div>';
+    h+='<div style="font-size:12px;font-weight:700;color:#0F766E;margin-bottom:12px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:5px 9px">'+_mh+'</div>';
   } else { h+='<div style="margin-bottom:8px"></div>'; }
   // مدة التوقف (زى ما بيظهر فى خارج الإرادة)
   if(d.dt && d.dt.trim() && d.dt!=='—'){
@@ -5384,7 +5385,7 @@ function _stopReasonInner(d){
     h+='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:8px;padding:12px">';
     h+='<div style="font-weight:800;color:#9A3412;font-size:13px;margin-bottom:8px">🔧 سبب التوقف</div>';
     parts.forEach((p,i)=>{
-      h+='<div style="font-size:14px;color:#7C2D12;font-weight:700;padding:7px 0'+(i<parts.length-1?';border-bottom:1px dashed #FDBA74':'')+'">'+(parts.length>1?(i+1)+'. ':'')+p+'</div>';
+      h+='<div style="font-size:14px;color:#7C2D12;font-weight:700;padding:5px 0'+(i<parts.length-1?';border-bottom:1px dashed #FDBA74':'')+'">'+(parts.length>1?(i+1)+'. ':'')+p+'</div>';
     });
     h+='</div>';
   } else {
