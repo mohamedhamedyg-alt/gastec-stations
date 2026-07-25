@@ -194,6 +194,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-lr span:first-child{color:#1E293B;font-weight:800;word-break:break-word;line-height:1.35}
 .mc-lr span:last-child{direction:ltr;flex-shrink:0;font-weight:900;white-space:nowrap}
 #mgr-tip{position:fixed;background:#0D2B4E;color:#fff;padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;display:none;z-index:9999;text-align:center}
+#mgr-flowtip{position:fixed;background:#fff;border:1px solid #86EFAC;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.28);width:270px;max-width:92vw;z-index:9999;display:none;pointer-events:none}
 #mgr-tip b{display:block;font-size:13px;margin-bottom:2px}
 .flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
 .flow-lbl{font-size:12px;font-weight:800;color:#1A4A2A;flex-shrink:0}
@@ -916,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V116</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V118</span>
       </div>
     </div>
   </div>
@@ -1334,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 116; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 118; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5153,7 +5154,10 @@ function _mcCurve(title,dotColor,data,opts){
     else col=isTop?'#16A34A':(isLow?'#DC2626':'#94A3B8');
     const big=isTop||isLow;
     const _fc=(opts.detail==='flow'&&d.frChain)?(' data-fc="'+encodeURIComponent(JSON.stringify({name:d.name,model:stationModels(d.code),chain:d.frChain,dev:d.frDev}))+'"'):'';
-    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(d.v).toFixed(1)+'" r="'+(big?3.2:2)+'" fill="'+(big?col:'#94A3B8')+'" stroke="#fff" stroke-width="'+(big?1:0.5)+'" style="cursor:pointer" data-n="'+_esc(d.name)+'" data-v="'+_esc(opts.fmt(d.v))+'"'+_fc+'/>';
+    // النقطة المرئية (بدون تفاعل)
+    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(d.v).toFixed(1)+'" r="'+(big?3.2:2)+'" fill="'+(big?col:'#94A3B8')+'" stroke="#fff" stroke-width="'+(big?1:0.5)+'" style="pointer-events:none"/>';
+    // مساحة إمساك شفافة أكبر (تسهّل الوقوف/الضغط باللاب والموبايل)
+    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(d.v).toFixed(1)+'" r="6" fill="transparent" style="cursor:pointer" data-n="'+_esc(d.name)+'" data-v="'+_esc(opts.fmt(d.v))+'"'+_fc+'/>';
     if(i>=n-labelN)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)-5).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
     if(i<labelN)s+='<text x="'+x(i).toFixed(1)+'" y="'+(y(d.v)+9).toFixed(1)+'" font-size="6" font-weight="800" fill="'+col+'" text-anchor="middle">'+opts.fmtShort(d.v)+'</text>';
   });
@@ -5204,16 +5208,26 @@ function buildMgrCharts(j){
   host.innerHTML=H;
   // تفعيل التولتيب على نقط المنحنيات
   let tip=document.getElementById('mgr-tip'); if(!tip){tip=document.createElement('div');tip.id='mgr-tip';document.body.appendChild(tip);}
+  function _mtipShow(c){
+    tip.innerHTML='<b>'+c.getAttribute('data-n')+'</b>'+c.getAttribute('data-v');
+    const r=c.getBoundingClientRect();
+    tip.style.display='block';
+    tip.style.left=Math.max(6,Math.min(window.innerWidth-120,r.left-45))+'px';
+    tip.style.top=Math.max(6,r.top-48)+'px';
+  }
   host.querySelectorAll('svg circle[data-n]').forEach(c=>{
-    c.addEventListener('click',(ev)=>{
-      ev.stopPropagation();  // كى لا يُخفيها معالج الضغط برّة فوراً
+    // اللاب: الوقوف بالماوس على النقطة يعرض بياناتها — الحيود يعرض البوكس الكامل عائماً، والباقى تولتيب
+    c.addEventListener('mouseenter',()=>{
       const fc=c.getAttribute('data-fc');
-      if(fc){ tip.style.display='none'; showFlowChain(fc); return; }  // منحنى الحيود → بوكس تفاصيل التدفق
-      tip.innerHTML='<b>'+c.getAttribute('data-n')+'</b>'+c.getAttribute('data-v');
-      const r=c.getBoundingClientRect();
-      tip.style.display='block';
-      tip.style.left=Math.max(6,Math.min(window.innerWidth-120,r.left-45))+'px';
-      tip.style.top=Math.max(6,r.top-48)+'px';
+      if(fc){ tip.style.display='none'; _showFlowTip(c,fc); } else { _hideFlowTip(); _mtipShow(c); }
+    });
+    c.addEventListener('mouseleave',()=>{ tip.style.display='none'; _hideFlowTip(); });
+    // الضغط/اللمس (الموبايل + تثبيت): الحيود → بوكس مفصّل، الباقى → تولتيب
+    c.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      const fc=c.getAttribute('data-fc');
+      if(fc){ tip.style.display='none'; _hideFlowTip(); showFlowChain(fc); return; }
+      _mtipShow(c);
     });
   });
   // أى ضغطة برّة النقط تُخفى بيان المحطة فوراً (بدون انتظار)
@@ -5226,11 +5240,8 @@ function _frClick(s, inner){
   const p=encodeURIComponent(JSON.stringify({name:s.name,model:stationModels(s.code),chain:s.frChain,dev:s.frDev}));
   return '<span onclick="showFlowChain(\''+p+'\')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">'+inner+'</span>';
 }
-function showFlowChain(payload){
-  let d; try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
+function _flowChainInner(d){
   const c=d.chain||{}; const fu=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:0})+' m³/hr'; const at=p=>p?(' @ '+p+' bar'):'';
-  const box=document.getElementById('stop-reason-modal');
-  const body=document.getElementById('stop-reason-body');
   let h='<div style="font-weight:800;color:#1A4A2A;font-size:16px;margin-bottom:4px">'+d.name+'</div>';
   if(d.model&&d.model.trim()){const _ms=d.model.split(' / ');const _mh=_ms.map(m=>'<div style="direction:ltr;text-align:right;padding:'+(_ms.length>1?'3px 0':'0')+'">🔩 '+m+'</div>').join('');h+='<div style="font-size:12px;font-weight:700;color:#0F766E;margin-bottom:10px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:7px;padding:6px 10px">'+_mh+'</div>';}
   h+='<div style="background:#EDF7EE;border:1px solid #86EFAC;border-radius:10px;padding:12px">';
@@ -5256,9 +5267,27 @@ function showFlowChain(payload){
   const devCol=String(d.dev).startsWith('-')?'#B91C1C':'#1A7A45';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0"><span style="font-size:13px;font-weight:800;color:#1A4A2A">الحيود</span><span style="direction:ltr;font-size:18px;font-weight:900;color:'+devCol+'">'+devTxt+'</span></div>';
   h+='</div>';
-  body.innerHTML=h;
-  box.style.display='flex';
+  return h;
 }
+function showFlowChain(payload){
+  let d; try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
+  document.getElementById('stop-reason-body').innerHTML=_flowChainInner(d);
+  document.getElementById('stop-reason-modal').style.display='flex';
+}
+// لوحة عائمة جنب النقطة (اللاب) — كامل تفاصيل التدفق بالوقوف بالماوس، تتبدّل من نقطة لنقطة
+function _showFlowTip(c, fc){
+  let d; try{ d=JSON.parse(decodeURIComponent(fc)); }catch(e){ return; }
+  let ft=document.getElementById('mgr-flowtip');
+  if(!ft){ ft=document.createElement('div'); ft.id='mgr-flowtip'; document.body.appendChild(ft); }
+  ft.innerHTML=_flowChainInner(d);
+  ft.style.display='block';
+  const r=c.getBoundingClientRect();
+  const w=ft.offsetWidth||270, hh=ft.offsetHeight||200;
+  let left=r.left+r.width/2 - w/2; left=Math.max(6, Math.min(window.innerWidth - w - 6, left));
+  let top=r.top - hh - 12; if(top<6) top=r.bottom+12;   // فوق النقطة، ولو مفيش مكان تحتها
+  ft.style.left=left+'px'; ft.style.top=top+'px';
+}
+function _hideFlowTip(){ const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; }
 // خلية مدة التوقف (الأعطال/الصيانات فقط — clickable)
 // موديلات ضواغط محطة معينة (اسم + موديل) — تظهر داخل مودال العطل
 function stationModels(code){
