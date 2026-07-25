@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V122</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V123</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 122; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 123; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5218,10 +5218,11 @@ function buildMgrCharts(j){
   host.querySelectorAll('svg circle[data-n]').forEach(c=>{
     // اللاب: الوقوف بالماوس على النقطة يعرض بياناتها — الحيود يعرض البوكس الكامل عائماً، والباقى تولتيب
     c.addEventListener('mouseenter',()=>{
+      _ftCancelHide();
       const fc=c.getAttribute('data-fc');
       if(fc){ tip.style.display='none'; _showFlowTip(c,fc); } else { _hideFlowTip(); _mtipShow(c); }
     });
-    c.addEventListener('mouseleave',()=>{ tip.style.display='none'; _hideFlowTip(); });
+    c.addEventListener('mouseleave',()=>{ tip.style.display='none'; _ftScheduleHide(); });
     // الضغط/اللمس (الموبايل + تثبيت): الحيود → بوكس مفصّل، الباقى → تولتيب
     c.addEventListener('click',(ev)=>{
       ev.stopPropagation();
@@ -5232,8 +5233,8 @@ function buildMgrCharts(j){
   });
   // المحطات المتوقفة: الوقوف بالماوس يعرض بوكس سبب العطل عائماً جنبها (والضغط/اللمس زى ما هو)
   host.querySelectorAll('.stop-bar[data-stop]').forEach(el=>{
-    el.addEventListener('mouseenter',()=>{ tip.style.display='none'; _showStopTip(el, el.getAttribute('data-stop')); });
-    el.addEventListener('mouseleave',()=>_hideFlowTip());
+    el.addEventListener('mouseenter',()=>{ _ftCancelHide(); tip.style.display='none'; _showStopTip(el, el.getAttribute('data-stop')); });
+    el.addEventListener('mouseleave',()=>_ftScheduleHide());
     el.addEventListener('click',(ev)=>{ ev.stopPropagation(); _hideFlowTip(); showStopReason(el.getAttribute('data-stop')); });
   });
   // أى ضغطة برّة النقط تُخفى بيان المحطة فوراً (بدون انتظار)
@@ -5283,9 +5284,14 @@ function showFlowChain(payload){
 // لوحة عائمة جنب النقطة (اللاب) — كامل تفاصيل التدفق بالوقوف بالماوس، تتبدّل من نقطة لنقطة
 function _showDetailTip(rect, html){
   let ft=document.getElementById('mgr-flowtip');
-  if(!ft){ ft=document.createElement('div'); ft.id='mgr-flowtip'; document.body.appendChild(ft); }
-  // نصفّر أى إعدادات سابقة قبل القياس (البوكس دايماً بدون سكرول داخلى)
-  ft.style.maxHeight='none'; ft.style.overflowY='visible'; ft.style.pointerEvents='none';
+  if(!ft){
+    ft=document.createElement('div'); ft.id='mgr-flowtip'; document.body.appendChild(ft);
+    // البوكس نفسه يمسك الماوس: طول ما الماوس جوّاه يفضل ظاهر، وأول ما يخرج منه بالكامل يختفى
+    ft.addEventListener('mouseenter', _ftCancelHide);
+    ft.addEventListener('mouseleave', _ftScheduleHide);
+  }
+  // نصفّر أى إعدادات سابقة قبل القياس (البوكس بدون سكرول داخلى، ويستقبل الماوس عشان نقدر نتحرّك جوّاه)
+  ft.style.maxHeight='none'; ft.style.overflowY='visible'; ft.style.pointerEvents='auto';
   ft.innerHTML=html; ft.style.display='block';
   const vw=window.innerWidth, vh=window.innerHeight, M=8, GAP=10; // هامش من الحواف + مسافة عن النقطة
   const w=ft.offsetWidth||270;
@@ -5308,7 +5314,10 @@ function _showDetailTip(rect, html){
 }
 function _showFlowTip(c, fc){ let d; try{ d=JSON.parse(decodeURIComponent(fc)); }catch(e){ return; } _showDetailTip(c.getBoundingClientRect(), _flowChainInner(d)); }
 function _showStopTip(el, payload){ let d; try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; } _showDetailTip(el.getBoundingClientRect(), _stopReasonInner(d)); }
-function _hideFlowTip(){ const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; }
+function _hideFlowTip(){ if(window._ftHideT){ clearTimeout(window._ftHideT); window._ftHideT=null; } const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; }
+// تأخير بسيط قبل الإخفاء: يدّينا فرصة ننتقل من النقطة للبوكس (أو للعكس) من غير ما يختفى
+function _ftCancelHide(){ if(window._ftHideT){ clearTimeout(window._ftHideT); window._ftHideT=null; } }
+function _ftScheduleHide(){ _ftCancelHide(); window._ftHideT=setTimeout(function(){ const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; window._ftHideT=null; }, 220); }
 // خلية مدة التوقف (الأعطال/الصيانات فقط — clickable)
 // موديلات ضواغط محطة معينة (اسم + موديل) — تظهر داخل مودال العطل
 function stationModels(code){
