@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V119</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V120</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 119; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 120; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5285,9 +5285,18 @@ function _showDetailTip(rect, html){
   let ft=document.getElementById('mgr-flowtip');
   if(!ft){ ft=document.createElement('div'); ft.id='mgr-flowtip'; document.body.appendChild(ft); }
   ft.innerHTML=html; ft.style.display='block';
+  const vw=window.innerWidth, vh=window.innerHeight;
   const w=ft.offsetWidth||270, hh=ft.offsetHeight||180;
-  let left=rect.left+rect.width/2 - w/2; left=Math.max(6, Math.min(window.innerWidth - w - 6, left));
-  let top=rect.top - hh - 12; if(top<6) top=rect.bottom+12;   // فوق العنصر، ولو مفيش مكان تحته
+  let left=rect.left+rect.width/2 - w/2; left=Math.max(6, Math.min(vw - w - 6, left));
+  let top=rect.top - hh - 10;                    // يفضّل فوق العنصر
+  if(top < 6) top=rect.bottom + 10;              // مفيش مكان فوق → تحته
+  top=Math.max(6, Math.min(vh - hh - 6, top));   // يتقفل جوّه الشاشة دايماً (ما يخرجش من فوق/تحت)
+  // لو اضطر يتزحلق وغطّى العنصر، نبعده جنبه شوية عشان يفضل واضح
+  if(top < rect.bottom && top + hh > rect.top){
+    const rSpace=vw - rect.right, lSpace=rect.left;
+    left = (lSpace >= rSpace) ? Math.max(6, rect.left - w - 12) : Math.min(vw - w - 6, rect.right + 12);
+    left=Math.max(6, Math.min(vw - w - 6, left));
+  }
   ft.style.left=left+'px'; ft.style.top=top+'px';
 }
 function _showFlowTip(c, fc){ let d; try{ d=JSON.parse(decodeURIComponent(fc)); }catch(e){ return; } _showDetailTip(c.getBoundingClientRect(), _flowChainInner(d)); }
