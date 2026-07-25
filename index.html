@@ -194,7 +194,7 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-lr span:first-child{color:#1E293B;font-weight:800;word-break:break-word;line-height:1.35}
 .mc-lr span:last-child{direction:ltr;flex-shrink:0;font-weight:900;white-space:nowrap}
 #mgr-tip{position:fixed;background:#0D2B4E;color:#fff;padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;display:none;z-index:9999;text-align:center}
-#mgr-flowtip{position:fixed;background:#fff;border:1px solid #86EFAC;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.28);width:270px;max-width:92vw;z-index:9999;display:none;pointer-events:none}
+#mgr-flowtip{position:fixed;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.28);width:270px;max-width:92vw;z-index:9999;display:none;pointer-events:none}
 #mgr-tip b{display:block;font-size:13px;margin-bottom:2px}
 .flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
 .flow-lbl{font-size:12px;font-weight:800;color:#1A4A2A;flex-shrink:0}
@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V118</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V119</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 118; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 119; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5192,7 +5192,7 @@ function buildMgrCharts(j){
       const s=x.s; const w=Math.max(3,x.min/mx*100);
       const rs=(s.stopReason||''); const tag=rs.indexOf('معاير')>=0?'📏':(rs.indexOf('صيان')>=0?'🔧':'⚠️');
       const payload=encodeURIComponent(JSON.stringify({name:s.name,dt:s.downtime,reason:s.stopReason||'',details:s.stopDetails||'',model:stationModels(s.code)}));
-      H+='<div class="b2" style="cursor:pointer" onclick="showStopReason(\''+payload+'\')"><div class="b2-head"><span class="b2-name">'+tag+' '+s.name+'</span><span class="b2-val" style="color:#C2410C"><span style="direction:rtl;unicode-bidi:isolate">'+s.downtime+'</span> ℹ️</span></div><div class="b2-track"><div class="b2-fill" style="width:'+w+'%;background:#EA580C"></div></div></div>';
+      H+='<div class="b2 stop-bar" style="cursor:pointer" data-stop="'+payload+'"><div class="b2-head"><span class="b2-name">'+tag+' '+s.name+'</span><span class="b2-val" style="color:#C2410C"><span style="direction:rtl;unicode-bidi:isolate">'+s.downtime+'</span> ℹ️</span></div><div class="b2-track"><div class="b2-fill" style="width:'+w+'%;background:#EA580C"></div></div></div>';
     });
     H+='<div class="mc-hint">👆 اضغط على أى محطة لعرض تفاصيل العطل</div></div>';
   }
@@ -5229,6 +5229,12 @@ function buildMgrCharts(j){
       if(fc){ tip.style.display='none'; _hideFlowTip(); showFlowChain(fc); return; }
       _mtipShow(c);
     });
+  });
+  // المحطات المتوقفة: الوقوف بالماوس يعرض بوكس سبب العطل عائماً جنبها (والضغط/اللمس زى ما هو)
+  host.querySelectorAll('.stop-bar[data-stop]').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{ tip.style.display='none'; _showStopTip(el, el.getAttribute('data-stop')); });
+    el.addEventListener('mouseleave',()=>_hideFlowTip());
+    el.addEventListener('click',(ev)=>{ ev.stopPropagation(); _hideFlowTip(); showStopReason(el.getAttribute('data-stop')); });
   });
   // أى ضغطة برّة النقط تُخفى بيان المحطة فوراً (بدون انتظار)
   if(!window.__mtipInit){ window.__mtipInit=true; document.addEventListener('click',()=>{ const t=document.getElementById('mgr-tip'); if(t) t.style.display='none'; }); }
@@ -5275,18 +5281,17 @@ function showFlowChain(payload){
   document.getElementById('stop-reason-modal').style.display='flex';
 }
 // لوحة عائمة جنب النقطة (اللاب) — كامل تفاصيل التدفق بالوقوف بالماوس، تتبدّل من نقطة لنقطة
-function _showFlowTip(c, fc){
-  let d; try{ d=JSON.parse(decodeURIComponent(fc)); }catch(e){ return; }
+function _showDetailTip(rect, html){
   let ft=document.getElementById('mgr-flowtip');
   if(!ft){ ft=document.createElement('div'); ft.id='mgr-flowtip'; document.body.appendChild(ft); }
-  ft.innerHTML=_flowChainInner(d);
-  ft.style.display='block';
-  const r=c.getBoundingClientRect();
-  const w=ft.offsetWidth||270, hh=ft.offsetHeight||200;
-  let left=r.left+r.width/2 - w/2; left=Math.max(6, Math.min(window.innerWidth - w - 6, left));
-  let top=r.top - hh - 12; if(top<6) top=r.bottom+12;   // فوق النقطة، ولو مفيش مكان تحتها
+  ft.innerHTML=html; ft.style.display='block';
+  const w=ft.offsetWidth||270, hh=ft.offsetHeight||180;
+  let left=rect.left+rect.width/2 - w/2; left=Math.max(6, Math.min(window.innerWidth - w - 6, left));
+  let top=rect.top - hh - 12; if(top<6) top=rect.bottom+12;   // فوق العنصر، ولو مفيش مكان تحته
   ft.style.left=left+'px'; ft.style.top=top+'px';
 }
+function _showFlowTip(c, fc){ let d; try{ d=JSON.parse(decodeURIComponent(fc)); }catch(e){ return; } _showDetailTip(c.getBoundingClientRect(), _flowChainInner(d)); }
+function _showStopTip(el, payload){ let d; try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; } _showDetailTip(el.getBoundingClientRect(), _stopReasonInner(d)); }
 function _hideFlowTip(){ const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; }
 // خلية مدة التوقف (الأعطال/الصيانات فقط — clickable)
 // موديلات ضواغط محطة معينة (اسم + موديل) — تظهر داخل مودال العطل
@@ -5344,11 +5349,7 @@ function showPurge(payload){
   body.innerHTML=h;
   box.style.display='flex';
 }
-function showStopReason(payload){
-  let d;
-  try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
-  const box=document.getElementById('stop-reason-modal');
-  const body=document.getElementById('stop-reason-body');
+function _stopReasonInner(d){
   let h='<div style="font-weight:800;color:#C2410C;font-size:15px;margin-bottom:4px">'+d.name+'</div>';
   // موديل الضاغط (لو ضاغطين → كل واحد فى سطر تحت التانى)
   if(d.model && d.model.trim()){
@@ -5374,8 +5375,12 @@ function showStopReason(payload){
   } else {
     h+='<div style="text-align:center;color:#888;padding:16px">لا يوجد سبب مسجّل</div>';
   }
-  body.innerHTML=h;
-  box.style.display='flex';
+  return h;
+}
+function showStopReason(payload){
+  let d; try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; }
+  document.getElementById('stop-reason-body').innerHTML=_stopReasonInner(d);
+  document.getElementById('stop-reason-modal').style.display='flex';
 }
 function closeStopReason(){ document.getElementById('stop-reason-modal').style.display='none'; }
 
