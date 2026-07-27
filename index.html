@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V127</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V128</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 127; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 128; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5239,6 +5239,7 @@ function buildMgrCharts(j){
   host.querySelectorAll('svg circle[data-n]').forEach(c=>{
     // اللاب: الوقوف بالماوس على النقطة يعرض بياناتها — الحيود يعرض البوكس الكامل عائماً، والباقى تولتيب
     c.addEventListener('mouseenter',()=>{
+      if(window._ftPinned) return; // بوكس مثبّت → الهوفر مايغيّرش
       _ftCancelHide();
       const fc=c.getAttribute('data-fc');
       if(fc){ tip.style.display='none'; _showFlowTip(c,fc); } else { _hideFlowTip(); _mtipShow(c); }
@@ -5260,15 +5261,15 @@ function buildMgrCharts(j){
   });
   // صفوف الحيود (القوائم أعلى/أقل) — الوقوف باللاب أو الضغط بالموبايل يعرض نفس بوكس التدفق العائم
   host.querySelectorAll('.mc-flowrow[data-fc]').forEach(el=>{
-    el.addEventListener('mouseenter',()=>{ _ftCancelHide(); tip.style.display='none'; _showFlowTip(el, el.getAttribute('data-fc')); });
+    el.addEventListener('mouseenter',()=>{ if(window._ftPinned) return; _ftCancelHide(); tip.style.display='none'; _showFlowTip(el, el.getAttribute('data-fc')); });
     el.addEventListener('mouseleave',()=>_ftScheduleHide());
-    el.addEventListener('click',(ev)=>{ ev.stopPropagation(); _ftCancelHide(); tip.style.display='none'; _showFlowTip(el, el.getAttribute('data-fc')); });
+    el.addEventListener('click',(ev)=>{ ev.stopPropagation(); window._ftPinned=true; _ftCancelHide(); tip.style.display='none'; _showFlowTip(el, el.getAttribute('data-fc')); });
   });
   // أنواع الزيوت — الوقوف/الضغط يعرض المحطات التى تستخدم هذا النوع ورصيدها
   host.querySelectorAll('.oil-bar[data-oil]').forEach(el=>{
-    el.addEventListener('mouseenter',()=>{ _ftCancelHide(); tip.style.display='none'; _showOilTip(el, el.getAttribute('data-oil')); });
+    el.addEventListener('mouseenter',()=>{ if(window._ftPinned) return; _ftCancelHide(); tip.style.display='none'; _showOilTip(el, el.getAttribute('data-oil')); });
     el.addEventListener('mouseleave',()=>_ftScheduleHide());
-    el.addEventListener('click',(ev)=>{ ev.stopPropagation(); _ftCancelHide(); tip.style.display='none'; _showOilTip(el, el.getAttribute('data-oil')); });
+    el.addEventListener('click',(ev)=>{ ev.stopPropagation(); window._ftPinned=true; _ftCancelHide(); tip.style.display='none'; _showOilTip(el, el.getAttribute('data-oil')); });
   });
   // أى ضغطة برّة النقط تُخفى بيان المحطة فوراً (بدون انتظار)
   if(!window.__mtipInit){ window.__mtipInit=true; document.addEventListener('click',()=>{ const t=document.getElementById('mgr-tip'); if(t) t.style.display='none'; }); }
@@ -5384,10 +5385,11 @@ function _oilStationsInner(d){
   h+='</div>'; return h;
 }
 function _showOilTip(el, payload){ let d; try{ d=JSON.parse(decodeURIComponent(payload)); }catch(e){ return; } _showDetailTip(el.getBoundingClientRect(), _oilStationsInner(d)); }
-function _hideFlowTip(){ if(window._ftHideT){ clearTimeout(window._ftHideT); window._ftHideT=null; } const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; }
+function _hideFlowTip(){ if(window._ftHideT){ clearTimeout(window._ftHideT); window._ftHideT=null; } window._ftPinned=false; const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; }
 // تأخير بسيط قبل الإخفاء: يدّينا فرصة ننتقل من النقطة للبوكس (أو للعكس) من غير ما يختفى
 function _ftCancelHide(){ if(window._ftHideT){ clearTimeout(window._ftHideT); window._ftHideT=null; } }
-function _ftScheduleHide(){ _ftCancelHide(); window._ftHideT=setTimeout(function(){ const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; window._ftHideT=null; }, 220); }
+// لو البوكس مثبّت بالضغط → ما يختفيش بالهوفر (يختفى فقط بالضغط برّة)
+function _ftScheduleHide(){ if(window._ftPinned) return; _ftCancelHide(); window._ftHideT=setTimeout(function(){ const ft=document.getElementById('mgr-flowtip'); if(ft) ft.style.display='none'; window._ftHideT=null; }, 220); }
 // خلية مدة التوقف (الأعطال/الصيانات فقط — clickable)
 // موديلات ضواغط محطة معينة (اسم + موديل) — تظهر داخل مودال العطل
 function stationModels(code){
