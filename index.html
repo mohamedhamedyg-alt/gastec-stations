@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V123</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V124</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 123; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 124; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -2351,9 +2351,11 @@ function checkSalesTotal(){
     // الفعلى = نقدى + بونات + سمارت غازتك + سمارت كارجاس
     // المتوقع = مبيعات الأفراد × السعر (الترك خارج التحقق — مبيعات بلا إيداع)
     const exp=salesIndividual*price, act=cash+bonds+sg+sk, diff=act-exp;
+    const DEPOSIT_TOL=2; // أقصى زيادة مسموح بها فى الإيداع عن قيمة المبيعات (جنيه)
     window.__salesDiff=diff;
     if(Math.abs(diff)<=0.01){el.className='sales-check ok';el.textContent=`✓ متطابق — الإجمالى: ${act.toLocaleString('en-US',{minimumFractionDigits:2})} جنيه | صندوق: ${sandoq.toFixed(2)} جنيه`;}
-    else if(diff>0){el.className='sales-check ok';el.textContent=`✓ الإيداع أكبر بـ ${diff.toFixed(2)} جنيه (مقبول) — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
+    else if(diff>0&&diff<=DEPOSIT_TOL){el.className='sales-check ok';el.textContent=`✓ الإيداع أكبر بـ ${diff.toFixed(2)} جنيه (مقبول — فى حدود ${DEPOSIT_TOL} ج) — متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
+    else if(diff>DEPOSIT_TOL){el.className='sales-check err';el.textContent=`❌ الإيداع أكبر من المبيعات بـ ${diff.toFixed(2)} جنيه (المسموح ${DEPOSIT_TOL} ج فقط) — لا يمكن الإرسال! متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
     else{el.className='sales-check err';el.textContent=`❌ المبيعات أكبر من الإيداع بـ ${Math.abs(diff).toFixed(2)} جنيه — لا يمكن الإرسال! متوقع: ${exp.toFixed(2)} — فعلى: ${act.toFixed(2)}`;}
     el.style.display='block';
   } else {
@@ -3077,6 +3079,11 @@ async function submitForm(){
   window.__stopConfirmed = false;
   if(window.__salesDiff!==null && window.__salesDiff < -0.01){
     alert('❌ لا يمكن الإرسال: المبيعات (× سعر المتر) أكبر من إجمالى الإيداع.\nالمفروض يكون الإيداع مساوياً أو أكبر من قيمة المبيعات.\nراجع الأرقام قبل الإرسال.');
+    document.getElementById('f-cash-int')?.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  if(window.__salesDiff!==null && window.__salesDiff > 2){
+    alert('❌ لا يمكن الإرسال: إجمالى الإيداع أكبر من قيمة المبيعات (× سعر المتر) بأكثر من 2 جنيه.\nالمسموح أن يزيد الإيداع بحد أقصى 2 جنيه فقط.\nراجع الأرقام قبل الإرسال.');
     document.getElementById('f-cash-int')?.scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
