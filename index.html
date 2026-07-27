@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V128</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V130</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 128; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 130; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4553,6 +4553,69 @@ function showSectionSuccess(tab, msg){
     +'<button onclick="backToHub()" style="background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:14px;padding:16px 48px;font-family:Cairo;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18)">⬅ رجوع للقائمة الرئيسية</button>';
   ov.style.display='flex';
 }
+// شاشة نجاح الحريق مع ملخص البيان اللى وصل واتسجّل (تطمين المشرف على الوصول)
+function showFireSuccess(items, stName, date, faultCount){
+  let ov=document.getElementById('section-success');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='section-success';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center';
+    document.body.appendChild(ov);
+  }
+  let rows='';
+  (items||[]).forEach(it=>{
+    const ok = it.status!=='fault';
+    const badge = ok
+      ? '<span style="color:#166534;font-weight:800;font-size:12px">✓ سليم</span>'
+      : '<span style="color:#B91C1C;font-weight:800;font-size:12px">⚠️ به عطل ('+(it.faults?it.faults.length:0)+')</span>';
+    rows += '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F1F5F9"><span style="font-weight:700;color:#0F172A;font-size:13px">'+(it.label||'')+'</span>'+badge+'</div>';
+    if(!ok && it.faults){ it.faults.forEach(f=>{ rows += '<div style="font-size:12px;color:#7C2D12;text-align:right;padding:2px 12px 2px 0">• '+(f.fault||'')+(f.place?(' — '+f.place):'')+'</div>'; }); }
+  });
+  ov.innerHTML='<div style="max-width:520px;width:100%;max-height:88vh;overflow:auto;background:#fff;border-radius:16px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.2)">'
+    +'<div id="fire-summary-capture" data-st="'+_esc(stName)+'" data-date="'+_esc(date)+'" style="background:#fff;padding:6px 4px 10px">'
+      +'<div style="text-align:center;font-size:34px">🧯 ✅</div>'
+      +'<div style="text-align:center;font-size:16px;font-weight:800;color:#166534;margin-bottom:2px">تم إرسال بيان منظومات الحريق وتأكيد وصوله</div>'
+      +'<div style="text-align:center;font-size:13px;font-weight:800;color:#0F172A;margin-bottom:12px;white-space:nowrap">'+stName+' — '+date+'</div>'
+      +'<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:10px 14px;text-align:right">'
+        +'<div style="font-size:13px;font-weight:800;color:#B91C1C;margin-bottom:6px">🧯 ملخص البيان اللى وصل واتسجّل</div>'+rows
+        +'<div style="font-size:12px;font-weight:800;color:#7C2D12;padding-top:8px">الإجمالى: '+(faultCount||0)+' عطل</div></div>'
+      +'<div style="text-align:center;font-size:10px;color:#94A3B8;margin-top:8px">غازتك — برنامج متابعة وتشغيل المحطات</div>'
+    +'</div>'
+    +'<button onclick="downloadFireSummaryImage()" style="width:100%;background:linear-gradient(135deg,#166534,#22C55E);color:#fff;border:none;border-radius:14px;padding:13px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;margin:14px 0 10px;box-shadow:0 3px 10px rgba(0,0,0,.15)">📥 تحميل صورة ملخص الحريق</button>'
+    +'<button onclick="backToHub()" style="width:100%;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff;border:none;border-radius:14px;padding:13px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer">⬅ رجوع للقائمة الرئيسية</button>'
+    +'</div>';
+  ov.style.display='flex';
+}
+// تحميل صورة ملخص الحريق (زى تحميل صورة البيان اليومى)
+function downloadFireSummaryImage(){
+  const node=document.getElementById('fire-summary-capture');
+  if(!node || typeof captureNode!=='function'){ alert('تعذّر إنشاء الصورة — أعد المحاولة'); return; }
+  const stName=node.getAttribute('data-st')||'المحطة';
+  const dateStr=node.getAttribute('data-date')||new Date().toISOString().slice(0,10);
+  const oldW=node.style.width, oldMax=node.style.maxWidth, oldPad=node.style.padding;
+  node.style.width='560px'; node.style.maxWidth='560px'; node.style.padding='16px';
+  captureNode(node,{scale:3,width:node.offsetWidth,windowWidth:600}).then(canvas=>{
+    node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad;
+    _saveCanvasPng(canvas, 'ملخص_حريق_'+stName.replace(/\s/g,'_')+'_'+dateStr+'.png');
+  }).catch(e=>{ node.style.width=oldW; node.style.maxWidth=oldMax; node.style.padding=oldPad; alert('تعذّر إنشاء الصورة: '+(e&&e.message||e)); });
+}
+// حفظ Canvas كـ PNG (تنزيل + معاينة احتياطية للموبايل)
+function _saveCanvasPng(canvas, fname){
+  const _showPreview=(src)=>{
+    try{
+      let ov=document.getElementById('img-preview-overlay');
+      if(!ov){ ov=document.createElement('div'); ov.id='img-preview-overlay'; document.body.appendChild(ov); }
+      ov.style.cssText='position:fixed;inset:0;background:rgba(10,20,35,.96);z-index:99999;display:flex;flex-direction:column;align-items:center;padding:14px;overflow:auto';
+      ov.innerHTML='<div style="color:#fff;font-family:Cairo;font-weight:800;font-size:13px;margin-bottom:10px;text-align:center">✅ تم إنشاء الصورة — لو ما نزلتش تلقائياً:<br>اضغط مطوّلاً على الصورة ← حفظ الصورة</div>'
+        +'<img src="'+src+'" style="max-width:100%;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.5)">'
+        +'<button onclick="(function(o){o.style.display=\'none\';o.innerHTML=\'\';})(document.getElementById(\'img-preview-overlay\'))" style="margin-top:14px;background:#fff;color:#0D2B4E;border:none;border-radius:12px;padding:12px 40px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer">إغلاق</button>';
+      ov.style.display='flex';
+    }catch(pe){}
+  };
+  const _fallback=()=>{ try{ const du=canvas.toDataURL('image/png'); try{const a2=document.createElement('a');a2.href=du;a2.download=fname;document.body.appendChild(a2);a2.click();document.body.removeChild(a2);}catch(e2){} _showPreview(du); }catch(e3){ alert('تعذّر حفظ الصورة: '+(e3&&e3.message||e3)); } };
+  try{
+    canvas.toBlob(blob=>{ try{ if(!blob) throw new Error('blob فارغ'); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a); _showPreview(url); }catch(e){ _fallback(); } },'image/png');
+  }catch(e){ _fallback(); }
+}
 // ══════════ محضر التضامن (الكهرباء الشهرية) ══════════
 let _tadamonPrev = null; // {date, reading} آخر محضر سابق
 function toggleTadamon(){
@@ -4944,7 +5007,7 @@ function submitFireSafety(){
           .then(r=>r.json())
           .then(j=>{
             if(done)return;
-            if(j.found){ done=true; showSectionSuccess('fire','تم إرسال بيان منظومات الحريق بنجاح'); }
+            if(j.found){ done=true; showFireSuccess(items, st.name, dateEl.value, faultCount); }
             else if(attempt<12){ statusEl.textContent='⏳ جارى تأكيد الوصول... ('+attempt+')'; setTimeout(()=>pollFire(attempt+1),1000); }
             else {
               done=true;
