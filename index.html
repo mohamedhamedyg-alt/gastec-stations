@@ -195,6 +195,15 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-lr span:last-child{direction:ltr;flex-shrink:0;font-weight:900;white-space:nowrap}
 #mgr-tip{position:fixed;background:#0D2B4E;color:#fff;padding:7px 11px;border-radius:9px;font-size:12px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;display:none;z-index:9999;text-align:center}
 #mgr-flowtip{position:fixed;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.28);width:270px;max-width:92vw;z-index:9999;display:none;pointer-events:none}
+.stage-grid{display:grid;gap:6px;direction:ltr}
+.stage-grid .cell{border:1px solid #E2E8F0;border-radius:8px;padding:4px 5px;text-align:center;background:#F8FAFC}
+.stage-grid .cell label{display:block;font-size:9.5px;font-weight:800;color:#475569;margin-bottom:2px;direction:ltr;min-height:22px}
+.stage-grid .cell input{width:100%;border:1px solid #CBD5E1;border-radius:6px;padding:5px 2px;font-weight:800;font-size:13px;background:#fff;text-align:center;direction:ltr}
+.stage-grid .cell.ratio{background:#EDE9FE;border-color:#DDD6FE}
+.stage-grid .cell.tcell input{background:#FFF7ED}
+.stage-grid .cell.ocell input{background:#FEF3C7}
+.stage-grid .cell.wcell input{background:#E0F7FA}
+.sgrp{font-weight:800;font-size:12.5px;margin:10px 0 6px;padding-left:8px;border-left:4px solid;text-align:left;direction:ltr}
 #mgr-tip b{display:block;font-size:13px;margin-bottom:2px}
 .flow-line{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px dashed #E2E8F0}
 .flow-lbl{font-size:12px;font-weight:800;color:#1A4A2A;flex-shrink:0}
@@ -570,6 +579,12 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <!-- تاب البيان اليومى -->
   <div class="sup-tab-content active" id="tab-daily">
   <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
+  <!-- تابتين فرعيتين: البيان اليومى | الضغوط والحرارات -->
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button id="dsub-main" onclick="showDailySub('main')" style="flex:1;padding:11px;border-radius:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;border:2px solid transparent;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff">📋 البيان اليومى</button>
+    <button id="dsub-read" onclick="showDailySub('read')" style="flex:1;padding:11px;border-radius:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;border:2px solid var(--border);background:#fff;color:#64748B">📊 الضغوط والحرارات</button>
+  </div>
+  <div id="daily-main">
   <!-- ① تاريخ البيان + المبيعات (دائماً أول) -->
   <div class="section-card sec-sales-top">
     <div class="section-head"><div class="dot"></div>تاريخ البيان والمبيعات اليومية</div>
@@ -895,8 +910,13 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
   </div>
 
+  </div><!-- /daily-main -->
+  <div id="daily-readings" style="display:none">
+    <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12px;font-weight:700;color:#0F766E">📊 قراءات المراحل (ضغوط · نِسب تلقائى · حرارات · زيت · مياه · أخرى) — كل ضاغط لوحده</div>
+    <div id="readings-container"></div>
+  </div>
   <div id="validation-summary"></div>
-  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم</button>
+  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم (الكل)</button>
   </div><!-- /tab-daily -->
   </div><!-- /sup-tabs-area -->
 </div>
@@ -917,7 +937,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V136</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V138</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1355,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 136; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 138; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1794,6 +1814,71 @@ function loadStationDefaults(code){
   }catch(e){}
 }
 
+// ══════════ قراءات مراحل الضاغط (ضغوط + حرارات + نسب انضغاط) ══════════
+// إعداد المراحل لكل موديل — عدّل هنا فقط. الافتراضى 4 مراحل بار/سليزيوس.
+function STAGE_CFG(model){
+  const m=String(model||'');
+  if(m==='M302') return {stages:3, ab:false, punit:'bar', tunit:'c'};           // السويس عتاقة
+  if(m==='H304') return {stages:4, ab:true,  punit:'psi', tunit:'f'};           // J.W السويس فيصل — إدخال PSI/°ف
+  if(m.indexOf('SHG')>=0) return {stages:5, ab:true, punit:'bar', tunit:'c'};   // Hyosung / Safe SHG 315/355
+  return {stages:4, ab:false, punit:'bar', tunit:'c'};
+}
+const _ORD=['','1st','2nd','3rd','4th','5th','6th'];
+function _presKeys(cfg){ const k=[{k:'in',l:'Inlet'}]; for(let s=1;s<=cfg.stages;s++)k.push({k:''+s,l:_ORD[s]+' stage'}); return k; }
+function _tempKeys(cfg){ const k=[{k:'amb',l:'Ambient'},{k:'in',l:'Inlet'}];
+  for(let s=1;s<=cfg.stages;s++){ if(cfg.ab&&(s===3||s===4)){k.push({k:s+'A',l:_ORD[s]+'-A'},{k:s+'B',l:_ORD[s]+'-B'});} else k.push({k:''+s,l:_ORD[s]+' stage'}); } return k; }
+const _OILF=[['cycle','Last Cycle Time'],['carter','Oil Carter Pressure'],['lubcyl','Lub. Cyl. Pressure'],['otemp','Temperature']];
+const _WATERF=[['wp','Pressure'],['wt','Temperature']];
+const _OTHERF=[['vib','Compressor Vibration (mm/sec)'],['ss','No. of Start/Stop (No.)'],['amp','Motor Current (A)']];
+function stageSectionHTML(idx, model, compLabel){
+  const cfg=STAGE_CFG(model);
+  const pu=cfg.punit==='psi'?'PSI':'bar', tu=cfg.tunit==='f'?'°F':'°C';
+  const conv=(cfg.punit==='psi'||cfg.tunit==='f')?` <span style="font-size:10px;font-weight:700;color:#B45309">(auto→bar/°C)</span>`:'';
+  const pk=_presKeys(cfg), tk=_tempKeys(cfg);
+  const inp=(id,ph)=>`<input type="number" step="any" inputmode="decimal" id="${id}"${ph?' oninput="calcStageRatios('+idx+')"':''} style="width:100%">`;
+  let ph=''; pk.forEach(p=>{ ph+=`<div class="cell"><label>${p.l}</label>${inp('sp-'+idx+'-'+p.k,true)}</div>`; });
+  let rh=''; for(let s=1;s<=cfg.stages;s++){ rh+=`<div class="cell ratio"><label style="color:#7C3AED">${s===1?'1st/Inlet':_ORD[s]+'/'+_ORD[s-1]}</label><div id="sr-${idx}-${s}" style="font-weight:900;color:#6D28D9;font-size:14px">—</div></div>`; }
+  let th=''; tk.forEach(t=>{ th+=`<div class="cell tcell"><label>${t.l}</label>${inp('st-'+idx+'-'+t.k)}</div>`; });
+  let oh=''; _OILF.forEach(f=>{ oh+=`<div class="cell ocell"><label>${f[1]}</label>${inp('so-'+idx+'-'+f[0])}</div>`; });
+  let wh=''; _WATERF.forEach(f=>{ wh+=`<div class="cell wcell"><label>${f[1]}</label>${inp('sw-'+idx+'-'+f[0])}</div>`; });
+  let xh=''; _OTHERF.forEach(f=>{ xh+=`<div class="cell"><label>${f[1]}</label>${inp('sx-'+idx+'-'+f[0])}</div>`; });
+  return `<div class="section-card" style="border:1px solid #99F6E4">
+    <div class="section-head" style="background:#0F766E"><div class="dot"></div>الضاغط: ${compLabel||model}${conv}</div>
+    <div class="section-body" style="direction:ltr">
+      <div class="sgrp" style="color:#1D4ED8;border-color:#1D4ED8">🔵 Pressure (${pu})</div>
+      <div class="stage-grid" style="grid-template-columns:repeat(${pk.length},1fr)">${ph}</div>
+      <div class="sgrp" style="color:#6D28D9;border-color:#6D28D9">Compression Ratio (auto)</div>
+      <div class="stage-grid" style="grid-template-columns:repeat(${cfg.stages},1fr)">${rh}</div>
+      <div class="sgrp" style="color:#B45309;border-color:#B45309">🟠 Temperature (${tu})</div>
+      <div class="stage-grid" style="grid-template-columns:repeat(${Math.min(tk.length,6)},1fr)">${th}</div>
+      <div class="sgrp" style="color:#a16207;border-color:#a16207">🛢️ Oil</div>
+      <div class="stage-grid" style="grid-template-columns:repeat(4,1fr)">${oh}</div>
+      <div class="sgrp" style="color:#0891B2;border-color:#0891B2">💧 Water</div>
+      <div class="stage-grid" style="grid-template-columns:repeat(2,1fr)">${wh}</div>
+      <div class="sgrp" style="color:#7C3AED;border-color:#7C3AED">⚙️ Other</div>
+      <div class="stage-grid" style="grid-template-columns:repeat(3,1fr)">${xh}</div>
+    </div></div>`;
+}
+function calcStageRatios(idx){
+  const g=k=>parseFloat((document.getElementById('sp-'+idx+'-'+k)||{}).value)||0;
+  const model=window.__compModels[idx]; const cfg=STAGE_CFG(model);
+  for(let s=1;s<=cfg.stages;s++){ const prev=s===1?g('in'):g(''+(s-1)); const cur=g(''+s);
+    const el=document.getElementById('sr-'+idx+'-'+s); if(el) el.textContent=(prev>0&&cur>0)?(cur/prev).toFixed(2):'—'; }
+}
+// تجميع كل قراءات الضاغط للإرسال (تحويل PSI→بار و°ف→°م مقرّب لرقم صحيح لموديل فيصل)
+function collectStageReadings(idx){
+  const model=window.__compModels[idx]; const cfg=STAGE_CFG(model);
+  const toBarP=v=>cfg.punit==='psi'?Math.round(v/14.5038):v;
+  const toC=v=>cfg.tunit==='f'?Math.round((v-32)*5/9):v;
+  const rd=id=>{const el=document.getElementById(id);return el&&el.value!==''?parseFloat(el.value):null;};
+  const pres={}, temp={}, oil={}, water={}, other={};
+  _presKeys(cfg).forEach(p=>{ const v=rd('sp-'+idx+'-'+p.k); if(v!=null)pres[p.k]=toBarP(v); });
+  _tempKeys(cfg).forEach(t=>{ const v=rd('st-'+idx+'-'+t.k); if(v!=null)temp[t.k]=toC(v); });
+  _OILF.forEach(f=>{ const v=rd('so-'+idx+'-'+f[0]); if(v!=null) oil[f[0]]=(f[0]==='otemp')?toC(v):((f[0]==='carter'||f[0]==='lubcyl')?toBarP(v):v); });
+  _WATERF.forEach(f=>{ const v=rd('sw-'+idx+'-'+f[0]); if(v!=null) water[f[0]]=(f[0]==='wt')?toC(v):toBarP(v); });
+  _OTHERF.forEach(f=>{ const v=rd('sx-'+idx+'-'+f[0]); if(v!=null) other[f[0]]=v; });
+  return {model:model, stages:cfg.stages, ab:cfg.ab, pres:pres, temp:temp, oil:oil, water:water, other:other};
+}
 function buildCompSections(indices){
   const container=document.getElementById('comps-container');
   container.innerHTML='';
@@ -2007,7 +2092,24 @@ function buildCompSections(indices){
     </div>`:''}`;
     container.appendChild(secEl);
   });
+  // قسم القراءات التفصيلية فى التابة الفرعية المنفصلة (الضغوط والحرارات)
+  const rc=document.getElementById('readings-container');
+  if(rc){ let rh=''; indices.forEach(idx=>{ const c=st.comps[idx]; window.__compModels[idx]=c.model; rh+=stageSectionHTML(idx,c.model,`${c.name} — ${c.model}`); }); rc.innerHTML=rh; indices.forEach(idx=>calcStageRatios(idx)); }
   if(window.__currentStationCode) loadStationDefaults(window.__currentStationCode);
+}
+// تبديل التابة الفرعية داخل البيان اليومى
+function showDailySub(which){
+  const main=document.getElementById('daily-main'), read=document.getElementById('daily-readings');
+  const bM=document.getElementById('dsub-main'), bR=document.getElementById('dsub-read');
+  const on='linear-gradient(135deg,var(--blue-dark),var(--blue-light))';
+  if(which==='read'){ main.style.display='none'; read.style.display='block';
+    bR.style.background='linear-gradient(135deg,#0F766E,#14B8A6)'; bR.style.color='#fff'; bR.style.borderColor='transparent';
+    bM.style.background='#fff'; bM.style.color='#64748B'; bM.style.borderColor='var(--border)';
+  } else { main.style.display='block'; read.style.display='none';
+    bM.style.background=on; bM.style.color='#fff'; bM.style.borderColor='transparent';
+    bR.style.background='#fff'; bR.style.color='#64748B'; bR.style.borderColor='var(--border)';
+  }
+  window.scrollTo(0,0);
 }
 
 // HOURS HELPERS
@@ -3352,6 +3454,7 @@ async function submitForm(){
     const mode=hmMode[idx]||'hm';
     payload[pre+'_name']=c.name;
     payload[pre+'_model']=c.model;
+    payload[pre+'_stages']=JSON.stringify(collectStageReadings(idx)); // قراءات المراحل (ضغوط/حرارات) — تُخزّن مستبدلة
     payload[pre+'_th']=getH(idx,'th');
     payload[pre+'_motor_name']=c.motor_name||'';
     payload[pre+'_tf']=getH(idx,'tf');
@@ -3909,9 +4012,63 @@ function loadCompComparison(){
         });
         html+='</table></div></div>';
       });
-      c.innerHTML=html;
+      c.innerHTML=html+'<div id="stage-comp"></div>';
+      loadStageComparison();
     })
     .catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+}
+// مقارنة قراءات المراحل (ضغوط/نِسب/حرارات) للموديلات المتطابقة — القيمة الشاذّة بالأحمر
+function _scell(v,out,color){
+  const disp=(v==null||v==='')?'—':v;
+  const stl=out?'background:#FEE2E2;color:#991B1B;font-weight:900':('font-weight:700'+(color?';color:'+color:''));
+  return '<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;'+stl+'">'+disp+'</td>';
+}
+function loadStageComparison(){
+  const host=document.getElementById('stage-comp'); if(!host) return;
+  host.innerHTML='<div style="text-align:center;padding:14px;color:#0F766E;font-weight:800">⏳ جارى تحميل قراءات المراحل...</div>';
+  fetch(APPS_SCRIPT_URL+'?action=stageReadings').then(r=>r.json()).then(j=>{
+    const rd=(j.readings||[]).map(x=>{let d={};try{d=JSON.parse(x.data);}catch(e){}return Object.assign({},x,{parsed:d});}).filter(x=>x.parsed&&x.parsed.pres&&Object.keys(x.parsed.pres).length);
+    if(!rd.length){ host.innerHTML=''; return; }
+    const byModel={}; rd.forEach(x=>{(byModel[x.model]=byModel[x.model]||[]).push(x);});
+    function med(arr){const a=arr.filter(v=>v!=null&&!isNaN(v)).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
+    let html='<div style="margin-top:18px;font-size:15px;font-weight:900;color:#0F766E">📊 مقارنة قراءات المراحل (ضغوط · نِسب · حرارات)</div>';
+    html+='<div style="font-size:11px;color:#64748B;font-weight:700;margin:4px 0 10px">القيمة الشاذّة عن نظايرها فى نفس الموديل بتتلوّن أحمر تلقائى. (آخر قراءة لكل ضاغط)</div>';
+    Object.keys(byModel).sort().forEach(model=>{
+      const units=byModel[model]; const cfg=STAGE_CFG(model); const pk=_presKeys(cfg), tk=_tempKeys(cfg);
+      units.forEach(u=>{const p=u.parsed.pres||{};u._r={};for(let s=1;s<=cfg.stages;s++){const prev=s===1?p['in']:p[''+(s-1)];const cur=p[''+s];u._r[s]=(prev>0&&cur>0)?cur/prev:null;}});
+      const isOut=(v,arr)=>{if(v==null||units.length<2)return false;const m=med(arr);if(m==null||m===0)return false;return Math.abs(v-m)/Math.abs(m)>0.15;};
+      const gth=(bg,span,txt)=>'<th colspan="'+span+'" style="padding:5px;border:1px solid #99F6E4;background:'+bg+';color:#fff;font-weight:800">'+txt+'</th>';
+      const sth=txt=>'<th style="padding:4px 6px;border:1px solid #99F6E4;background:#CCFBF1;color:#134E4A;font-weight:800;font-size:10px">'+txt+'</th>';
+      html+='<div style="border:1px solid #99F6E4;border-radius:10px;margin-bottom:12px;overflow:hidden">';
+      html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:9px 13px;font-weight:800;font-size:13px;direction:ltr;text-align:left">'+model+' <span style="opacity:.85;font-size:11px">('+units.length+')</span></div>';
+      html+='<div style="overflow:auto"><table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr;min-width:100%">';
+      // صف مجموعات
+      html+='<tr><th rowspan="2" style="padding:5px 8px;border:1px solid #99F6E4;background:#0F766E;color:#fff;position:sticky;left:0;z-index:2">Station</th>';
+      html+=gth('#1D4ED8',pk.length,'Pressure')+gth('#6D28D9',cfg.stages,'Ratio')+gth('#B45309',tk.length,'Temperature')+gth('#a16207',_OILF.length,'Oil')+gth('#0891B2',_WATERF.length,'Water')+gth('#7C3AED',_OTHERF.length,'Other')+'</tr>';
+      // صف العناوين الفرعية
+      html+='<tr>';
+      pk.forEach(p=>html+=sth(p.k==='in'?'In':p.k));
+      for(let s=1;s<=cfg.stages;s++) html+=sth(s===1?'1/In':s+'/'+(s-1));
+      tk.forEach(t=>html+=sth(t.k==='amb'?'Amb':(t.k==='in'?'In':t.k)));
+      _OILF.forEach(f=>html+=sth(f[0]==='otemp'?'Temp':(f[0].charAt(0).toUpperCase()+f[0].slice(1,5))));
+      _WATERF.forEach(f=>html+=sth(f[0]==='wp'?'P':'T'));
+      _OTHERF.forEach(f=>html+=sth(f[0]==='vib'?'Vib':(f[0]==='ss'?'S/S':'Amp')));
+      html+='</tr>';
+      // صفوف المحطات
+      units.forEach(u=>{const p=u.parsed.pres||{},t=u.parsed.temp||{},o=u.parsed.oil||{},w=u.parsed.water||{},x=u.parsed.other||{};
+        html+='<tr><td style="padding:5px 8px;border:1px solid #E5E7EB;font-weight:800;background:#F0FDFA;position:sticky;left:0;z-index:1;text-align:left">'+u.name+'</td>';
+        pk.forEach(pp=>{const v=p[pp.k];html+=_scell(v,isOut(v,units.map(z=>z.parsed.pres?z.parsed.pres[pp.k]:null)));});
+        for(let s=1;s<=cfg.stages;s++){const v=u._r[s];html+=_scell(v!=null?v.toFixed(2):null,isOut(v,units.map(z=>z._r?z._r[s]:null)),'#6D28D9');}
+        tk.forEach(tt=>{const v=t[tt.k];html+=_scell(v,isOut(v,units.map(z=>z.parsed.temp?z.parsed.temp[tt.k]:null)),'#B45309');});
+        _OILF.forEach(f=>{const v=o[f[0]];html+=_scell(v,isOut(v,units.map(z=>z.parsed.oil?z.parsed.oil[f[0]]:null)),'#a16207');});
+        _WATERF.forEach(f=>{const v=w[f[0]];html+=_scell(v,isOut(v,units.map(z=>z.parsed.water?z.parsed.water[f[0]]:null)),'#0891B2');});
+        _OTHERF.forEach(f=>{const v=x[f[0]];html+=_scell(v,isOut(v,units.map(z=>z.parsed.other?z.parsed.other[f[0]]:null)),'#7C3AED');});
+        html+='</tr>';
+      });
+      html+='</table></div></div>';
+    });
+    host.innerHTML=html;
+  }).catch(()=>{host.innerHTML='';});
 }
 // عرض بيان استهلاك الزيت + المقارنة
 function loadOilReport(){
