@@ -938,7 +938,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V139</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V141</span>
       </div>
     </div>
   </div>
@@ -1356,7 +1356,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 139; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 141; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1819,7 +1819,7 @@ function loadStationDefaults(code){
 // إعداد المراحل لكل موديل — عدّل هنا فقط. الافتراضى 4 مراحل بار/سليزيوس.
 function STAGE_CFG(model){
   const m=String(model||'');
-  if(m==='M302') return {stages:3, ab:false, punit:'bar', tunit:'c'};           // السويس عتاقة
+  if(m==='M302') return {stages:3, ab:false, punit:'psi', tunit:'f'};           // السويس عتاقة — إدخال PSI/°F
   if(m==='H304') return {stages:4, ab:true,  punit:'psi', tunit:'f'};           // J.W السويس فيصل — إدخال PSI/°ف
   if(m.indexOf('SHG')>=0) return {stages:5, ab:true, punit:'bar', tunit:'c'};   // Hyosung / Safe SHG 315/355
   return {stages:4, ab:false, punit:'bar', tunit:'c'};
@@ -3025,13 +3025,17 @@ function validateAll(){
       if(tf<=0){errors.push(`ساعات الضاغط ${label} الفعلية`);}
       // ضغط الدخول من شاشة PLC إلزامى للضاغط الشغّال (لازم لحساب حيود معدل التدفق)
       if(iVal('pp-int-'+idx)){errors.push(`ضغط الدخول من شاشة PLC للضاغط ${label}`);markErr('pp-int-'+idx,'إلزامى');}
-      // ضغط المرحلة الأخيرة (التصريف) إلزامى وأعلى من 230 بار
+      // كل ضغوط المراحل (من الدخول حتى الأخيرة) إلزامية — والمرحلة الأخيرة أعلى من 230 بار
       {
-        const _cfgS=STAGE_CFG(c.model); const _lid='sp-'+idx+'-'+_cfgS.stages; const _lel=document.getElementById(_lid);
+        const _cfgS=STAGE_CFG(c.model);
+        _presKeys(_cfgS).forEach(pk=>{
+          const _id='sp-'+idx+'-'+pk.k; const _el=document.getElementById(_id);
+          if(!_el || _el.value===''){ errors.push(`ضغط ${pk.l} للضاغط ${label} (تابة الضغوط والحرارات)`); _markStage(_id); }
+        });
+        const _lid='sp-'+idx+'-'+_cfgS.stages; const _lel=document.getElementById(_lid);
         let _lp=(_lel&&_lel.value!=='')?parseFloat(_lel.value):null;
-        if(_lp!=null && _cfgS.punit==='psi') _lp=_lp/14.5038; // فيصل: PSI→بار
-        if(_lp==null){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} (تابة الضغوط والحرارات)`); _markStage(_lid); }
-        else if(_lp<=230){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} لازم أعلى من 230 بار (الحالى ${Math.round(_lp)})`); _markStage(_lid); }
+        if(_lp!=null && _cfgS.punit==='psi') _lp=_lp/14.5038; // فيصل/عتاقة: PSI→بار
+        if(_lp!=null && _lp<=230){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} لازم أعلى من 230 بار (الحالى ${Math.round(_lp)})`); _markStage(_lid); }
       }
     }
     if(th>0&&tf>0&&th<tf){errors.push(`ساعات الضاغط ${label}: الكلية أقل من الفعلية`);}
