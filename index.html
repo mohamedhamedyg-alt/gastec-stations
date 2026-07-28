@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V144</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V145</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 144; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 145; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1830,7 +1830,8 @@ function STAGE_CFG(model){
   const m=String(model||'');
   if(m==='M302') return {stages:3, ab:false, punit:'psi', tunit:'f'};           // السويس عتاقة — إدخال PSI/°F
   if(m==='H304') return {stages:4, ab:true,  punit:'psi', tunit:'f'};           // J.W السويس فيصل — إدخال PSI/°ف
-  if(m.indexOf('SHG')>=0) return {stages:5, ab:true, punit:'bar', tunit:'c'};   // Safe SHG 315/355
+  if(m.indexOf('SHG')>=0) return {stages:4, ab:true, punit:'bar', tunit:'c'};   // Safe SHG 315/355 — 4 مراحل، A/B فى الحرارات (الثالثة والرابعة)
+  if(/^\s*ST\s/.test(m)) return {stages:3, ab:false, punit:'bar', tunit:'c'};   // Safe ST 65T26 / ST 75T26 — 3 مراحل
   if(m.indexOf('JGJ')>=0 || m.toLowerCase().indexOf('hyosung')>=0) return {stages:5, ab:false, punit:'bar', tunit:'c'}; // بورسعيد التعمير Hyosung — 5 مراحل ضغوط و5 حرارات بدون A/B
   return {stages:4, ab:false, punit:'bar', tunit:'c'};
 }
