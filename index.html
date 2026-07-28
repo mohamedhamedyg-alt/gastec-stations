@@ -917,7 +917,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V133</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V136</span>
       </div>
     </div>
   </div>
@@ -1335,7 +1335,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 133; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 136; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1895,6 +1895,7 @@ function buildCompSections(indices){
               <input type="number" class="form-control" id="pp-frac-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center" oninput="calcLive()">
             </div>
             <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
+            <div class="validation-msg">إلزامى — لازم لحساب الحيود</div>
           </div>
         </div>
         <!-- زيت الضاغط -->
@@ -2917,6 +2918,8 @@ function validateAll(){
     if(!stationStopped){
       if(th<=0){errors.push(`ساعات الضاغط ${label} الكلية`);}
       if(tf<=0){errors.push(`ساعات الضاغط ${label} الفعلية`);}
+      // ضغط الدخول من شاشة PLC إلزامى للضاغط الشغّال (لازم لحساب حيود معدل التدفق)
+      if(iVal('pp-int-'+idx)){errors.push(`ضغط الدخول من شاشة PLC للضاغط ${label}`);markErr('pp-int-'+idx,'إلزامى');}
     }
     if(th>0&&tf>0&&th<tf){errors.push(`ساعات الضاغط ${label}: الكلية أقل من الفعلية`);}
     if(iVal('starts-'+idx)){errors.push(`عدد تشغيلات ${label}`);markErr('starts-'+idx,'إلزامى');}
@@ -5276,23 +5279,26 @@ function _mcCurve(title,dotColor,data,opts){
   });
   s+='</svg>';
   const topList=data.slice(n-topCount).reverse(),lowList=data.slice(0,lowCount);
-  function c2(t,arr,color,extra){t=String(t).replace('{n}',arr.length);let h='<div class="mc-lcol"><div class="mc-lt" style="color:'+color+'">'+t+'</div>';arr.forEach((d,i)=>{
+  function c2(t,arr,color,extra){t=String(t).replace('{n}',arr.length);let h='<div class="mc-lcol"><div class="mc-lt" style="color:'+color+'">'+t+'</div>';
+    // محطات بدون رقم (متوقفة / لم ترسل / بدون قراءة) — تظهر أعلى عمود الأقل، مرتّبة بالمحافظة
+    if(extra&&extra.length){
+      h+='<div style="font-size:10px;font-weight:800;color:#94A3B8;padding:3px 8px 4px">— محطات بدون رقم ('+extra.length+') —</div>';
+      extra.forEach(e=>{
+        let icon,bcol;
+        if(e.status==='متوقفة'){ icon='🔴'; bcol='#DC2626'; }
+        else if(e.status==='لم ترسل'){ icon='⚪'; bcol='#94A3B8'; }
+        else { icon='🟡'; bcol='#B45309'; } // شغّالة لكن بدون قراءة للمؤشر
+        h+='<div class="mc-lr" style="background:#F8FAFC"><span style="color:#64748B">'+e.name+'</span><span style="color:'+bcol+';font-size:10.5px;font-weight:800;white-space:nowrap">'+icon+' '+e.status+'</span></div>';
+      });
+      h+='<div style="height:1px;background:#E2E8F0;margin:4px 0"></div>';
+    }
+    arr.forEach((d,i)=>{
     const flow=(opts.detail==='flow'&&d.frChain);
     const attrs=flow
       ?(' class="mc-lr mc-flowrow" style="cursor:pointer;background:'+(i%2?'#F8FAFC':'#fff')+'" data-fc="'+encodeURIComponent(JSON.stringify({name:d.name,model:stationModels(d.code),chain:d.frChain,dev:d.frDev}))+'"')
       :(' class="mc-lr" style="background:'+(i%2?'#F8FAFC':'#fff')+'"');
     const vcol=(opts.mode==='dev')?(d.v>=0?'#16A34A':'#DC2626'):color; // الحيود: موجب أخضر وسالب أحمر
     h+='<div'+attrs+'><span>'+d.name+'</span><span style="color:'+vcol+'">'+opts.fmt(d.v)+'</span></div>';});
-    // محطات بدون رقم (متوقفة / لم ترسل) — تظهر آخر عمود الأقل عشان نشوف الـ42 كلهم
-    if(extra&&extra.length){
-      h+='<div style="font-size:10px;font-weight:800;color:#94A3B8;padding:7px 8px 3px;border-top:1px dashed #E2E8F0;margin-top:4px">— محطات بدون رقم ('+extra.length+') —</div>';
-      extra.forEach(e=>{
-        const stop=e.status==='متوقفة';
-        const badge=stop?'🔴 متوقفة':'⚪ لم ترسل';
-        const bcol=stop?'#DC2626':'#94A3B8';
-        h+='<div class="mc-lr" style="background:#F8FAFC"><span style="color:#64748B">'+e.name+'</span><span style="color:'+bcol+';font-size:10.5px;font-weight:800;white-space:nowrap">'+badge+'</span></div>';
-      });
-    }
     return h+'</div>';}
   const lists='<div class="mc-l2">'+c2(opts.topTitle,topList,opts.topColor)+'<div style="width:1px;background:#E2E8F0"></div>'+c2(opts.lowTitle,lowList,opts.lowColor,opts.extra)+'</div>';
   return '<div class="mc-card"><div class="mc-title"><span class="dot" style="background:'+dotColor+'"></span>'+title+'</div>'+s+'<div class="mc-hint">👆 اضغط أى نقطة لعرض اسم المحطة وقيمتها</div>'+lists+'</div>';
@@ -5302,15 +5308,25 @@ function buildMgrCharts(j){
   const S=(j.stations||[]);
   let H='';
   // ── منحنيات الـ42 محطة ──
-  // المحطات بدون قيمة (متوقفة صفر مبيعات / لم ترسل) — تُعرض آخر عمود الأقل عشان نشوف الـ42 كلهم
-  const _missFor=hasVal=>S.filter(s=>!hasVal(s)).map(s=>({name:s.name,status:s.sent?'متوقفة':'لم ترسل'}))
-    .sort((a,b)=>(a.status===b.status?0:(a.status==='متوقفة'?-1:1)));
+  // المحافظة من اسم المحطة (بورفؤاد تتبع بورسعيد) — لترتيب محطات الصفر فى المبيعات
+  const _govOf=nm=>{const n=String(nm||'');
+    if(n.indexOf('بورفؤاد')===0||n.indexOf('بورسعيد')===0)return 'بورسعيد';
+    if(n.indexOf('السويس')===0)return 'السويس';
+    if(n.indexOf('الإسماعيلية')===0||n.indexOf('الاسماعيلية')===0)return 'الإسماعيلية';
+    if(n.indexOf('دمياط')===0)return 'دمياط';
+    if(n.indexOf('العريش')===0)return 'العريش';
+    if(n.indexOf('شرم')===0)return 'شرم';
+    return 'أخرى';};
+  const _GOVO={'السويس':0,'الإسماعيلية':1,'بورسعيد':2,'دمياط':3,'العريش':4,'شرم':5,'أخرى':6};
+  // ── المبيعات: كل الـ42، ومحطات الصفر فى أعلى عمود "الأقل" مرتّبة بالمحافظة ──
   const salesD=S.filter(s=>s.sales!=null&&s.sales>0).map(s=>({name:s.name,v:s.sales}));
-  const salesMiss=_missFor(s=>s.sales!=null&&s.sales>0);
+  const salesMiss=S.filter(s=>!(s.sales!=null&&s.sales>0))
+    .map(s=>({name:s.name, status: !s.sent?'لم ترسل':(s.stopped?'متوقفة':'بدون مبيعات')}))
+    .sort((a,b)=>{const g=(_GOVO[_govOf(a.name)]??9)-(_GOVO[_govOf(b.name)]??9); return g||String(a.name).localeCompare(String(b.name),'ar');});
   H+=_mcCurve('المبيعات — كل المحطات (م³)','#2563EB',salesD,{mode:'plain',listN:21,extra:salesMiss,fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),fmtShort:v=>Math.round(v/1000)+'k',topTitle:'🟢 أعلى 21 مبيعاً',lowTitle:'🔴 أقل 21 مبيعاً',topColor:'#16A34A',lowColor:'#DC2626'});
+  // ── الحيود: المحطات اللى ليها قيمة فقط (الواقفة ما تظهرش)، والعدد فى العنوان حقيقى (ديناميكى) ──
   const devD=S.map(s=>({name:s.name,v:_devNum(s.frDev),code:s.code,frChain:s.frChain,frDev:s.frDev})).filter(x=>x.v!=null);
-  const devMiss=_missFor(s=>_devNum(s.frDev)!=null);
-  H+=_mcCurve('حيود معدل التدفق — كل المحطات (%)','#7C3AED',devD,{ref:0,refLbl:'0%',mode:'dev',detail:'flow',listN:21,extra:devMiss,fmt:v=>(v>0?'+':'')+v+'%',fmtShort:v=>(v>0?'+':'')+v,topTitle:'🟢 أعلى 21 فى حيود معدل التدفق',lowTitle:'🔴 أقل 21 فى حيود معدل التدفق',topColor:'#16A34A',lowColor:'#DC2626'});
+  H+=_mcCurve('حيود معدل التدفق — كل المحطات (%)','#7C3AED',devD,{ref:0,refLbl:'0%',mode:'dev',detail:'flow',listN:21,fmt:v=>(v>0?'+':'')+v+'%',fmtShort:v=>(v>0?'+':'')+v,topTitle:'🟢 أعلى {n} فى حيود معدل التدفق',lowTitle:'🔴 أقل {n} فى حيود معدل التدفق',topColor:'#16A34A',lowColor:'#DC2626'});
   const kwhD=S.map(s=>({name:s.name,v:_numOr(s.kwhM3)})).filter(x=>x.v!=null&&x.v>0);
   H+=_mcCurve('استهلاك الكهرباء KWH/م³ — كل المحطات','#0891B2',kwhD,{mode:'cost',listN:21,fmt:v=>v.toFixed(2),fmtShort:v=>v.toFixed(2),topTitle:'🔴 أعلى {n} استهلاكاً',lowTitle:'🟢 أقل {n} استهلاكاً',topColor:'#DC2626',lowColor:'#16A34A'});
   const pfD=S.map(s=>({name:s.name,code:s.code,v:_pfNum(s.pf)})).filter(x=>x.v!=null&&x.v>0);
