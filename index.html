@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V142</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V144</span>
       </div>
     </div>
   </div>
@@ -1261,12 +1261,18 @@ function joinDec(intId, fracId){
 }
 // قراءة ضغط PLC لضاغط معيّن
 function getInletPLC(idx){
-  var v = joinDec('pp-int-'+idx,'pp-frac-'+idx);
-  return toBar(v, idx);
+  // ضغط الدخول أصبح يُؤخذ من خانة Inlet فى تابة الضغوط والحرارات (sp-idx-in)
+  var el = document.getElementById('sp-'+idx+'-in');
+  var v = (el && el.value!=='') ? (parseFloat(el.value)||0) : 0;
+  if(!v) return 0;
+  var mdl = (window.__compModels && window.__compModels[idx]) ? window.__compModels[idx] : '';
+  var cfg = STAGE_CFG(mdl);
+  if(cfg.punit==='psi') v = v/14.5038; // PSI→بار للموديلات اللى بتدخل PSI
+  return v;
 }
 function getInletMod(idx){
-  var v = joinDec('pm-int-'+idx,'pm-frac-'+idx);
-  return toBar(v, idx);
+  // لم يعد يُدخل ضغط الموديول منفصلاً — نُرجّع نفس قراءة الدخول
+  return getInletPLC(idx);
 }
 // تحديث ليبل الوحدة (bar/PSI) بجانب خانات الضغط
 function updatePressureUnit(idx){
@@ -1359,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 142; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 144; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1824,15 +1830,16 @@ function STAGE_CFG(model){
   const m=String(model||'');
   if(m==='M302') return {stages:3, ab:false, punit:'psi', tunit:'f'};           // السويس عتاقة — إدخال PSI/°F
   if(m==='H304') return {stages:4, ab:true,  punit:'psi', tunit:'f'};           // J.W السويس فيصل — إدخال PSI/°ف
-  if(m.indexOf('SHG')>=0) return {stages:5, ab:true, punit:'bar', tunit:'c'};   // Hyosung / Safe SHG 315/355
+  if(m.indexOf('SHG')>=0) return {stages:5, ab:true, punit:'bar', tunit:'c'};   // Safe SHG 315/355
+  if(m.indexOf('JGJ')>=0 || m.toLowerCase().indexOf('hyosung')>=0) return {stages:5, ab:false, punit:'bar', tunit:'c'}; // بورسعيد التعمير Hyosung — 5 مراحل ضغوط و5 حرارات بدون A/B
   return {stages:4, ab:false, punit:'bar', tunit:'c'};
 }
 const _ORD=['','1st','2nd','3rd','4th','5th','6th'];
 function _presKeys(cfg){ const k=[{k:'in',l:'Inlet'}]; for(let s=1;s<=cfg.stages;s++)k.push({k:''+s,l:_ORD[s]+' stage'}); return k; }
 function _tempKeys(cfg){ const k=[{k:'amb',l:'Ambient'},{k:'in',l:'Inlet'}];
   for(let s=1;s<=cfg.stages;s++){ if(cfg.ab&&(s===3||s===4)){k.push({k:s+'A',l:_ORD[s]+'-A'},{k:s+'B',l:_ORD[s]+'-B'});} else k.push({k:''+s,l:_ORD[s]+' stage'}); } return k; }
-const _OILF=[['cycle','Last Cycle Time'],['carter','Oil Carter Pressure'],['lubcyl','Lub. Cyl. Pressure'],['otemp','Temperature']];
-const _WATERF=[['wp','Pressure'],['wt','Temperature']];
+const _OILF=[['cycle','Last Cycle Time (sec)'],['carter','Oil Carter Pressure (bar)'],['lubcyl','Lub. Cyl. Pressure (bar)'],['otemp','Temperature (°C)']];
+const _WATERF=[['wp','Pressure (bar)'],['wt','Temperature (°C)']];
 const _OTHERF=[['vib','Compressor Vibration (mm/sec)'],['ss','No. of Start/Stop (No.)'],['amp','Motor Current (A)']];
 function stageSectionHTML(idx, model, compLabel){
   const cfg=STAGE_CFG(model);
@@ -1868,17 +1875,20 @@ function calcStageRatios(idx){
   const model=window.__compModels[idx]; const cfg=STAGE_CFG(model);
   for(let s=1;s<=cfg.stages;s++){ const prev=s===1?g('in'):g(''+(s-1)); const cur=g(''+s);
     const el=document.getElementById('sr-'+idx+'-'+s); if(el) el.textContent=(prev>0&&cur>0)?(cur/prev).toFixed(2):'—'; }
+  // ضغط الدخول (Inlet) بقى مصدر حساب حيود معدل التدفق → نحدّث المعاينة لحظياً
+  if(typeof calcLive==='function'){ try{ calcLive(); }catch(e){} }
 }
 // تجميع كل قراءات الضاغط للإرسال (تحويل PSI→بار و°ف→°م مقرّب لرقم صحيح لموديل فيصل)
 function collectStageReadings(idx){
   const model=window.__compModels[idx]; const cfg=STAGE_CFG(model);
-  const toBarP=v=>cfg.punit==='psi'?Math.round(v/14.5038):v;
-  const toC=v=>cfg.tunit==='f'?Math.round((v-32)*5/9):v;
+  const r1=v=>Math.round(v*10)/10; // علامة عشرية واحدة
+  const toBarP=v=>r1(cfg.punit==='psi'?v/14.5038:v);
+  const toC=v=>r1(cfg.tunit==='f'?(v-32)*5/9:v);
   const rd=id=>{const el=document.getElementById(id);return el&&el.value!==''?parseFloat(el.value):null;};
   const pres={}, temp={}, oil={}, water={}, other={};
   _presKeys(cfg).forEach(p=>{ const v=rd('sp-'+idx+'-'+p.k); if(v!=null)pres[p.k]=toBarP(v); });
   _tempKeys(cfg).forEach(t=>{ const v=rd('st-'+idx+'-'+t.k); if(v!=null)temp[t.k]=toC(v); });
-  _OILF.forEach(f=>{ const v=rd('so-'+idx+'-'+f[0]); if(v!=null) oil[f[0]]=(f[0]==='otemp')?toC(v):((f[0]==='carter'||f[0]==='lubcyl')?toBarP(v):v); });
+  _OILF.forEach(f=>{ const v=rd('so-'+idx+'-'+f[0]); if(v!=null) oil[f[0]]=(f[0]==='otemp')?toC(v):((f[0]==='carter'||f[0]==='lubcyl')?toBarP(v):r1(v)); });
   _WATERF.forEach(f=>{ const v=rd('sw-'+idx+'-'+f[0]); if(v!=null) water[f[0]]=(f[0]==='wt')?toC(v):toBarP(v); });
   _OTHERF.forEach(f=>{ const v=rd('sx-'+idx+'-'+f[0]); if(v!=null) other[f[0]]=v; });
   return {model:model, stages:cfg.stages, ab:cfg.ab, pres:pres, temp:temp, oil:oil, water:water, other:other};
@@ -1953,40 +1963,7 @@ function buildCompSections(indices){
             </div>
           </div>
         </div>
-        <div class="form-group" style="margin-top:10px">
-          <label><span class="req">*</span> عدد مرات التشغيل</label>
-          <input type="number" class="form-control" id="starts-${idx}" min="0" step="1" inputmode="numeric" style="direction:ltr">
-          <div class="validation-msg">إلزامى</div>
-        </div>
-        <div class="divider"></div>
-        <div class="sub-title" style="background:#E8F5E9;color:#1B5E20;display:flex;justify-content:space-between;align-items:center">
-          <span>⚙️ ضغط دخول الغاز — ${compLabel}</span>
-          ${window.__currentStationCode==='29'?`<span style="font-size:11px;font-weight:700">الوحدة:
-            <select id="pressure-unit-${idx}" onchange="updatePressureUnit(${idx});calcLive()" style="font-family:Cairo;padding:2px 6px;border-radius:6px;border:1px solid #1B5E20;font-weight:700">
-              <option value="bar">بار</option><option value="psi">PSI</option>
-            </select></span>`:''}
-        </div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label><span class="req">*</span> من الموديول (<span id="unit-mod-${idx}">bar</span>)</label>
-            <div class="dual-input" style="direction:ltr">
-              <input type="number" class="form-control" id="pm-int-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center">
-              <div class="sep">.</div>
-              <input type="number" class="form-control" id="pm-frac-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center">
-            </div>
-            <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
-          </div>
-          <div class="form-group">
-            <label><span class="req">*</span> من شاشة PLC (<span id="unit-plc-${idx}">bar</span>)</label>
-            <div class="dual-input" style="direction:ltr">
-              <input type="number" class="form-control" id="pp-int-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="صحيح" style="direction:rtl;text-align:center" oninput="calcLive()">
-              <div class="sep">.</div>
-              <input type="number" class="form-control" id="pp-frac-${idx}" min="0" max="99" step="1" inputmode="numeric" placeholder="كسر" style="direction:rtl;text-align:center" oninput="calcLive()">
-            </div>
-            <div class="dual-label" style="direction:ltr"><span style="text-align:right">الرقم الصحيح</span><span>الكسر</span></div>
-            <div class="validation-msg">إلزامى — لازم لحساب الحيود</div>
-          </div>
-        </div>
+        <!-- تم نقل «عدد مرات التشغيل» إلى تابة الضغوط (No. of Start/Stop)، و«ضغط دخول الغاز» إلى Inlet فى تابة الضغوط -->
         <!-- زيت الضاغط -->
         <div class="divider"></div>
         <div class="sub-title" style="background:var(--amber-pale);color:#7F3F00">زيت الضاغط ${compLabel}</div>
@@ -3026,23 +3003,18 @@ function validateAll(){
     if(!stationStopped){
       if(th<=0){errors.push(`ساعات الضاغط ${label} الكلية`);}
       if(tf<=0){errors.push(`ساعات الضاغط ${label} الفعلية`);}
-      // ضغط الدخول من شاشة PLC إلزامى للضاغط الشغّال (لازم لحساب حيود معدل التدفق)
-      if(iVal('pp-int-'+idx)){errors.push(`ضغط الدخول من شاشة PLC للضاغط ${label}`);markErr('pp-int-'+idx,'إلزامى');}
-      // كل ضغوط المراحل (من الدخول حتى الأخيرة) إلزامية — والمرحلة الأخيرة أعلى من 230 بار
+      // مرحلة تجريبية: الشرط الوحيد الإلزامى فى القراءات = ضغط المرحلة الأخيرة موجود وأعلى من 230 بار
+      // باقى خانات الضغوط/الحرارات اختيارية دلوقتى (هنشدّدها لاحقاً بعد ما نعرف كل موديل بيدخل إيه)
       {
         const _cfgS=STAGE_CFG(c.model);
-        _presKeys(_cfgS).forEach(pk=>{
-          const _id='sp-'+idx+'-'+pk.k; const _el=document.getElementById(_id);
-          if(!_el || _el.value===''){ errors.push(`ضغط ${pk.l} للضاغط ${label} (تابة الضغوط والحرارات)`); _markStage(_id); }
-        });
         const _lid='sp-'+idx+'-'+_cfgS.stages; const _lel=document.getElementById(_lid);
         let _lp=(_lel&&_lel.value!=='')?parseFloat(_lel.value):null;
         if(_lp!=null && _cfgS.punit==='psi') _lp=_lp/14.5038; // فيصل/عتاقة: PSI→بار
-        if(_lp!=null && _lp<=230){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} لازم أعلى من 230 بار (الحالى ${Math.round(_lp)})`); _markStage(_lid); }
+        if(_lp==null){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} — إلزامى (تابة الضغوط والحرارات)`); _markStage(_lid); }
+        else if(_lp<=230){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} لازم أعلى من 230 بار (الحالى ${Math.round(_lp)})`); _markStage(_lid); }
       }
     }
     if(th>0&&tf>0&&th<tf){errors.push(`ساعات الضاغط ${label}: الكلية أقل من الفعلية`);}
-    if(iVal('starts-'+idx)){errors.push(`عدد تشغيلات ${label}`);markErr('starts-'+idx,'إلزامى');}
     if(!document.getElementById('oil-type-'+idx)?.value){errors.push(`نوع زيت ${label}`);markErr('oil-type-'+idx,'اختر');}
     if(iVal('oil-cons-'+idx)){errors.push(`استهلاك زيت ${label}`);markErr('oil-cons-'+idx,'إلزامى');}
     const _obEl=document.getElementById('oil-bal-'+idx);
@@ -3079,12 +3051,7 @@ function validateAll(){
   }
   if(iVal('f-w-drink')){errors.push('مياه الشرب');markErr('f-w-drink','إلزامى');}
   if(iVal('f-w-fire')){errors.push('مياه الحريق');markErr('f-w-fire','إلزامى');}
-  // ضغط الغاز - إلزامى
-  const _acPress=[0,1].filter(ix=>document.getElementById('pp-int-'+ix));
-  _acPress.forEach(ix=>{
-    if((document.getElementById('pm-int-'+ix)?.value||'')===''){errors.push('ضغط الموديول — ضاغط '+(ix+1));markErr('pm-int-'+ix,'إلزامى');}
-    if((document.getElementById('pp-int-'+ix)?.value||'')===''){errors.push('ضغط PLC — ضاغط '+(ix+1));markErr('pp-int-'+ix,'إلزامى');}
-  });
+  // (ضغط دخول الغاز اتنقل لتابة الضغوط — Inlet — فلم يعد إلزامياً هنا)
   if(!document.getElementById('f-gas-price')?.value||parseNum(document.getElementById('f-gas-price')?.value)<=0){errors.push('سعر المتر المكعب');}
   const cashIntCheck=parseInt(document.getElementById('f-cash-int')?.value);
   if(isNaN(cashIntCheck)||document.getElementById('f-cash-int')?.value===''){errors.push('الإيداع النقدى');markErr('f-cash','إلزامى');}
@@ -3092,11 +3059,11 @@ function validateAll(){
   if(iVal('f-safety-date')){errors.push('تاريخ فحص الأمان');markErr('f-safety-date','إلزامى');}
   checkOilDup(); // ضمان تطبيق قاعدة الزيت الموحّد قبل الفحص
   // ── قواعد الساعات: فعلية ≤ كلية، والحد الأقصى 24.00 ──
-  const _acH=[0,1].filter(ix=>document.getElementById('starts-'+ix));
+  const _acH=(typeof activeComps!=='undefined'&&activeComps.length)?activeComps.slice():[0];
   _acH.forEach(ix=>{valH(ix);
     const th=getH(ix,'th'), tf=getH(ix,'tf');
-    if(th>24||tf>24){errors.push('ساعات الضاغط '+(ix+1)+' تجاوزت 24 ساعة');markErr('starts-'+ix,'تحقق من الساعات');}
-    if(tf>th&&th>0){errors.push('الساعات الفعلية أكبر من الكلية — ضاغط '+(ix+1));markErr('starts-'+ix,'فعلية > كلية');}
+    if(th>24||tf>24){errors.push('ساعات الضاغط '+(ix+1)+' تجاوزت 24 ساعة');}
+    if(tf>th&&th>0){errors.push('الساعات الفعلية أكبر من الكلية — ضاغط '+(ix+1));}
   });
   // ── تواريخ الصيانة/التشحيم لا تكون فى المستقبل بعد تاريخ البيان ──
   const repDate=document.getElementById('f-date')?.value||'';
@@ -4013,32 +3980,66 @@ function mgrBackToHub(){
 function loadCompComparison(){
   const c=document.getElementById('comp-content');
   c.innerHTML='<div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل...</div>';
-  fetch(APPS_SCRIPT_URL+'?action=compReport')
-    .then(r=>r.json())
-    .then(j=>{
-      const groups=j.groups||[];
-      if(groups.length===0){ c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد بيانات للمقارنة بعد</div>'; return; }
-      let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.8">📊 FR والحيود والكفاءة وKWH/م³ = متوسط آخر 7 أيام • الزيت لتر/100س = إجمالى التعويض والأعطال ÷ ساعات التشغيل على نافذة 30 يوم (زيت الضاغط) — الرقم بين الأقواس = أيام النافذة (شهر كامل = 30 يوم، متجدّد يومياً وموحّد لكل المحطات)</div>';
-      groups.forEach(g=>{
-        html+='<div style="border:1px solid #99F6E4;border-radius:10px;margin-bottom:12px;overflow:hidden">';
-        html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px">'+(g.brand?g.brand+' — ':'')+g.model+(g.units.length>1?' <span style="opacity:.85;font-size:11px">('+g.units.length+')</span>':'')+'</div>';
-        html+='<div class="fire-tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">';
-        html+='<tr style="background:#CCFBF1;font-weight:800"><th style="padding:6px;border:1px solid #99F6E4">المحطة / الضاغط</th><th style="padding:6px;border:1px solid #99F6E4">FR فعلى</th><th style="padding:6px;border:1px solid #99F6E4">حيود%</th><th style="padding:6px;border:1px solid #99F6E4">كفاءة%</th><th style="padding:6px;border:1px solid #99F6E4">KWH/م³</th><th style="padding:6px;border:1px solid #99F6E4">زيت لتر/100س</th></tr>';
-        g.units.forEach(u=>{
-          html+='<tr><td style="padding:5px 6px;border:1px solid #E5E7EB;font-weight:700">'+u.name+'</td>';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+(u.fr||'—')+'</td>';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+(u.dev||'—')+'</td>';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr">'+(u.util||'—')+'</td>';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:700;color:#7B2D8E">'+(u.kwhM3||'—')+'</td>';
-          const oilDaysTag = (u.oilDays&&u.oilDays>0) ? ' <span style="font-size:9.5px;color:#9CA3AF;font-weight:700;direction:rtl;unicode-bidi:isolate;display:inline-block">('+u.oilDays+' يوم)</span>' : '';
-          html+='<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:rtl;font-weight:700;color:#C2410C"><span style="direction:ltr;unicode-bidi:isolate;display:inline-block">'+(u.oilRate||'—')+'</span>'+oilDaysTag+'</td></tr>';
-        });
-        html+='</table></div></div>';
+  Promise.all([
+    fetch(APPS_SCRIPT_URL+'?action=compReport').then(r=>r.json()).catch(()=>({groups:[]})),
+    fetch(APPS_SCRIPT_URL+'?action=stageReadings').then(r=>r.json()).catch(()=>({readings:[]}))
+  ]).then(function(res){
+    const j=res[0]||{groups:[]}, sr=res[1]||{readings:[]};
+    const groups=j.groups||[];
+    if(groups.length===0){ c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد بيانات للمقارنة بعد</div>'; return; }
+    // خريطة قراءات المراحل: code|comp
+    const srMap={};
+    (sr.readings||[]).forEach(x=>{let d={};try{d=JSON.parse(x.data);}catch(e){} srMap[String(x.code)+'|'+String(x.comp)]=d;});
+    function med(arr){const a=arr.filter(v=>v!=null&&!isNaN(v)).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
+    const f1=v=>(v==null||v===''||isNaN(v))?null:(Math.round(v*10)/10).toFixed(1);
+    let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:8px 11px;margin-bottom:12px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.9">📊 مقارنة الضواغط المتطابقة بالموديل — عمود المحطة ثابت (Freeze) عند التمرير الأفقى. أعمدة الأداء (KWH/m³ · Actual Flow · Flow Dev · Lit/100hr · Efficiency) = متوسط آخر 7 أيام (الزيت على نافذة 30 يوم). أعمدة القراءات (Pressure · Ratio · Temperature · Oil · Water · Other) = آخر إرسال. الخلية الحمراء = قراءة شاذّة عن نظائرها فى نفس الموديل.</div>';
+    const G={pre:'#1D4ED8',rat:'#6D28D9',tmp:'#B45309',oil:'#a16207',wat:'#0891B2',oth:'#7C3AED',flw:'#0F766E'};
+    groups.forEach(g=>{
+      const model=g.model, units=g.units||[]; const cfg=STAGE_CFG(model);
+      const pk=_presKeys(cfg), tk=_tempKeys(cfg);
+      units.forEach(u=>{const sd=srMap[String(u.code)+'|'+String(u.comp)]||{}; u._sd=sd; const p=sd.pres||{}; u._r={}; for(let s=1;s<=cfg.stages;s++){const prev=s===1?p['in']:p[''+(s-1)];const cur=p[''+s];u._r[s]=(prev>0&&cur>0)?cur/prev:null;}});
+      const isOut=(v,arr)=>{if(v==null||isNaN(v)||units.length<2)return false;const m=med(arr);if(m==null||m===0)return false;return Math.abs(v-m)/Math.abs(m)>0.15;};
+      const gth=(bg,span,txt,unit)=>'<th colspan="'+span+'" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
+      const gth2=(bg,txt,unit)=>'<th rowspan="2" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;vertical-align:middle">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
+      const sth=(txt,unit)=>'<th style="padding:4px 6px;border:1px solid #CBD5E1;background:#F1F5F9;color:#475569;font-weight:700;font-size:10px">'+txt+(unit?'<span style="display:block;font-size:8px;color:#94A3B8">'+unit+'</span>':'')+'</th>';
+      const froz='position:sticky;left:0;';
+      html+='<div style="border:1px solid #CBD5E1;border-radius:10px;margin-bottom:14px;overflow:hidden">';
+      html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:9px 13px;font-weight:800;font-size:13px;direction:ltr;text-align:left">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+cfg.stages+' stages · '+units.length+')</span></div>';
+      html+='<div style="overflow:auto;direction:ltr"><table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr">';
+      html+='<tr>';
+      html+='<th rowspan="2" style="padding:5px 8px;border:1px solid #CBD5E1;background:#0F172A;color:#fff;'+froz+'z-index:5;min-width:150px;text-align:left">Station</th>';
+      html+=gth2(G.flw,'KWH/m³')+gth2(G.flw,'Actual Flow','m³/h')+gth2(G.flw,'Flow Dev','%')+gth2(G.flw,'Lit/100hr')+gth2(G.flw,'Efficiency','%');
+      html+=gth(G.pre,pk.length,'Pressure','bar')+gth(G.rat,cfg.stages,'Ratio')+gth(G.tmp,tk.length,'Temperature','°C')+gth(G.oil,_OILF.length,'Oil')+gth(G.wat,_WATERF.length,'Water')+gth(G.oth,_OTHERF.length,'Other');
+      html+='</tr><tr>';
+      pk.forEach(p=>html+=sth(p.k==='in'?'In':p.k));
+      for(let s=1;s<=cfg.stages;s++) html+=sth(s===1?'1/In':s+'/'+(s-1));
+      tk.forEach(t=>html+=sth(t.k==='amb'?'Amb':(t.k==='in'?'In':t.k)));
+      _OILF.forEach(f=>html+=sth(f[0]==='otemp'?'Temp':(f[0]==='cycle'?'Cycle':(f[0]==='carter'?'Carter':'LubCyl'))));
+      _WATERF.forEach(f=>html+=sth(f[0]==='wp'?'P':'T'));
+      _OTHERF.forEach(f=>html+=sth(f[0]==='vib'?'Vib':(f[0]==='ss'?'S/S':'Amp')));
+      html+='</tr>';
+      units.forEach((u,ri)=>{
+        const sd=u._sd||{}, p=sd.pres||{},t=sd.temp||{},o=sd.oil||{},w=sd.water||{},x=sd.other||{};
+        const rowBg = ri%2 ? '#F8FAFC' : '#fff';
+        html+='<tr style="background:'+rowBg+'">';
+        html+='<td style="padding:5px 8px;border:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:1;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
+        html+=_pcell(u.kwhM3,'#6D28D9')+_pcell(u.fr)+_pcell(u.dev)+_pcell(u.oilRate,'#C2410C')+_pcell((u.util!=null&&u.util!==''&&u.util!=='—')?(u.util+'%'):'—');
+        pk.forEach(pp=>{const v=p[pp.k];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.pres)?z._sd.pres[pp.k]:null)));});
+        for(let s=1;s<=cfg.stages;s++){const v=u._r[s];html+=_scell(v!=null?v.toFixed(2):null,isOut(v,units.map(z=>z._r?z._r[s]:null)),'#6D28D9');}
+        tk.forEach(tt=>{const v=t[tt.k];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.temp)?z._sd.temp[tt.k]:null)),'#B45309');});
+        _OILF.forEach(f=>{const v=o[f[0]];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.oil)?z._sd.oil[f[0]]:null)),'#a16207');});
+        _WATERF.forEach(f=>{const v=w[f[0]];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.water)?z._sd.water[f[0]]:null)),'#0891B2');});
+        _OTHERF.forEach(f=>{const v=x[f[0]];html+=_scell(v==null?null:(f[0]==='ss'?v:f1(v)),isOut(v,units.map(z=>(z._sd&&z._sd.other)?z._sd.other[f[0]]:null)),'#7C3AED');});
+        html+='</tr>';
       });
-      c.innerHTML=html+'<div id="stage-comp"></div>';
-      loadStageComparison();
-    })
-    .catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+      html+='</table></div></div>';
+    });
+    c.innerHTML=html;
+  }).catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+}
+function _pcell(v,color){
+  const disp=(v==null||v===''||v==='—')?'—':v;
+  return '<td style="padding:5px 7px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+(color||'#0F766E')+'">'+disp+'</td>';
 }
 // مقارنة قراءات المراحل (ضغوط/نِسب/حرارات) للموديلات المتطابقة — القيمة الشاذّة بالأحمر
 function _scell(v,out,color){
