@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V145</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V146</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 145; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 146; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1794,32 +1794,38 @@ function _applyStationDefaults(code, sdata){
 function loadStationDefaults(code){
   try{
     const raw=localStorage.getItem('gastec_def_'+code);
-    if(!raw)return;
-    const data=JSON.parse(raw);
-    // safety مستقل عن الضواغط
-    const sEl=document.getElementById('f-safety-date');
-    if(sEl&&data.safety){sEl.value=data.safety;calcSafety(data.safety);}
-    // القيم لكل ضاغط موجود حالياً فى الصفحة
-    Object.keys(data.comps||{}).forEach(ix=>{
-      if(!document.getElementById('maint-date-'+ix))return; // الضاغط ده مش مبنى دلوقتى
-      const c=data.comps[ix];
-      Object.keys(c).forEach(f=>{
-        const el=document.getElementById(f+'-'+ix);
-        if(el&&c[f]){el.value=c[f];}
+    // لو فيه محفوظ محلياً على نفس الجهاز → نطبّقه فوراً (فتح أسرع). لو مفيش (جهاز جديد/موبايل) نكمّل للمزامنة من السيرفر
+    if(raw){
+      const data=JSON.parse(raw);
+      // safety مستقل عن الضواغط
+      const sEl=document.getElementById('f-safety-date');
+      if(sEl&&data.safety){sEl.value=data.safety;calcSafety(data.safety);}
+      // القيم لكل ضاغط موجود حالياً فى الصفحة
+      Object.keys(data.comps||{}).forEach(ix=>{
+        if(!document.getElementById('maint-date-'+ix))return; // الضاغط ده مش مبنى دلوقتى
+        const c=data.comps[ix];
+        Object.keys(c).forEach(f=>{
+          const el=document.getElementById(f+'-'+ix);
+          if(el&&c[f]){el.value=c[f];}
+        });
+        if(document.getElementById('maint-last-'+ix)){calcMDiff(ix);calcMaintNext(ix);}
+        if(document.getElementById('gm-last-'+ix)){calcGMDiff&&calcGMDiff(ix);calcMotorNext(ix);}
+        if(document.getElementById('lube-hrs-'+ix)){calcLubeDiff&&calcLubeDiff(ix);}
       });
-      if(document.getElementById('maint-last-'+ix)){calcMDiff(ix);calcMaintNext(ix);}
-      if(document.getElementById('gm-last-'+ix)){calcGMDiff&&calcGMDiff(ix);calcMotorNext(ix);}
-      if(document.getElementById('lube-hrs-'+ix)){calcLubeDiff&&calcLubeDiff(ix);}
-    });
+    }
   }catch(e){}
-  // مزامنة من السيرفر فى الخلفية — لا تعطّل فتح الصفحة، وتطبّق على الحقول غير المعدّلة فقط
+  // مزامنة من السيرفر دائماً (حتى لو مفيش localStorage) — ده اللى بيعبّى الجهاز الجديد/الموبايل
   try{
     fetch(APPS_SCRIPT_URL+'?action=getDefaults&code='+encodeURIComponent(code))
       .then(r=>r.json())
       .then(j=>{
         if(!j||!j.defaults) return;
         let sd; try{ sd=JSON.parse(j.defaults); }catch(e){ return; }
-        if(sd && (sd.safety || sd.comps)) _applyStationDefaults(code, sd);
+        if(sd && (sd.safety || sd.comps)){
+          _applyStationDefaults(code, sd);
+          // نخزّن نسخة السيرفر محلياً عشان الفتحات الجاية تبقى فورية على نفس الجهاز
+          try{ if(!localStorage.getItem('gastec_def_'+code)) localStorage.setItem('gastec_def_'+code, j.defaults); }catch(e){}
+        }
       }).catch(()=>{});
   }catch(e){}
 }
