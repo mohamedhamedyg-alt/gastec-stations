@@ -585,6 +585,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <button id="dsub-main" onclick="showDailySub('main')" style="flex:1;padding:11px;border-radius:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;border:2px solid transparent;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));color:#fff">📋 البيان اليومى</button>
     <button id="dsub-read" onclick="showDailySub('read')" style="flex:1;padding:11px;border-radius:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;border:2px solid var(--border);background:#fff;color:#64748B">📊 الضغوط والحرارات</button>
   </div>
+  <!-- ملخص التحقق: ظاهر فوق التابتين معاً حتى يراه المشرف مهما كانت التابة المفتوحة -->
+  <div id="validation-summary"></div>
   <div id="daily-main">
   <!-- ① تاريخ البيان + المبيعات (دائماً أول) -->
   <div class="section-card sec-sales-top">
@@ -911,13 +913,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
   </div>
 
+  <button type="button" onclick="showDailySub('read')" style="width:100%;background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Cairo;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px">📊 التالى: الضغوط والحرارات ➜</button>
   </div><!-- /daily-main -->
   <div id="daily-readings" style="display:none">
     <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12px;font-weight:700;color:#0F766E">📊 قراءات المراحل (ضغوط · نِسب تلقائى · حرارات · زيت · مياه · أخرى) — كل ضاغط لوحده</div>
     <div id="readings-container"></div>
+    <button type="button" onclick="showDailySub('main')" style="width:100%;background:#fff;color:#0F766E;border:1px solid #99F6E4;border-radius:10px;padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin:6px 0 10px">⬅ رجوع للبيان اليومى</button>
+    <button class="btn-submit" id="submit-btn" onclick="submitForm()">📤 إرسال البيان كامل (اليومى + الضغوط)</button>
   </div>
-  <div id="validation-summary"></div>
-  <button class="btn-submit" id="submit-btn" onclick="submitForm()">إرسال بيانات اليوم (الكل)</button>
   </div><!-- /tab-daily -->
   </div><!-- /sup-tabs-area -->
 </div>
@@ -938,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V141</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V142</span>
       </div>
     </div>
   </div>
@@ -1356,7 +1359,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 141; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 142; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3252,7 +3255,11 @@ async function submitForm(){
     const sum=document.getElementById('validation-summary');
     sum.innerHTML=`<div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:7px">البيانات غير مكتملة (${errors.length} حقل):</div>`+errors.map(e=>`<div style="font-size:11px;color:#7F1D1D;padding:2px 0">• ${e}</div>`).join('');
     sum.style.display='block';
-    if(window.__needReadingsTab && typeof showDailySub==='function'){ showDailySub('read'); } // الخطأ فى تابة الضغوط والحرارات → نودّيه لها
+    // نوجّه المشرف للتابة التى بها أول خطأ: لو الخطأ فى قراءات الضغوط نفتح تابة الضغوط، وإلا نرجع للبيان اليومى
+    if(typeof showDailySub==='function'){
+      const inRead = window.__firstErr && window.__firstErr.closest && window.__firstErr.closest('#daily-readings');
+      showDailySub(inRead ? 'read' : 'main');
+    }
     if(window.__firstErr){window.__firstErr.scrollIntoView({behavior:'smooth',block:'center'});}
     else{window.scrollTo({top:0,behavior:'smooth'});}
     window.__firstErr=null;
