@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V149</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V150</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 149; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 150; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3059,6 +3059,11 @@ function validateAll(){
     }
   }
   // Per comp validation
+  // المحطة عليها مبيعات لكن مفيش ولا ضاغط مُدخَل له ساعات فعلية → لازم ضاغط واحد شغّال على الأقل
+  const _salesForComp = (document.getElementById('f-has-truck')?.value==='yes') ? (getIndivSalesM3()+getTruckSalesM3()) : joinDec('f-sales-int','f-sales-frac');
+  if(_salesForComp>0 && activeComps.length && activeComps.every(ix=>getH(ix,'tf')<=0)){
+    errors.push('لازم إدخال ساعات تشغيل ضاغط واحد على الأقل (المحطة عليها مبيعات)');
+  }
   activeComps.forEach(idx=>{
     const c=st.comps[idx];const label=`${c.name} — ${c.model}`;
     const th=getH(idx,'th'),tf=getH(idx,'tf');
@@ -3066,8 +3071,10 @@ function validateAll(){
     const _totalSalesV = (document.getElementById('f-has-truck')?.value==='yes') ? (getIndivSalesM3()+getTruckSalesM3()) : joinDec('f-sales-int','f-sales-frac');
     const stationStopped = _totalSalesV === 0;
     if(!stationStopped){
+      // الضاغط الواقف (ساعات فعلية = 0) مُعفى من الساعات وقراءات الضغوط/الحرارات — الشغّال بس هو اللى يُطلب منه القراءات
+      const compRan = tf>0;
+      if(compRan){
       if(th<=0){errors.push(`ساعات الضاغط ${label} الكلية`);}
-      if(tf<=0){errors.push(`ساعات الضاغط ${label} الفعلية`);}
       // كل بيانات تابة الضغوط والحرارات إلزامية للضاغط الشغّال (كل خانة) + المرحلة الأخيرة أعلى من 230 بار
       {
         const _R=READINGS_CFG(c.model);
@@ -3082,7 +3089,10 @@ function validateAll(){
         let _lp=(_lel&&_lel.value!=='')?parseFloat(_lel.value):null;
         if(_lp!=null && _R.punit==='psi') _lp=_lp/14.5038; // فيصل/عتاقة: PSI→بار
         if(_lp!=null && _lp<=230){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} لازم أعلى من 230 بار (الحالى ${Math.round(_lp)})`); _markStage(_lid); }
+        // ضواغط IMW ضغطها بالبار — لو المشرف دخل قيمة PSI بالغلط هتطلع كبيرة جداً؛ نوقفه لو المرحلة الأخيرة أكبر من 300
+        if(c.model.indexOf('IMW')>=0 && _lp!=null && _lp>300){ errors.push(`⚠ فيه رقم غلط فى الضغوط — ضغط المرحلة الأخيرة للضاغط ${label} = ${Math.round(_lp)} (أكبر من 300 بار). ضغوط IMW بالبار مش PSI — راجع القيمة`); _markStage(_lid); }
       }
+      } // نهاية if(compRan) — الضاغط الواقف لا يُطلب منه قراءات
     }
     if(th>0&&tf>0&&th<tf){errors.push(`ساعات الضاغط ${label}: الكلية أقل من الفعلية`);}
     if(!document.getElementById('oil-type-'+idx)?.value){errors.push(`نوع زيت ${label}`);markErr('oil-type-'+idx,'اختر');}
@@ -4068,7 +4078,7 @@ function loadCompComparison(){
       const model=g.model, units=g.units||[]; const R=READINGS_CFG(model);
       const pk=R.pres, tk=R.temp, oilF=R.oil, hasW=!!R.water, watF=R.water||[], othF=R.other, ratF=R.ratio;
       units.forEach(u=>{const sd=srMap[String(u.code)+'|'+String(u.comp)]||{}; u._sd=sd; const p=sd.pres||{}; u._r=ratF.map(r=>{const cur=p[r.num],prev=p[r.den];return (prev>0&&cur>0)?cur/prev:null;});});
-      const isOut=(v,arr)=>{if(v==null||isNaN(v)||units.length<2)return false;const m=med(arr);if(m==null||m===0)return false;return Math.abs(v-m)/Math.abs(m)>0.15;};
+      const isOut=()=>false; // تم إلغاء تلوين القيم العالية (هاى لايت) بناءً على طلب المستخدم
       const othDisp=(f,v)=>{ if(v==null)return null; if(f.kind==='power')return f1(v/1000); if(f.k==='ss')return v; return f1(v); };
       const gth=(bg,span,txt,unit)=>'<th colspan="'+span+'" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
       const gth2=(bg,txt,unit)=>'<th rowspan="2" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;vertical-align:middle">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
