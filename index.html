@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V148</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V149</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 148; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 149; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1887,7 +1887,7 @@ function READINGS_CFG(model){
   else if(m.indexOf('IODM')>=0){ R.pres=[_rf('in','Duct-In (PLC inlet)','D-In')].concat(stg()); R.temp=stg(); R.oil=[_of('coilp','Carter Oil Pressure (bar)','p','CartP'),_of('clubp','Comp. Lub. Pressure (bar)','p','LubP')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m.indexOf('4DA')>=0){ R.pres=[_rf('in','In · PT100','In'),_rf('1','1st · PT101','1'),_rf('2','2nd · PT102','2'),_rf('3','3rd · PT103','3'),_rf('4','4th · PT104','4')]; R.temp=[_rf('1','1st · TT101','1'),_rf('2','2nd · TT102','2'),_rf('3','3rd · TT103','3'),_rf('4','4th · TT104','4')]; R.oil=[_of('opress','Pressure (bar) · PT301','p','Press'),_of('otemp','Temperature (°C) · TT301','t','Temp')]; R.water=[_of('wp','Pressure (bar) · PT401','p','P'),_of('wt','Temperature (°C) · TT401','t','T')]; R.other=[_of('vib','Vibration · VT100','n','Vib'),_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('power','Power (W) · JT100','power','Power')]; }
   else if(m.indexOf('CLEANCNG')>=0){ R.temp=[_rf('enclosure','Enclosure','Encl')].concat(stg(),[_rf('disch','Discharge','Disch')]); R.oil=[_of('opress','Pressure (bar)','p','Press'),_of('otemp','Temperature (°C)','t','Temp')]; R.other=[_of('power','Power (W)','power','Power'),_of('ss','No. of Start/Stop (No.)','n','S/S')]; }
-  else if(m.indexOf('JGJ')>=0||m.toLowerCase().indexOf('hyosung')>=0){ R.temp=[_rf('in','Inlet','In')].concat(stg()); R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('speed','Motor Speed (rpm)','n','Speed')]; }
+  else if(m.indexOf('JGJ')>=0||m.toLowerCase().indexOf('hyosung')>=0){ R.temp=[_rf('in','Inlet','In')].concat(stg()); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P'),_of('otemp','Temperature (°C)','t','Temp')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('speed','Motor Speed (rpm)','n','Speed')]; }
   else if(m==='M302'){ R.temp=stg(); R.other=[_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m==='H304'){ R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
 
@@ -2127,9 +2127,20 @@ function buildCompSections(indices){
     </div>`:''}`;
     container.appendChild(secEl);
   });
-  // قسم القراءات التفصيلية فى التابة الفرعية المنفصلة (الضغوط والحرارات)
+  // قسم القراءات التفصيلية فى التابة الفرعية المنفصلة (الضغوط والحرارات) — قسم مستقل لكل ضاغط شغّال
   const rc=document.getElementById('readings-container');
-  if(rc){ let rh=''; indices.forEach(idx=>{ const c=st.comps[idx]; window.__compModels[idx]=c.model; rh+=stageSectionHTML(idx,c.model,`${c.name} — ${c.model}`); }); rc.innerHTML=rh; indices.forEach(idx=>calcStageRatios(idx)); }
+  if(rc){
+    let rh=''; const multi=indices.length>1;
+    const _ord2=['① الضاغط الأول','② الضاغط الثانى','③ الضاغط الثالث'];
+    if(multi) rh+='<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:10px 13px;margin-bottom:12px;font-size:12px;font-weight:800;color:#92400E">⚠ المحطة فيها أكثر من ضاغط شغّال — املأ قراءات الضاغط الأول، وبعد ما تخلص انزل للتالى. لازم قراءات كل الضواغط الشغّالة قبل الإرسال.</div>';
+    indices.forEach((idx,i)=>{
+      const c=st.comps[idx]; window.__compModels[idx]=c.model;
+      if(multi) rh+='<div id="rd-comp-'+idx+'" style="font-weight:900;color:#0F766E;font-size:15px;margin:'+(i?'20px':'2px')+' 0 6px;padding-bottom:4px;border-bottom:2px solid #0F766E">'+(_ord2[i]||('ضاغط '+(i+1)))+'</div>';
+      rh+=stageSectionHTML(idx,c.model,`${c.name} — ${c.model}`);
+      if(multi && i<indices.length-1){ const nx=indices[i+1]; rh+='<button type="button" onclick="document.getElementById(\'rd-comp-'+nx+'\').scrollIntoView({behavior:\'smooth\',block:\'start\'})" style="width:100%;background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;border:none;border-radius:11px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin:8px 0 4px">التالى: الضاغط الثانى ➜</button>'; }
+    });
+    rc.innerHTML=rh; indices.forEach(idx=>calcStageRatios(idx));
+  }
   if(window.__currentStationCode) loadStationDefaults(window.__currentStationCode);
 }
 // تبديل التابة الفرعية داخل البيان اليومى
