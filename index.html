@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V154</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V155</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 154; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 155; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1903,7 +1903,11 @@ function stageSectionHTML(idx, model, compLabel){
   let rh=''; R.ratio.forEach((r,i)=>{ rh+=`<div class="cell ratio"><label style="color:#7C3AED">${r.s}</label><div id="sr-${idx}-${i}" style="font-weight:900;color:#6D28D9;font-size:14px">—</div></div>`; });
   let th=''; R.temp.forEach(t=>{ th+=`<div class="cell tcell"><label>${t.l}</label>${inp('st-'+idx+'-'+t.k)}</div>`; });
   let oh=''; R.oil.forEach(f=>{ oh+=`<div class="cell ocell"><label>${f.l}</label>${inp('so-'+idx+'-'+f.k)}</div>`; });
-  let xh=''; R.other.forEach(f=>{ xh+=`<div class="cell"><label>${f.l}</label>${inp('sx-'+idx+'-'+f.k)}</div>`; });
+  let xh=''; R.other.forEach(f=>{
+    if(f.k==='ss'){
+      xh+=`<div class="cell"><label>${f.l}</label><input type="number" step="1" min="0" inputmode="numeric" id="sx-${idx}-${f.k}" oninput="checkSS(${idx})" style="width:100%"><div id="ss-msg-${idx}" style="display:none;font-size:10px;font-weight:800;color:#DC2626;margin-top:3px">⚠ رقم غريب — راجع القيمة</div></div>`;
+    } else { xh+=`<div class="cell"><label>${f.l}</label>${inp('sx-'+idx+'-'+f.k)}</div>`; }
+  });
   let waterBlock='';
   if(R.water){ let wh=''; R.water.forEach(f=>{ wh+=`<div class="cell wcell"><label>${f.l}</label>${inp('sw-'+idx+'-'+f.k)}</div>`; });
     waterBlock=`<div class="sgrp" style="color:#0891B2;border-color:#0891B2">💧 Water</div>
@@ -1923,6 +1927,15 @@ function stageSectionHTML(idx, model, compLabel){
       <div class="sgrp" style="color:#7C3AED;border-color:#7C3AED">⚙️ Other</div>
       <div class="stage-grid" style="grid-template-columns:repeat(${R.other.length},1fr)">${xh}</div>
     </div></div>`;
+}
+// تنبيه لحظى لو عدد مرات التشغيل/التوقف رقم غريب (فوق السقف المخفى) — يظهر فوراً زى تنبيه الساعات
+function checkSS(idx){
+  const el=document.getElementById('sx-'+idx+'-ss'), msg=document.getElementById('ss-msg-'+idx);
+  if(!el||!msg) return;
+  const v=parseFloat(el.value);
+  const bad = el.value!=='' && !isNaN(v) && v>500;
+  msg.style.display = bad?'block':'none';
+  el.classList.toggle('serr', bad);
 }
 function calcStageRatios(idx){
   const g=k=>parseFloat((document.getElementById('sp-'+idx+'-'+k)||{}).value)||0;
