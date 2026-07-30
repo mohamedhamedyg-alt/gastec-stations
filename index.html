@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V155</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V156</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 155; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 156; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1882,7 +1882,7 @@ function READINGS_CFG(model){
 
   if(m.indexOf('GEO-BII')>=0){ R.temp=stg(); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P'),_of('otemp','Temperature (°C)','t','Temp')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m==='IMW50-6250DA'||m==='IMW50-5125DA'){ R.temp=[_rf('in','Suction','Suct')].concat(stg(),[_rf('disch','Discharge','Disch')]); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
-  else if(m.indexOf('GRF')>=0){ R.temp=[_rf('amb','Ambient','Amb')].concat(stg(),[_rf('out','Outlet','Out')]); R.oil=[_of('cycle','L.Cycle (sec)','n','L.Cyc'),_of('acycle','A.Cycle (sec)','n','A.Cyc'),_of('carter','Carter Pressure (bar)','p','Carter'),_of('lubcyl','Lub. Cylinder (bar)','p','LubCyl'),_of('otemp','Temperature (°C)','t','Temp')]; }
+  else if(m.indexOf('GRF')>=0){ let _tstg=stg(); if(m.indexOf('115-3-4-200')>=0) _tstg=_tstg.filter(x=>x.k!=='4'); /* GRF 115-3-4-200-2B: بدون حرارة المرحلة الرابعة فقط */ R.temp=[_rf('amb','Ambient','Amb')].concat(_tstg,[_rf('out','Outlet','Out')]); R.oil=[_of('cycle','L.Cycle (sec)','n','L.Cyc'),_of('acycle','A.Cycle (sec)','n','A.Cyc'),_of('carter','Carter Pressure (bar)','p','Carter'),_of('lubcyl','Lub. Cylinder (bar)','p','LubCyl'),_of('otemp','Temperature (°C)','t','Temp')]; }
   else if(m.indexOf('P95B')>=0){ R.pres=[_rf('in','In · PT101','In'),_rf('1','1st · PT131','1'),_rf('2','2nd · PT132','2'),_rf('3','3rd · PT140','3'),_rf('direct','Direct · PT141D','Direct')]; R.temp=[_rf('1','1st · TE131','1'),_rf('2','2nd · TE132','2'),_rf('3bc','3rd before cooling · TE133','3bc'),_rf('3ac','3rd after cooling · TE135','3ac')]; R.oil=[_of('opress','Pressure (bar) · PT301','p','Press'),_of('otemp','Temperature (°C) · TE301','t','Temp')]; R.water=[_of('wp','Pressure (bar) · PT401','p','P'),_of('wt','Temperature (°C) · TE401','t','T')]; R.other=[_of('vib','Vibration · VT201','n','Vib')]; }
   else if(m.indexOf('IODM')>=0){ R.pres=[_rf('in','Duct-In (PLC inlet)','D-In')].concat(stg()); R.temp=stg(); R.oil=[_of('coilp','Carter Oil Pressure (bar)','p','CartP'),_of('clubp','Comp. Lub. Pressure (bar)','p','LubP')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m.indexOf('4DA')>=0){ R.pres=[_rf('in','In · PT100','In'),_rf('1','1st · PT101','1'),_rf('2','2nd · PT102','2'),_rf('3','3rd · PT103','3'),_rf('4','4th · PT104','4')]; R.temp=[_rf('1','1st · TT101','1'),_rf('2','2nd · TT102','2'),_rf('3','3rd · TT103','3'),_rf('4','4th · TT104','4')]; R.oil=[_of('opress','Pressure (bar) · PT301','p','Press'),_of('otemp','Temperature (°C) · TT301','t','Temp')]; R.water=[_of('wp','Pressure (bar) · PT401','p','P'),_of('wt','Temperature (°C) · TT401','t','T')]; R.other=[_of('vib','Vibration · VT100','n','Vib'),_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('power','Power (W) · JT100','power','Power')]; }
