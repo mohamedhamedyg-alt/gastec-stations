@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V152</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V154</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 152; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 154; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -3084,6 +3084,8 @@ function validateAll(){
         _R.oil.forEach(f=>_chk('so',f,'زيت'));
         if(_R.water) _R.water.forEach(f=>_chk('sw',f,'مياه'));
         _R.other.forEach(f=>_chk('sx',f,'Other'));
+        // عدد مرات التشغيل/التوقف (S/S) — رقم غير منطقى لو فوق 500 → نوقف الإرسال
+        { const _ssEl=document.getElementById('sx-'+idx+'-ss'); if(_ssEl && _ssEl.value!=='' && parseFloat(_ssEl.value)>500){ errors.push(`عدد مرات التشغيل والتوقف للضاغط ${label} رقم غريب (${_ssEl.value}) — راجع القيمة المُدخلة`); _markStage('sx-'+idx+'-ss'); } }
         // المرحلة الأخيرة (آخر ضغط) لازم أعلى من 230 بار
         const _last=_R.pres[_R.pres.length-1]; const _lid='sp-'+idx+'-'+_last.k; const _lel=document.getElementById(_lid);
         let _lp=(_lel&&_lel.value!=='')?parseFloat(_lel.value):null;
