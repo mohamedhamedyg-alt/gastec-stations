@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V156</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V157</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 156; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 157; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1959,6 +1959,27 @@ function collectStageReadings(idx){
   if(R.water) R.water.forEach(f=>{ const v=rd('sw-'+idx+'-'+f.k); if(v!=null) water[f.k]=(f.kind==='t')?toC(v):(f.kind==='p'?toBarP(v):r1(v)); });
   R.other.forEach(f=>{ const v=rd('sx-'+idx+'-'+f.k); if(v!=null) other[f.k]=r1(v); });
   return {model:model, stages:R.stages, pres:pres, temp:temp, oil:oil, water:water, other:other};
+}
+// ── حساب حيود معدل التدفق للضاغط لحظة الإرسال (نفس منطق بوكس البيان اليومى) — يُخزَّن مع القراءات ──
+function _stationSalesM3(){ return (document.getElementById('f-has-truck')?.value==='yes')?(getIndivSalesM3()+getTruckSalesM3()):joinDec('f-sales-int','f-sales-frac'); }
+function computeCompDeviation(idx){
+  const st=currentStation; if(!st) return null;
+  const spec=(COMP_SPECS_UNIFIED[st.code]||[])[idx];
+  if(!spec||!(spec.flow>0)||!(spec.suction>0)) return null;
+  const inlet=getInletPLC(idx), tf=getH(idx,'tf'), salesV=_stationSalesM3();
+  if(!(inlet>0)||!(tf>0)||!(salesV>0)) return null;
+  const std=spec.flow*(inlet/spec.suction), act=salesV/tf;
+  const pct=std>0?((act-std)/std*100):null;
+  return {origFlow:spec.flow, origP:spec.suction, inlet:+inlet.toFixed(2), std:+std.toFixed(1), act:+act.toFixed(1), pct:pct!=null?+pct.toFixed(1):null};
+}
+function computeSharedDeviation(){
+  const st=currentStation; if(!st) return null;
+  const usp=COMP_SPECS_UNIFIED[st.code]||[]; const s0=usp[0],s1=usp[1]; if(!s0||!s1) return null;
+  const in0=getInletPLC(0),in1=getInletPLC(1),tf0=getH(0,'tf'),tf1=getH(1,'tf'),salesV=_stationSalesM3();
+  if(!(s0.flow>0&&s0.suction>0&&s1.flow>0&&s1.suction>0&&in0>0&&in1>0&&(tf0+tf1)>0&&salesV>0)) return null;
+  const std=s0.flow*(in0/s0.suction)+s1.flow*(in1/s1.suction), act=salesV/(tf0+tf1);
+  const pct=std>0?((act-std)/std*100):null;
+  return {shared:true, std:+std.toFixed(1), act:+act.toFixed(1), pct:pct!=null?+pct.toFixed(1):null};
 }
 function buildCompSections(indices){
   const container=document.getElementById('comps-container');
@@ -3533,13 +3554,20 @@ async function submitForm(){
   };
 
   // بيانات كل ضاغط
+  const _ranComps=activeComps.filter(ix=>getH(ix,'tf')>0);
+  const _bothRan=_ranComps.length>1;
+  const _sharedDev=_bothRan?computeSharedDeviation():null;
   activeComps.forEach(idx=>{
     const c=st.comps[idx];
     const pre=idx===0?'c1':'c2';
     const mode=hmMode[idx]||'hm';
     payload[pre+'_name']=c.name;
     payload[pre+'_model']=c.model;
-    payload[pre+'_stages']=JSON.stringify(collectStageReadings(idx)); // قراءات المراحل (ضغوط/حرارات) — تُخزّن مستبدلة
+    // نخزّن حيود اليوم مع القراءات (للعرض فى المقارنة + بوكس الحسبة عند الضغط)
+    const _sr=collectStageReadings(idx);
+    const _dev=_bothRan?_sharedDev:(getH(idx,'tf')>0?computeCompDeviation(idx):null);
+    if(_dev) _sr.dev=_dev;
+    payload[pre+'_stages']=JSON.stringify(_sr); // قراءات المراحل (ضغوط/حرارات + حيود اليوم) — تُخزّن مستبدلة
     payload[pre+'_th']=getH(idx,'th');
     payload[pre+'_motor_name']=c.motor_name||'';
     payload[pre+'_tf']=getH(idx,'tf');
@@ -4087,7 +4115,8 @@ function loadCompComparison(){
     (sr.readings||[]).forEach(x=>{let d={};try{d=JSON.parse(x.data);}catch(e){} srMap[String(x.code)+'|'+String(x.comp)]=d;});
     function med(arr){const a=arr.filter(v=>v!=null&&!isNaN(v)).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
     const f1=v=>(v==null||v===''||isNaN(v))?null:(Math.round(v*10)/10).toFixed(1);
-    let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:8px 11px;margin-bottom:12px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.9">📊 مقارنة الضواغط المتطابقة بالموديل — عمود المحطة ثابت (Freeze) عند التمرير الأفقى. أعمدة الأداء (KWH/m³ · Actual Flow · Flow Dev · Lit/100hr · Efficiency) = متوسط آخر 7 أيام (الزيت على نافذة 30 يوم). أعمدة القراءات (Pressure · Ratio · Temperature · Oil · Water · Other) = آخر إرسال. الخلية الحمراء = قراءة شاذّة عن نظائرها فى نفس الموديل.</div>';
+    window.__devBoxes=[]; // مخزن حسبات الحيود القابلة للضغط
+    let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:8px 11px;margin-bottom:12px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.9">📊 مقارنة الضواغط المتطابقة بالموديل — عمود المحطة ثابت (Freeze) عند التمرير الأفقى. <b>Flow Dev</b> = حيود اليوم (اضغط على القيمة تشوف الحسبة). Actual Flow = فعلى اليوم لما الضاغط يشتغل لوحده. باقى الأداء (KWH/m³ · Lit/100hr · Efficiency) = متوسط آخر 7 أيام. القراءات (Pressure · Ratio · Temperature · Oil · Water · Other) = آخر إرسال.</div>';
     const G={pre:'#1D4ED8',rat:'#6D28D9',tmp:'#B45309',oil:'#a16207',wat:'#0891B2',oth:'#7C3AED',flw:'#0F766E'};
     groups.forEach(g=>{
       const model=g.model, units=g.units||[]; const R=READINGS_CFG(model);
@@ -4120,7 +4149,15 @@ function loadCompComparison(){
         const rowBg = ri%2 ? '#F8FAFC' : '#fff';
         html+='<tr style="background:'+rowBg+'">';
         html+='<td style="padding:5px 8px;border:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:1;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
-        html+=_pcell(u.kwhM3,'#6D28D9')+_pcell(u.fr)+_pcell(u.dev)+_pcell(u.oilRate,'#C2410C')+_pcell((u.util!=null&&u.util!==''&&u.util!=='—')?(String(u.util).replace(/%/g,'')+'%'):'—');
+        const _dev=(u._sd&&u._sd.dev)?u._sd.dev:null;
+        const _actCell=(_dev&&_dev.act!=null)?_pcell(_dev.act):_pcell(u.fr);
+        let _devCell;
+        if(_dev&&_dev.pct!=null){
+          const di=window.__devBoxes.push({dev:_dev,name:u.name,model:model})-1;
+          const _sg=_dev.pct>=0?'+':''; const _dc=Math.abs(_dev.pct)<=5?'#16A34A':Math.abs(_dev.pct)<=15?'#B45309':'#DC2626';
+          _devCell='<td onclick="showDevBox('+di+')" title="اضغط لعرض حسبة الحيود" style="padding:5px 7px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dc+';cursor:pointer;text-decoration:underline dotted 1.5px">'+_sg+_dev.pct+'%</td>';
+        } else { _devCell=_pcell(u.dev); }
+        html+=_pcell(u.kwhM3,'#6D28D9')+_actCell+_devCell+_pcell(u.oilRate,'#C2410C')+_pcell((u.util!=null&&u.util!==''&&u.util!=='—')?(String(u.util).replace(/%/g,'')+'%'):'—');
         pk.forEach(pp=>{const v=p[pp.k];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.pres)?z._sd.pres[pp.k]:null)));});
         ratF.forEach((r,ri2)=>{const v=u._r[ri2];html+=_scell(v!=null?v.toFixed(2):null,isOut(v,units.map(z=>z._r?z._r[ri2]:null)),'#6D28D9');});
         if(!ratF.length) html+=_scell(null,false);
@@ -4134,6 +4171,36 @@ function loadCompComparison(){
     });
     c.innerHTML=html;
   }).catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+}
+// بوكس حسبة الحيود عند الضغط على القيمة فى جدول المقارنة
+function showDevBox(i){
+  const b=(window.__devBoxes||[])[i]; if(!b) return;
+  const d=b.dev; const old=document.getElementById('dev-box-ov'); if(old) old.remove();
+  const _fu=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:0})+' m³/hr';
+  const pct=d.pct; const sign=pct>=0?'+':''; const col=Math.abs(pct)<=5?'#16A34A':Math.abs(pct)<=15?'#B45309':'#DC2626';
+  let stdLine, actLine, note='';
+  if(d.shared){
+    stdLine='المعيارى الكلى (الضاغطان معاً): <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.std)+'</b>';
+    actLine='الفعلى المشترك: <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.act)+'</b>';
+    note='الضاغطان اشتغلا معاً — الحيود محسوب على مجموعهم.';
+  } else {
+    stdLine='المعيارى: <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.origFlow)+' @ '+d.origP+' bar → '+_fu(d.std)+' @ '+d.inlet+' bar</b>';
+    actLine='الفعلى: <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.act)+' @ '+d.inlet+' bar</b>';
+  }
+  const ov=document.createElement('div'); ov.id='dev-box-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML='<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;font-family:Cairo" onclick="event.stopPropagation()">'
+    +'<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-weight:800;font-size:15px">📊 حسبة الحيود — Flow Rate</div><button onclick="document.getElementById(\'dev-box-ov\').remove()" style="background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:800">✕</button></div>'
+    +'<div style="padding:14px 16px">'
+    +'<div style="font-weight:800;color:#0F172A;font-size:14px;margin-bottom:10px">'+b.name+' <span style="color:#64748B;font-size:11px;direction:ltr;unicode-bidi:isolate">('+b.model+')</span></div>'
+    +'<div style="font-size:13px;color:#334155;padding:7px 0;border-bottom:1px solid #E5E7EB">'+stdLine+'</div>'
+    +'<div style="font-size:13px;color:#334155;padding:7px 0;border-bottom:1px solid #E5E7EB">'+actLine+'</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px"><span style="font-weight:800;color:#334155">الحيود</span><span style="font-weight:900;font-size:22px;direction:ltr;unicode-bidi:isolate;color:'+col+'">'+sign+pct+'%</span></div>'
+    +(note?'<div style="font-size:11px;color:#94A3B8;margin-top:6px">'+note+'</div>':'')
+    +'<div style="font-size:10.5px;color:#94A3B8;margin-top:8px;line-height:1.7">المعيارى بيتعدّل حسب ضغط الدخول الفعلى: (التدفق المعيارى × ضغط الدخول ÷ ضغط السحب المعيارى). الحيود = (الفعلى − المعيارى) ÷ المعيارى.</div>'
+    +'</div></div>';
+  ov.onclick=()=>ov.remove();
+  document.body.appendChild(ov);
 }
 function _pcell(v,color){
   const disp=(v==null||v===''||v==='—')?'—':v;
