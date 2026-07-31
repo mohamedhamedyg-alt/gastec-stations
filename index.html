@@ -949,7 +949,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V163</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V164</span>
       </div>
     </div>
   </div>
@@ -1373,7 +1373,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 163; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 164; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4141,23 +4141,24 @@ function loadCompComparison(){
     (sr.readings||[]).forEach(x=>{let d={};try{d=JSON.parse(x.data);}catch(e){} srMap[String(x.code)+'|'+String(x.comp)]=d;});
     function med(arr){const a=arr.filter(v=>v!=null&&!isNaN(v)).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
     const f1=v=>(v==null||v===''||isNaN(v))?null:(Math.round(v*10)/10).toFixed(1);
+    const f0=v=>(v==null||v===''||isNaN(v))?null:String(Math.round(v)); // رقم صحيح (بدون كسور) لتقليل عرض الأعمدة
     window.__devBoxes=[]; // مخزن حسبات الحيود القابلة للضغط
-    let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:8px 11px;margin-bottom:12px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.9">📊 مقارنة الضواغط المتطابقة بالموديل — عمود المحطة ثابت (Freeze) عند التمرير الأفقى. <b>Flow Dev</b> = حيود اليوم (اضغط على القيمة تشوف الحسبة). Actual Flow = فعلى اليوم لما الضاغط يشتغل لوحده. باقى الأداء (KWH/m³ · Lit/100hr · Efficiency) = متوسط آخر 7 أيام. القراءات (Pressure · Ratio · Temperature · Oil · Water · Other) = آخر إرسال.</div>';
+    let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:8px 11px;margin-bottom:12px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.9">📊 مقارنة الضواغط المتطابقة بالموديل — عمود المحطة وصفوف العناوين ثابتة (Freeze) عند التمرير. <b>Flow Dev</b> = حيود اليوم (اضغط على القيمة تشوف الحسبة). Actual Flow = فعلى اليوم لما الضاغط يشتغل لوحده. باقى الأداء (KWH/m³ · Lit/100hr · Efficiency) = متوسط آخر 7 أيام. القراءات (Pressure · Ratio · Temperature · Oil · Water · Other) = آخر إرسال.</div>';
     const G={pre:'#1D4ED8',rat:'#6D28D9',tmp:'#B45309',oil:'#a16207',wat:'#0891B2',oth:'#7C3AED',flw:'#0F766E'};
     groups.forEach(g=>{
       const model=g.model, units=g.units||[]; const R=READINGS_CFG(model);
       const pk=R.pres, tk=R.temp, oilF=R.oil, hasW=!!R.water, watF=R.water||[], othF=R.other, ratF=R.ratio;
       units.forEach(u=>{const sd=srMap[String(u.code)+'|'+String(u.comp)]||{}; u._sd=sd; const p=sd.pres||{}; u._r=ratF.map(r=>{const cur=p[r.num],prev=p[r.den];return (prev>0&&cur>0)?cur/prev:null;});});
       const isOut=()=>false; // تم إلغاء تلوين القيم العالية (هاى لايت) بناءً على طلب المستخدم
-      const othDisp=(f,v)=>{ if(v==null)return null; if(f.kind==='powerw')return f1(v/1000); if(f.kind==='power')return f1(v); if(f.k==='ss')return v; return f1(v); };
+      const othDisp=(f,v)=>{ if(v==null)return null; if(f.kind==='powerw')return f1(v/1000); if(f.kind==='power')return f1(v); if(f.k==='ss')return v; if(f.k==='amp')return f0(v); return f1(v); };
       const gth=(bg,span,txt,unit)=>'<th colspan="'+span+'" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
       const gth2=(bg,txt,unit)=>'<th rowspan="2" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;vertical-align:middle">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
       const sth=(txt,unit)=>'<th style="padding:4px 6px;border:1px solid #CBD5E1;background:#F1F5F9;color:#475569;font-weight:700;font-size:10px">'+txt+(unit?'<span style="display:block;font-size:8px;color:#94A3B8">'+unit+'</span>':'')+'</th>';
       const froz='position:sticky;left:0;';
       html+='<div style="border:1px solid #CBD5E1;border-radius:10px;margin-bottom:14px;overflow:hidden">';
       html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:9px 13px;font-weight:800;font-size:13px;direction:ltr;text-align:left">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
-      html+='<div style="overflow:auto;direction:ltr"><table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr">';
-      html+='<tr>';
+      html+='<div class="cmp-scroll" style="overflow:auto;direction:ltr;max-height:78vh"><table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr">';
+      html+='<thead><tr>';
       html+='<th rowspan="2" style="padding:5px 8px;border:1px solid #CBD5E1;background:#0F172A;color:#fff;'+froz+'z-index:5;min-width:150px;text-align:left">Station</th>';
       html+=gth2(G.flw,'KWH/m³')+gth2(G.flw,'Actual Flow','m³/h')+gth2(G.flw,'Flow Dev','%')+gth2(G.flw,'Lit/100hr')+gth2(G.flw,'Efficiency','%');
       html+=gth(G.pre,pk.length,'Pressure','bar')+gth(G.rat,Math.max(ratF.length,1),'Ratio')+gth(G.tmp,tk.length,'Temperature','°C')+gth(G.oil,oilF.length,'Oil')+(hasW?gth(G.wat,watF.length,'Water'):'')+gth(G.oth,othF.length,'Other');
@@ -4169,7 +4170,7 @@ function loadCompComparison(){
       oilF.forEach(f=>html+=sth(f.s));
       if(hasW)watF.forEach(f=>html+=sth(f.s));
       othF.forEach(f=>html+=sth(f.s, (f.kind==='power'||f.kind==='powerw')?'kW':''));
-      html+='</tr>';
+      html+='</tr></thead><tbody>';
       units.forEach((u,ri)=>{
         const sd=u._sd||{}, p=sd.pres||{},t=sd.temp||{},o=sd.oil||{},w=sd.water||{},x=sd.other||{};
         const rowBg = ri%2 ? '#F8FAFC' : '#fff';
@@ -4177,26 +4178,38 @@ function loadCompComparison(){
         html+='<td style="padding:5px 8px;border:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:1;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
         let _dev=(u._sd&&u._sd.dev)?u._sd.dev:null;
         if(!_dev) _dev=_devFromToday(u, (u._sd&&u._sd.pres)?u._sd.pres.in:0); // احسبه من بيانات اليوم المخزّنة بدون إعادة إدخال
-        const _actCell=(_dev&&_dev.act!=null)?_pcell(_dev.act):_pcell(u.fr);
+        const _actCell=(_dev&&_dev.act!=null)?_pcell(f0(_dev.act)):_pcell(u.fr);
         let _devCell;
         if(_dev&&_dev.pct!=null){
           const di=window.__devBoxes.push({dev:_dev,name:u.name,model:model})-1;
           const _sg=_dev.pct>=0?'+':''; const _dc=Math.abs(_dev.pct)<=5?'#16A34A':Math.abs(_dev.pct)<=15?'#B45309':'#DC2626';
-          _devCell='<td onclick="showDevBox('+di+')" title="اضغط لعرض حسبة الحيود" style="padding:5px 7px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dc+';cursor:pointer;text-decoration:underline dotted 1.5px">'+_sg+_dev.pct+'%</td>';
+          _devCell='<td onclick="showDevBox('+di+')" title="اضغط لعرض حسبة الحيود" style="padding:5px 7px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dc+';cursor:pointer;text-decoration:underline dotted 1.5px">'+_sg+Math.round(_dev.pct)+'%</td>';
         } else { _devCell=_pcell(u.dev); }
         html+=_pcell(u.kwhM3,'#6D28D9')+_actCell+_devCell+_pcell(u.oilRate,'#C2410C')+_pcell((u.util!=null&&u.util!==''&&u.util!=='—')?(String(u.util).replace(/%/g,'')+'%'):'—');
-        pk.forEach(pp=>{const v=p[pp.k];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.pres)?z._sd.pres[pp.k]:null)));});
+        // ضغوط: الدخول (in) بعلامة عشرية، وباقى المراحل أرقام صحيحة
+        pk.forEach(pp=>{const v=p[pp.k];const _d=(pp.k==='in')?f1(v):f0(v);html+=_scell(_d,isOut(v,units.map(z=>(z._sd&&z._sd.pres)?z._sd.pres[pp.k]:null)));});
         ratF.forEach((r,ri2)=>{const v=u._r[ri2];html+=_scell(v!=null?v.toFixed(2):null,isOut(v,units.map(z=>z._r?z._r[ri2]:null)),'#6D28D9');});
         if(!ratF.length) html+=_scell(null,false);
-        tk.forEach(tt=>{const v=t[tt.k];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.temp)?z._sd.temp[tt.k]:null)),'#B45309');});
-        oilF.forEach(f=>{const v=o[f.k];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.oil)?z._sd.oil[f.k]:null)),'#a16207');});
+        // الحرارات كلها أرقام صحيحة
+        tk.forEach(tt=>{const v=t[tt.k];html+=_scell(f0(v),isOut(v,units.map(z=>(z._sd&&z._sd.temp)?z._sd.temp[tt.k]:null)),'#B45309');});
+        // الزيت: ضغط الزيت وحرارة الزيت أرقام صحيحة، باقى حقول الزيت بعلامة عشرية
+        oilF.forEach(f=>{const v=o[f.k];const _d=(f.kind==='p'||f.k==='otemp')?f0(v):f1(v);html+=_scell(_d,isOut(v,units.map(z=>(z._sd&&z._sd.oil)?z._sd.oil[f.k]:null)),'#a16207');});
         if(hasW)watF.forEach(f=>{const v=w[f.k];html+=_scell(f1(v),isOut(v,units.map(z=>(z._sd&&z._sd.water)?z._sd.water[f.k]:null)),'#0891B2');});
         othF.forEach(f=>{const v=x[f.k];html+=_scell(othDisp(f,v),isOut(v,units.map(z=>(z._sd&&z._sd.other)?z._sd.other[f.k]:null)),'#7C3AED');});
         html+='</tr>';
       });
-      html+='</table></div></div>';
+      html+='</tbody></table></div></div>';
     });
     c.innerHTML=html;
+    // فريز صفوف العناوين فوق كل ضاغط: الصف الأول (المجموعات) يثبت أعلى، والصف الثانى (العناوين الفرعية) تحته مباشرة
+    requestAnimationFrame(()=>{
+      c.querySelectorAll('table').forEach(tb=>{
+        const rows=tb.querySelectorAll('thead tr'); if(rows.length<2) return;
+        const h0=Math.round(rows[0].getBoundingClientRect().height);
+        rows[0].querySelectorAll('th').forEach((th,i)=>{ th.style.position='sticky'; th.style.top='0px'; th.style.zIndex=(i===0?'7':'6'); });
+        rows[1].querySelectorAll('th').forEach(th=>{ th.style.position='sticky'; th.style.top=h0+'px'; th.style.zIndex='6'; });
+      });
+    });
   }).catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
 }
 // حساب حيود اليوم على العميل من البيانات المخزّنة (بدون ما يعيد المشرف الإدخال):
