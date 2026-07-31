@@ -299,7 +299,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 }
 /* على اللاب/الشاشات الكبيرة: نوسّع منطقة المسؤول لاستغلال عرض الشاشة وتكبير جداول المقارنة وتقليل الاسكرول */
 @media(min-width:1000px){
-  #mgr-screen .container{ max-width:96vw; }
+  #mgr-screen .container{ max-width:90vw; }                                  /* نسيب فراغ يمين وشمال (5vw كل جنب) */
   #mgr-hub{ max-width:900px; margin-left:auto; margin-right:auto; }          /* القائمة الرئيسية تفضل بعرض معقول */
   #comp-content table{ font-size:14px !important; }
   #comp-content th, #comp-content td{ padding:9px 10px !important; }
@@ -949,7 +949,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V164</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V165</span>
       </div>
     </div>
   </div>
@@ -1373,7 +1373,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 164; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 165; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4144,6 +4144,8 @@ function loadCompComparison(){
     const f0=v=>(v==null||v===''||isNaN(v))?null:String(Math.round(v)); // رقم صحيح (بدون كسور) لتقليل عرض الأعمدة
     window.__devBoxes=[]; // مخزن حسبات الحيود القابلة للضغط
     let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:8px 11px;margin-bottom:12px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.9">📊 مقارنة الضواغط المتطابقة بالموديل — عمود المحطة وصفوف العناوين ثابتة (Freeze) عند التمرير. <b>Flow Dev</b> = حيود اليوم (اضغط على القيمة تشوف الحسبة). Actual Flow = فعلى اليوم لما الضاغط يشتغل لوحده. باقى الأداء (KWH/m³ · Lit/100hr · Efficiency) = متوسط آخر 7 أيام. القراءات (Pressure · Ratio · Temperature · Oil · Water · Other) = آخر إرسال.</div>';
+    // منطقة تمرير واحدة لكل جداول المقارنة → الفريز (صفوف العناوين + عمود المحطة) يثبت فعلاً عند التمرير
+    html+='<div id="cmp-all" style="max-height:80vh;overflow:auto;border:1px solid #CBD5E1;border-radius:12px;background:#fff">';
     const G={pre:'#1D4ED8',rat:'#6D28D9',tmp:'#B45309',oil:'#a16207',wat:'#0891B2',oth:'#7C3AED',flw:'#0F766E'};
     groups.forEach(g=>{
       const model=g.model, units=g.units||[]; const R=READINGS_CFG(model);
@@ -4155,9 +4157,9 @@ function loadCompComparison(){
       const gth2=(bg,txt,unit)=>'<th rowspan="2" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;vertical-align:middle">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
       const sth=(txt,unit)=>'<th style="padding:4px 6px;border:1px solid #CBD5E1;background:#F1F5F9;color:#475569;font-weight:700;font-size:10px">'+txt+(unit?'<span style="display:block;font-size:8px;color:#94A3B8">'+unit+'</span>':'')+'</th>';
       const froz='position:sticky;left:0;';
-      html+='<div style="border:1px solid #CBD5E1;border-radius:10px;margin-bottom:14px;overflow:hidden">';
-      html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:9px 13px;font-weight:800;font-size:13px;direction:ltr;text-align:left">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
-      html+='<div class="cmp-scroll" style="overflow:auto;direction:ltr;max-height:78vh"><table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr">';
+      html+='<div style="margin-bottom:10px;min-width:max-content">';
+      html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:9px 13px;font-weight:800;font-size:13px;direction:ltr;text-align:left;position:sticky;left:0">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
+      html+='<table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr">';
       html+='<thead><tr>';
       html+='<th rowspan="2" style="padding:5px 8px;border:1px solid #CBD5E1;background:#0F172A;color:#fff;'+froz+'z-index:5;min-width:150px;text-align:left">Station</th>';
       html+=gth2(G.flw,'KWH/m³')+gth2(G.flw,'Actual Flow','m³/h')+gth2(G.flw,'Flow Dev','%')+gth2(G.flw,'Lit/100hr')+gth2(G.flw,'Efficiency','%');
@@ -4188,7 +4190,7 @@ function loadCompComparison(){
         html+=_pcell(u.kwhM3,'#6D28D9')+_actCell+_devCell+_pcell(u.oilRate,'#C2410C')+_pcell((u.util!=null&&u.util!==''&&u.util!=='—')?(String(u.util).replace(/%/g,'')+'%'):'—');
         // ضغوط: الدخول (in) بعلامة عشرية، وباقى المراحل أرقام صحيحة
         pk.forEach(pp=>{const v=p[pp.k];const _d=(pp.k==='in')?f1(v):f0(v);html+=_scell(_d,isOut(v,units.map(z=>(z._sd&&z._sd.pres)?z._sd.pres[pp.k]:null)));});
-        ratF.forEach((r,ri2)=>{const v=u._r[ri2];html+=_scell(v!=null?v.toFixed(2):null,isOut(v,units.map(z=>z._r?z._r[ri2]:null)),'#6D28D9');});
+        ratF.forEach((r,ri2)=>{const v=u._r[ri2];html+=_scell(v!=null?v.toFixed(1):null,isOut(v,units.map(z=>z._r?z._r[ri2]:null)),'#6D28D9');});
         if(!ratF.length) html+=_scell(null,false);
         // الحرارات كلها أرقام صحيحة
         tk.forEach(tt=>{const v=t[tt.k];html+=_scell(f0(v),isOut(v,units.map(z=>(z._sd&&z._sd.temp)?z._sd.temp[tt.k]:null)),'#B45309');});
@@ -4198,8 +4200,9 @@ function loadCompComparison(){
         othF.forEach(f=>{const v=x[f.k];html+=_scell(othDisp(f,v),isOut(v,units.map(z=>(z._sd&&z._sd.other)?z._sd.other[f.k]:null)),'#7C3AED');});
         html+='</tr>';
       });
-      html+='</tbody></table></div></div>';
+      html+='</tbody></table></div>';
     });
+    html+='</div>'; // إغلاق #cmp-all
     c.innerHTML=html;
     // فريز صفوف العناوين فوق كل ضاغط: الصف الأول (المجموعات) يثبت أعلى، والصف الثانى (العناوين الفرعية) تحته مباشرة
     requestAnimationFrame(()=>{
