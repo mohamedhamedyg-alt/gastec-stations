@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V157</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V158</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 157; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 158; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4149,7 +4149,8 @@ function loadCompComparison(){
         const rowBg = ri%2 ? '#F8FAFC' : '#fff';
         html+='<tr style="background:'+rowBg+'">';
         html+='<td style="padding:5px 8px;border:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:1;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
-        const _dev=(u._sd&&u._sd.dev)?u._sd.dev:null;
+        let _dev=(u._sd&&u._sd.dev)?u._sd.dev:null;
+        if(!_dev) _dev=_devFromToday(u, (u._sd&&u._sd.pres)?u._sd.pres.in:0); // احسبه من بيانات اليوم المخزّنة بدون إعادة إدخال
         const _actCell=(_dev&&_dev.act!=null)?_pcell(_dev.act):_pcell(u.fr);
         let _devCell;
         if(_dev&&_dev.pct!=null){
@@ -4171,6 +4172,21 @@ function loadCompComparison(){
     });
     c.innerHTML=html;
   }).catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+}
+// حساب حيود اليوم على العميل من البيانات المخزّنة (بدون ما يعيد المشرف الإدخال):
+// ضغط الدخول من قراءات اليوم + الفعلى اليوم من compReport + الاستاندرد الموحّد
+function _devFromToday(u, srInlet){
+  if(!u || u.todayShared) return null;
+  if(u.todayFr==null || isNaN(u.todayFr)) return null;
+  const ci=u.comp==='c2'?1:0;
+  const spec=(COMP_SPECS_UNIFIED[u.code]||[])[ci];
+  if(!spec||!(spec.flow>0)||!(spec.suction>0)) return null;
+  const inlet=(srInlet>0)?srInlet:((u.todayInlet>0)?u.todayInlet:0);
+  if(!(inlet>0)) return null;
+  const std=spec.flow*(inlet/spec.suction), act=u.todayFr;
+  const pct=std>0?((act-std)/std*100):null;
+  if(pct==null) return null;
+  return {origFlow:spec.flow, origP:spec.suction, inlet:Math.round(inlet*100)/100, std:Math.round(std*10)/10, act:Math.round(act*10)/10, pct:Math.round(pct*10)/10};
 }
 // بوكس حسبة الحيود عند الضغط على القيمة فى جدول المقارنة
 function showDevBox(i){
