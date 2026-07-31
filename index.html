@@ -941,7 +941,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V160</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V161</span>
       </div>
     </div>
   </div>
@@ -1365,7 +1365,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 160; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 161; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1883,7 +1883,7 @@ function READINGS_CFG(model){
   if(m.indexOf('GEO-BII')>=0){ R.temp=stg(); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P'),_of('otemp','Temperature (°C)','t','Temp')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m==='IMW50-6250DA'||m==='IMW50-5125DA'){ R.temp=[_rf('in','Suction','Suct')].concat(stg(),[_rf('disch','Discharge','Disch')]); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m.indexOf('GRF')>=0){ let _tstg=stg(); if(m.indexOf('115-3-4-200')>=0) _tstg=_tstg.filter(x=>x.k!=='4'); /* GRF 115-3-4-200-2B: بدون حرارة المرحلة الرابعة فقط */ R.temp=[_rf('amb','Ambient','Amb')].concat(_tstg,[_rf('out','Outlet','Out')]); R.oil=[_of('cycle','L.Cycle (sec)','n','L.Cyc'),_of('acycle','A.Cycle (sec)','n','A.Cyc'),_of('carter','Carter Pressure (bar)','p','Carter'),_of('lubcyl','Lub. Cylinder (bar)','p','LubCyl'),_of('otemp','Temperature (°C)','t','Temp')]; }
-  else if(m.indexOf('P95B')>=0){ R.pres=[_rf('in','In · PT101','In'),_rf('1','1st · PT131','1'),_rf('2','2nd · PT132','2'),_rf('3','3rd · PT140','3'),_rf('direct','Direct · PT141D','Direct')]; R.temp=[_rf('1','1st · TE131','1'),_rf('2','2nd · TE132','2'),_rf('3bc','3rd before cooling · TE133','3bc'),_rf('3ac','3rd after cooling · TE135','3ac')]; R.oil=[_of('opress','Pressure (bar) · PT301','p','Press'),_of('otemp','Temperature (°C) · TE301','t','Temp')]; R.water=[_of('wp','Pressure (bar) · PT401','p','P'),_of('wt','Temperature (°C) · TE401','t','T')]; R.other=[_of('vib','Vibration · VT201','n','Vib')]; }
+  else if(m.indexOf('P95B')>=0){ R.pres=[_rf('in','In · PT101','In'),_rf('1','1st · PT131','1'),_rf('2','2nd · PT132','2'),Object.assign(_rf('3','3rd · PT140','3'),{min:200}),Object.assign(_rf('direct','Direct · PT141D','Direct'),{min:120})]; R.temp=[_rf('1','1st · TE131','1'),_rf('2','2nd · TE132','2'),_rf('3bc','3rd before cooling · TE133','3bc'),_rf('3ac','3rd after cooling · TE135','3ac')]; R.oil=[_of('opress','Pressure (bar) · PT301','p','Press'),_of('otemp','Temperature (°C) · TE301','t','Temp')]; R.water=[_of('wp','Pressure (bar) · PT401','p','P'),_of('wt','Temperature (°C) · TE401','t','T')]; R.other=[_of('vib','Vibration · VT201','n','Vib')]; }
   else if(m.indexOf('IODM')>=0){ R.pres=[_rf('in','Duct-In (PLC inlet)','D-In')].concat(stg()); R.temp=stg(); R.oil=[_of('coilp','Carter Oil Pressure (bar)','p','CartP'),_of('clubp','Comp. Lub. Pressure (bar)','p','LubP')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m.indexOf('4DA')>=0){ R.pres=[_rf('in','In · PT100','In'),_rf('1','1st · PT101','1'),_rf('2','2nd · PT102','2'),_rf('3','3rd · PT103','3'),_rf('4','4th · PT104','4')]; R.temp=[_rf('1','1st · TT101','1'),_rf('2','2nd · TT102','2'),_rf('3','3rd · TT103','3'),_rf('4','4th · TT104','4')]; R.oil=[_of('opress','Pressure (bar) · PT301','p','Press'),_of('otemp','Temperature (°C) · TT301','t','Temp')]; R.water=[_of('wp','Pressure (bar) · PT401','p','P'),_of('wt','Temperature (°C) · TT401','t','T')]; R.other=[_of('vib','Vibration · VT100','n','Vib'),_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('power','Power (kW) · JT100','power','Power')]; }
   else if(m.indexOf('CLEANCNG')>=0){ R.temp=[_rf('enclosure','Enclosure','Encl')].concat(stg(),[_rf('disch','Discharge','Disch')]); R.oil=[_of('opress','Pressure (bar)','p','Press'),_of('otemp','Temperature (°C)','t','Temp')]; R.other=[_of('power','Power (W)','powerw','Power'),_of('ss','No. of Start/Stop (No.)','n','S/S')]; }
@@ -1899,7 +1899,11 @@ function stageSectionHTML(idx, model, compLabel){
   const pu=R.punit==='psi'?'PSI':'bar', tu=R.tunit==='f'?'°F':'°C';
   const conv=(R.punit==='psi'||R.tunit==='f')?` <span style="font-size:10px;font-weight:700;color:#B45309">(auto→bar/°C)</span>`:'';
   const inp=(id,ph)=>`<input type="number" step="any" inputmode="decimal" id="${id}"${ph?' oninput="calcStageRatios('+idx+')"':''} style="width:100%">`;
-  let ph=''; R.pres.forEach(p=>{ ph+=`<div class="cell"><label>${p.l}</label>${inp('sp-'+idx+'-'+p.k,true)}</div>`; });
+  let ph=''; R.pres.forEach(p=>{
+    if(p.min!=null){
+      ph+=`<div class="cell"><label>${p.l}</label><input type="number" step="any" inputmode="decimal" id="sp-${idx}-${p.k}" oninput="calcStageRatios(${idx});checkPMin(${idx},'${p.k}',${p.min})" style="width:100%"><div id="pmin-${idx}-${p.k}" style="display:none;font-size:10px;font-weight:800;color:#DC2626;margin-top:3px">⚠ برجاء مراجعة القيمة المدخلة</div></div>`;
+    } else { ph+=`<div class="cell"><label>${p.l}</label>${inp('sp-'+idx+'-'+p.k,true)}</div>`; }
+  });
   let rh=''; R.ratio.forEach((r,i)=>{ rh+=`<div class="cell ratio"><label style="color:#7C3AED">${r.s}</label><div id="sr-${idx}-${i}" style="font-weight:900;color:#6D28D9;font-size:14px">—</div></div>`; });
   let th=''; R.temp.forEach(t=>{ th+=`<div class="cell tcell"><label>${t.l}</label>${inp('st-'+idx+'-'+t.k)}</div>`; });
   let oh=''; R.oil.forEach(f=>{ oh+=`<div class="cell ocell"><label>${f.l}</label>${inp('so-'+idx+'-'+f.k)}</div>`; });
@@ -1927,6 +1931,15 @@ function stageSectionHTML(idx, model, compLabel){
       <div class="sgrp" style="color:#7C3AED;border-color:#7C3AED">⚙️ Other</div>
       <div class="stage-grid" style="grid-template-columns:repeat(${R.other.length},1fr)">${xh}</div>
     </div></div>`;
+}
+// تنبيه لحظى لضغوط لها حد أدنى مخصّص (مثل Cubo) — رسالة عامة بدون ذكر الحد
+function checkPMin(idx,key,min){
+  const el=document.getElementById('sp-'+idx+'-'+key), msg=document.getElementById('pmin-'+idx+'-'+key);
+  if(!el||!msg) return;
+  const v=parseFloat(el.value);
+  const bad = el.value!=='' && !isNaN(v) && v<min;
+  msg.style.display = bad?'block':'none';
+  el.classList.toggle('serr', bad);
 }
 // تنبيه لحظى لو عدد مرات التشغيل/التوقف رقم غريب (فوق السقف المخفى) — يظهر فوراً زى تنبيه الساعات
 function checkSS(idx){
@@ -3113,18 +3126,21 @@ function validateAll(){
       {
         const _R=READINGS_CFG(c.model);
         const _chk=(pre,f,grp)=>{ const _id=pre+'-'+idx+'-'+f.k; const _el=document.getElementById(_id); if(!_el || _el.value===''){ errors.push(`${grp}: ${f.s||f.l} — ${label} (تابة الضغوط والحرارات)`); _markStage(_id); } };
-        _R.pres.forEach(f=>_chk('sp',f,'ضغط'));
+        _R.pres.forEach(f=>{ _chk('sp',f,'ضغط');
+          // حد أدنى مخصّص لبعض الضغوط (مثل Cubo) — رسالة عامة بدون ذكر الحد
+          if(f.min!=null){ const _pe=document.getElementById('sp-'+idx+'-'+f.k); const _pv=_pe?parseFloat(_pe.value):NaN; if(_pe && _pe.value!=='' && !isNaN(_pv) && _pv<f.min){ errors.push(`برجاء مراجعة القيمة المدخلة — ${f.s||f.l} للضاغط ${label}`); _markStage('sp-'+idx+'-'+f.k); } }
+        });
         _R.temp.forEach(f=>_chk('st',f,'حرارة'));
         _R.oil.forEach(f=>_chk('so',f,'زيت'));
         if(_R.water) _R.water.forEach(f=>_chk('sw',f,'مياه'));
         _R.other.forEach(f=>_chk('sx',f,'Other'));
         // عدد مرات التشغيل/التوقف (S/S) — رقم غير منطقى لو فوق 500 → نوقف الإرسال
         { const _ssEl=document.getElementById('sx-'+idx+'-ss'); if(_ssEl && _ssEl.value!=='' && parseFloat(_ssEl.value)>500){ errors.push(`عدد مرات التشغيل والتوقف للضاغط ${label} رقم غريب (${_ssEl.value}) — راجع القيمة المُدخلة`); _markStage('sx-'+idx+'-ss'); } }
-        // المرحلة الأخيرة (آخر ضغط) لازم أعلى من 230 بار
+        // المرحلة الأخيرة (آخر ضغط) لازم أعلى من 230 بار — للموديلات اللى مالهاش حد أدنى مخصّص (Cubo مثلاً ليه حده الخاص)
         const _last=_R.pres[_R.pres.length-1]; const _lid='sp-'+idx+'-'+_last.k; const _lel=document.getElementById(_lid);
         let _lp=(_lel&&_lel.value!=='')?parseFloat(_lel.value):null;
         if(_lp!=null && _R.punit==='psi') _lp=_lp/14.5038; // فيصل/عتاقة: PSI→بار
-        if(_lp!=null && _lp<=230){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} لازم أعلى من 230 بار (الحالى ${Math.round(_lp)})`); _markStage(_lid); }
+        if(_last.min==null && _lp!=null && _lp<=230){ errors.push(`ضغط المرحلة الأخيرة للضاغط ${label} لازم أعلى من 230 بار (الحالى ${Math.round(_lp)})`); _markStage(_lid); }
         // ضواغط IMW ضغطها بالبار — لو المشرف دخل قيمة PSI بالغلط هتطلع كبيرة جداً؛ نوقفه لو المرحلة الأخيرة أكبر من 300
         if(c.model.indexOf('IMW')>=0 && _lp!=null && _lp>300){ errors.push(`⚠ فيه رقم غلط فى الضغوط — ضغط المرحلة الأخيرة للضاغط ${label} = ${Math.round(_lp)} (أكبر من 300 بار). ضغوط IMW بالبار مش PSI — راجع القيمة`); _markStage(_lid); }
       }
