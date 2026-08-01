@@ -973,7 +973,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V177</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V178</span>
       </div>
     </div>
   </div>
@@ -1309,7 +1309,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
       <div style="background:linear-gradient(135deg,#4338CA,#6366F1);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0"><div style="font-weight:800;font-size:15px">🎯 إعدادات خطة التحويل والاختبار</div><button onclick="document.getElementById('conv-plan-modal').style.display='none'" style="background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:800">✕</button></div>
       <div style="padding:14px 16px">
-        <div style="font-size:11.5px;color:#3730A3;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-weight:700;line-height:1.7">خطة التحويل بتتظبط تلقائيًا حسب شهر النهاردة من ملف الشركة — تقدر تعدّلها هنا لو حبيت. خطة الاختبار ثابتة شهريًا.</div>
+        <div style="font-size:11.5px;color:#3730A3;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-weight:700;line-height:1.7">اختر الشهر وعدّل خطة <b>التحويل والاختبار</b> لكل مركز — <b>شهر بشهر</b>. القيم الظاهرة افتراضية من ملف الشركة لغاية ما تعدّلها. الحفظ بيخص الشهر المختار بس.</div>
         <div id="conv-plan-wrap"></div>
         <button onclick="saveConvPlan()" style="width:100%;background:linear-gradient(135deg,#4338CA,#6366F1);color:#fff;border:none;border-radius:11px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:12px">💾 حفظ الخطة</button>
         <div id="conv-plan-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
@@ -1472,7 +1472,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 177; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 178; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4333,13 +4333,14 @@ function convBuildCapture(rep,date,entries,holderId){
   const todayMap={}; (entries||[]).forEach(e=>todayMap[e.code]=e);
   const cN='padding:7px 12px;border:1px solid #E7EBF3;font-weight:700;text-align:right;white-space:nowrap';
   const cV='padding:7px 10px;border:1px solid #E7EBF3;text-align:center;direction:ltr';
+  const cY='padding:7px 10px;border:1px solid #F0D890;text-align:center;direction:ltr;font-weight:800;color:#92400E;background:#FEF3C7'; // عمود سيارات اليوم (مظلّل أصفر)
   let rows='';
   centers.forEach((c,i)=>{
     const td=todayMap[c.code]||{conv:c.todayConv,test:c.todayTest};
     const bg=i%2?'#FAFBFF':'#fff';
     rows+='<tr style="background:'+bg+'"><td style="'+cN+'">'+c.name+'</td>'
-      +'<td style="'+cV+';font-weight:800;color:#4338CA">'+f(td.conv)+'</td>'
-      +'<td style="'+cV+';font-weight:800;color:#0369A1">'+f(td.test)+'</td>'
+      +'<td style="'+cY+'">'+f(td.conv)+'</td>'
+      +'<td style="'+cY+'">'+f(td.test)+'</td>'
       +'<td style="'+cV+'">'+f(c.monConv)+' / '+f(c.planConv)+'</td>'
       +'<td style="'+cV+';font-weight:800;color:#4338CA">'+_convAch1(c.monConv,c.planConv)+'</td>'
       +'<td style="'+cV+'">'+f(c.monTest)+' / '+f(c.planTest)+'</td>'
@@ -4347,23 +4348,24 @@ function convBuildCapture(rep,date,entries,holderId){
   });
   const gh=(bg,span,txt)=>'<th colspan="'+span+'" style="padding:7px 8px;background:'+bg+';color:#fff;font-weight:800;font-size:12px">'+txt+'</th>';
   const sh=txt=>'<th style="padding:6px 8px;background:#1E1B4B;color:#fff;font-weight:700;font-size:11.5px;white-space:nowrap">'+txt+'</th>';
+  const shY=txt=>'<th style="padding:6px 8px;background:#B45309;color:#fff;font-weight:800;font-size:11.5px;white-space:nowrap">'+txt+'</th>';
   holder.innerHTML='<div id="conv-capture" style="width:max-content;min-width:720px;background:#fff;border:2px solid #4338CA;border-radius:16px;overflow:hidden;font-family:Cairo">'
     +'<div style="background:linear-gradient(135deg,#312E81,#4338CA);color:#fff;padding:16px 18px;text-align:center">'
     +'<div style="display:inline-block;background:rgba(255,255,255,.16);border-radius:20px;padding:6px 18px;font-size:16px;font-weight:800;white-space:nowrap">🔄 ملخص التحويل والاختبار اليومى — منطقة القناة وسيناء</div>'
     +'<div style="font-size:17px;opacity:.96;margin-top:9px;font-weight:800;direction:ltr;unicode-bidi:isolate">'+date+'</div></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px">'
-    +_convKpi(f(tot.todayConv),'إجمالى عدد سيارات التحويل')+_convKpi(f(tot.todayTest),'إجمالى عدد سيارات الاختبار')+_convKpi(_convAch1(tot.monConv,tot.planConv),'تحقيق خطة التحويل للشهر')
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:9px;padding:14px">'
+    +_convKpi(f(tot.todayConv),'إجمالى عدد سيارات التحويل')+_convKpi(f(tot.todayTest),'إجمالى عدد سيارات الاختبار')+_convKpi(_convAch1(tot.monConv,tot.planConv),'تحقيق خطة التحويل للشهر')+_convKpi(_convAch1(tot.monTest,tot.planTest),'تحقيق خطة الاختبار للشهر')
     +'</div>'
     +'<div style="padding:0 14px 8px"><table style="width:100%;border-collapse:collapse;font-size:12.5px">'
     +'<thead><tr><th rowspan="2" style="padding:7px 12px;background:#312E81;color:#fff;text-align:right;white-space:nowrap">المركز</th>'
-    +gh('#312E81',2,'سيارات اليوم')+gh('#4338CA',2,'التحويل — الشهر')+gh('#0369A1',2,'الاختبار — الشهر')+'</tr>'
-    +'<tr>'+sh('التحويل')+sh('الاختبار')+sh('الشهر/الخطة')+sh('%')+sh('الشهر/الخطة')+sh('%')+'</tr></thead><tbody>'+rows
+    +gh('#B45309',2,'سيارات اليوم')+gh('#4338CA',2,'التحويل — الشهر')+gh('#0369A1',2,'الاختبار — الشهر')+'</tr>'
+    +'<tr>'+shY('التحويل')+shY('الاختبار')+sh('الخطة/الشهر')+sh('%')+sh('الخطة/الشهر')+sh('%')+'</tr></thead><tbody>'+rows
     +'<tr style="background:#EEF0FF;font-weight:800;color:#312E81"><td style="padding:8px 12px;border-top:2px solid #4338CA;text-align:right;white-space:nowrap">إجمالى المنطقة</td>'
-    +'<td style="'+cV+';border-top:2px solid #4338CA;color:#4338CA">'+f(tot.todayConv)+'</td><td style="'+cV+';border-top:2px solid #4338CA;color:#0369A1">'+f(tot.todayTest)+'</td>'
+    +'<td style="'+cY+';border-top:2px solid #4338CA">'+f(tot.todayConv)+'</td><td style="'+cY+';border-top:2px solid #4338CA">'+f(tot.todayTest)+'</td>'
     +'<td style="'+cV+';border-top:2px solid #4338CA">'+f(tot.monConv)+' / '+f(tot.planConv)+'</td><td style="'+cV+';border-top:2px solid #4338CA;color:#4338CA">'+_convAch1(tot.monConv,tot.planConv)+'</td>'
     +'<td style="'+cV+';border-top:2px solid #4338CA">'+f(tot.monTest)+' / '+f(tot.planTest)+'</td><td style="'+cV+';border-top:2px solid #4338CA;color:#0369A1">'+_convAch1(tot.monTest,tot.planTest)+'</td></tr>'
     +'</tbody></table>'
-    +'<div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:800;color:#3730A3;margin:11px 2px 4px"><span>مضى من الشهر: '+pctMonth+'% (يوم '+dayEl+' من '+dim+')</span><span>تحويل: '+_convAch1(tot.monConv,tot.planConv)+' · اختبار: '+_convAch1(tot.monTest,tot.planTest)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;gap:10px;font-size:12.5px;font-weight:800;color:#3730A3;margin:11px 2px 4px"><span style="white-space:nowrap">مضى من الشهر (يوم '+dayEl+' من '+dim+'): '+pctMonth+'%</span><span style="white-space:nowrap">تحويل: '+_convAch1(tot.monConv,tot.planConv)+' · اختبار: '+_convAch1(tot.monTest,tot.planTest)+'</span></div>'
     +'<div style="height:9px;background:#E7EBF3;border-radius:6px;overflow:hidden"><span style="display:block;height:100%;width:'+Math.min(100,(tot.planConv>0?tot.monConv/tot.planConv*100:0))+'%;background:linear-gradient(90deg,#4338CA,#6366F1)"></span></div></div>'
     +'<div style="background:#F8FAFF;text-align:center;padding:13px;font-size:15px;font-weight:800;color:#4338CA;border-top:1px solid #E7EBF3">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</div>'
     +'</div>';
@@ -4438,25 +4440,50 @@ function buildConvYearHTML(y){
   };
   return head+metric('🔄 التحويل','#4338CA','conv','annualPlanConv')+metric('🧪 الاختبار','#0369A1','test','annualPlanTest');
 }
+const CONV_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 function openConvPlanSettings(){
   const modal=document.getElementById('conv-plan-modal'); modal.style.display='flex';
   const wrap=document.getElementById('conv-plan-wrap'); wrap.innerHTML='<div style="text-align:center;padding:20px;color:#4338CA;font-weight:800">⏳...</div>';
   document.getElementById('conv-plan-status').textContent='';
   fetch(APPS_SCRIPT_URL+'?action=convPlan').then(r=>r.json()).then(j=>{
-    const plan=(j&&j.plan)||[];
-    let h='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr><th style="text-align:right;padding:7px 6px;background:#312E81;color:#fff">المركز</th><th style="padding:7px 4px;background:#312E81;color:#fff">خطة تحويل</th><th style="padding:7px 4px;background:#312E81;color:#fff">خطة اختبار</th></tr></thead><tbody>';
-    plan.forEach((p,i)=>{ h+='<tr style="background:'+(i%2?'#FAFBFF':'#fff')+'"><td style="text-align:right;padding:6px 8px;border:1px solid #E7EBF3;font-weight:700">'+p.name+'</td>'
-      +'<td style="border:1px solid #E7EBF3;padding:4px;text-align:center"><input type="number" min="0" id="cp-conv-'+p.code+'" value="'+(p.planConv||0)+'" style="width:64px;border:1px solid #C7D2FE;border-radius:7px;padding:5px;text-align:center;font-weight:800;direction:ltr"></td>'
-      +'<td style="border:1px solid #E7EBF3;padding:4px;text-align:center"><input type="number" min="0" id="cp-test-'+p.code+'" value="'+(p.planTest||0)+'" style="width:64px;border:1px solid #C7D2FE;border-radius:7px;padding:5px;text-align:center;font-weight:800;direction:ltr"></td></tr>'; });
-    h+='</tbody></table>'; wrap.innerHTML=h; wrap.dataset.codes=plan.map(p=>p.code).join(',');
+    window.__convPlanData=(j&&j.centers)||[];
+    const cm=(j&&typeof j.curMonth==='number')?j.curMonth:(new Date()).getMonth();
+    let h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:11px"><label style="font-size:12.5px;font-weight:800;color:#4338CA">الشهر:</label>'
+      +'<select id="cp-month" onchange="convPlanFill()" style="flex:1;border:1px solid #C7D2FE;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#312E81;background:#F4F6FF">'
+      +CONV_MONTHS.map((m,i)=>'<option value="'+i+'"'+(i===cm?' selected':'')+'>'+m+'</option>').join('')+'</select></div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>'
+      +'<th style="text-align:right;padding:7px 6px;background:#312E81;color:#fff">المركز</th>'
+      +'<th style="padding:7px 4px;background:#4338CA;color:#fff">خطة تحويل</th>'
+      +'<th style="padding:7px 4px;background:#0369A1;color:#fff">خطة اختبار</th></tr></thead>'
+      +'<tbody id="cp-tbody"></tbody>'
+      +'<tfoot><tr style="background:#EEF0FF;font-weight:800;color:#312E81"><td style="text-align:right;padding:7px 8px;border-top:2px solid #4338CA">الإجمالى</td>'
+      +'<td id="cp-tot-conv" style="text-align:center;border-top:2px solid #4338CA;direction:ltr">0</td>'
+      +'<td id="cp-tot-test" style="text-align:center;border-top:2px solid #4338CA;direction:ltr">0</td></tr></tfoot></table>';
+    wrap.innerHTML=h; convPlanFill();
   }).catch(e=>{ wrap.innerHTML='<div style="color:#b91c1c;text-align:center;padding:20px">تعذر التحميل</div>'; });
 }
+function convPlanFill(){
+  const mEl=document.getElementById('cp-month'); if(!mEl) return; const m=parseInt(mEl.value,10)||0;
+  const data=window.__convPlanData||[]; const tb=document.getElementById('cp-tbody'); if(!tb) return;
+  tb.innerHTML=data.map((c,i)=>'<tr style="background:'+(i%2?'#FAFBFF':'#fff')+'"><td style="text-align:right;padding:6px 8px;border:1px solid #E7EBF3;font-weight:700">'+c.name+'</td>'
+    +'<td style="border:1px solid #E7EBF3;padding:4px;text-align:center"><input type="number" min="0" oninput="convPlanTot()" id="cp-conv-'+c.code+'" value="'+((c.conv&&c.conv[m])||0)+'" style="width:64px;border:1px solid #C7D2FE;border-radius:7px;padding:5px;text-align:center;font-weight:800;direction:ltr"></td>'
+    +'<td style="border:1px solid #E7EBF3;padding:4px;text-align:center"><input type="number" min="0" oninput="convPlanTot()" id="cp-test-'+c.code+'" value="'+((c.test&&c.test[m])||0)+'" style="width:64px;border:1px solid #C7D2FE;border-radius:7px;padding:5px;text-align:center;font-weight:800;direction:ltr"></td></tr>').join('');
+  convPlanTot();
+}
+function convPlanTot(){
+  const data=window.__convPlanData||[]; let tc=0,tt=0;
+  data.forEach(c=>{ tc+=parseFloat(document.getElementById('cp-conv-'+c.code)?.value)||0; tt+=parseFloat(document.getElementById('cp-test-'+c.code)?.value)||0; });
+  const a=document.getElementById('cp-tot-conv'), b=document.getElementById('cp-tot-test');
+  if(a)a.textContent=tc.toLocaleString('en-US'); if(b)b.textContent=tt.toLocaleString('en-US');
+}
 function saveConvPlan(){
-  const wrap=document.getElementById('conv-plan-wrap'); const codes=(wrap.dataset.codes||'').split(',').filter(Boolean);
-  const plan=codes.map(code=>{ const cc=CONV_CENTERS.find(x=>x.code===code)||{}; return {code:code,name:cc.name||code,planConv:parseFloat(document.getElementById('cp-conv-'+code)?.value)||0,planTest:parseFloat(document.getElementById('cp-test-'+code)?.value)||0}; });
-  const st=document.getElementById('conv-plan-status'); st.textContent='⏳ جارى الحفظ...'; st.style.color='#4338CA';
-  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'convPlan',plan:plan})}).then(r=>r.json()).then(j=>{
-    if(j&&j.ok){ st.textContent='✅ تم الحفظ'; st.style.color='#166534'; setTimeout(()=>{ document.getElementById('conv-plan-modal').style.display='none'; loadConvPerf(); },700); }
+  const data=window.__convPlanData||[]; const m=parseInt(document.getElementById('cp-month')?.value,10)||0;
+  const plan=data.map(c=>({code:c.code,name:c.name,planConv:parseFloat(document.getElementById('cp-conv-'+c.code)?.value)||0,planTest:parseFloat(document.getElementById('cp-test-'+c.code)?.value)||0}));
+  const st=document.getElementById('conv-plan-status'); st.textContent='⏳ جارى حفظ خطة '+CONV_MONTHS[m]+'...'; st.style.color='#4338CA';
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'convPlan',month:m+1,plan:plan})}).then(r=>r.json()).then(j=>{
+    if(j&&j.ok){ st.textContent='✅ اتحفظت خطة '+CONV_MONTHS[m]; st.style.color='#166534';
+      data.forEach(c=>{ if(c.conv)c.conv[m]=parseFloat(document.getElementById('cp-conv-'+c.code)?.value)||0; if(c.test)c.test[m]=parseFloat(document.getElementById('cp-test-'+c.code)?.value)||0; });
+      setTimeout(()=>{ document.getElementById('conv-plan-modal').style.display='none'; loadConvPerf(); },800); }
     else { st.textContent='❌ تعذر الحفظ'; st.style.color='#b91c1c'; }
   }).catch(e=>{ st.textContent='❌ تعذر الحفظ'; st.style.color='#b91c1c'; });
 }
