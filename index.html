@@ -949,7 +949,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V171</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V172</span>
       </div>
     </div>
   </div>
@@ -1373,7 +1373,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 171; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 172; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4127,19 +4127,26 @@ function mgrBackToHub(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // عرض مقارنة الضواغط على الصفحة
-function loadCompComparison(){
+function loadCompComparison(attempt){
+  attempt=attempt||0;
   const c=document.getElementById('comp-content');
-  c.innerHTML='<div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل...</div>';
+  if(!attempt) c.innerHTML='<div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل...</div>';
   Promise.all([
     fetch(APPS_SCRIPT_URL+'?action=compReport').then(r=>r.json()).catch(()=>({groups:[]})),
     fetch(APPS_SCRIPT_URL+'?action=stageReadings').then(r=>r.json()).catch(()=>({readings:[]}))
   ]).then(function(res){
     const j=res[0]||{groups:[]}, sr=res[1]||{readings:[]};
     const groups=j.groups||[];
-    if(groups.length===0){ c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد بيانات للمقارنة بعد</div>'; return; }
-    // خريطة قراءات المراحل: code|comp
-    const srMap={};
-    (sr.readings||[]).forEach(x=>{let d={};try{d=JSON.parse(x.data);}catch(e){} srMap[String(x.code)+'|'+String(x.comp)]=d;});
+    if(groups.length===0){
+      // البيانات لسه ما وصلتش (تحميل بطيء أول مرة) → نعيد المحاولة تلقائيًا بدل ما المستخدم يعمل رفريش
+      if(attempt<4){ c.innerHTML='<div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل... (محاولة '+(attempt+2)+')</div>'; setTimeout(function(){loadCompComparison(attempt+1);},1600); return; }
+      c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد بيانات للمقارنة بعد</div>'; return;
+    }
+    // خريطة قراءات المراحل: code|comp — نخزّن كمان تاريخ آخر إرسال للقراءات
+    const srMap={}, srDate={};
+    (sr.readings||[]).forEach(x=>{let d={};try{d=JSON.parse(x.data);}catch(e){} const _k=String(x.code)+'|'+String(x.comp); srMap[_k]=d; srDate[_k]=x.date||'';});
+    // تنسيق التاريخ yyyy-MM-dd → dd/MM
+    const _fdate=s=>{ if(!s)return '—'; const p=String(s).split('-'); return p.length>=3?(p[2]+'/'+p[1]):String(s); };
     function med(arr){const a=arr.filter(v=>v!=null&&!isNaN(v)).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
     const f1=v=>(v==null||v===''||isNaN(v))?null:(Math.round(v*10)/10).toFixed(1);
     const f0=v=>(v==null||v===''||isNaN(v))?null:String(Math.round(v)); // رقم صحيح (بدون كسور) لتقليل عرض الأعمدة
@@ -4163,6 +4170,7 @@ function loadCompComparison(){
       html+='<table style="border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap;direction:ltr;width:max-content;min-width:100%">';
       html+='<thead><tr>';
       html+='<th rowspan="2" style="padding:5px 8px;border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;background:#0F172A;color:#fff;'+froz+'top:0;z-index:7;min-width:150px;text-align:left">Station</th>';
+      html+='<th rowspan="2" style="padding:5px 6px;border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;background:#0F172A;color:#fff;position:sticky;top:0;z-index:5;text-align:center;min-width:56px">التاريخ<span style="display:block;font-size:8px;opacity:.8;font-weight:600">يوم البيان</span></th>';
       html+=gth2(G.flw,'KWH/m³')+gth2(G.flw,'Actual Flow','m³/h')+gth2(G.flw,'Flow Dev','%')+gth2(G.flw,'Lit/100hr')+gth2(G.flw,'Efficiency','%');
       html+=gth(G.pre,pk.length,'Pressure','bar')+gth(G.rat,Math.max(ratF.length,1),'Ratio')+gth(G.tmp,tk.length,'Temperature','°C')+gth(G.oil,oilF.length,'Oil')+(hasW?gth(G.wat,watF.length,'Water'):'')+gth(G.oth,othF.length,'Other');
       html+='</tr><tr>';
@@ -4179,6 +4187,9 @@ function loadCompComparison(){
         const rowBg = ri%2 ? '#F8FAFC' : '#fff';
         html+='<tr style="background:'+rowBg+'">';
         html+='<td style="padding:5px 8px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:2;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
+        // عمود التاريخ: يوم البيان (من الباك-إند) أو تاريخ آخر قراءة إن غاب
+        const _rowDate=(u.date||srDate[String(u.code)+'|'+String(u.comp)]||'');
+        html+='<td style="padding:5px 6px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:700;color:#334155;background:'+rowBg+'">'+_fdate(_rowDate)+'</td>';
         const _actCell=_pcell((u.fr!=null&&u.fr!==''&&u.fr!=='—'&&!isNaN(u.fr))?f0(u.fr):(u.fr||'—'));
         // الحيود: نفس قيمة وحسبة أداء المحطات اليومى (frDev + frChain) والبوكس نفسه (showFlowChain)، واللون بالإشارة
         let _devCell; const _dv=(u.dev==null?'':String(u.dev)).trim();
@@ -4218,7 +4229,7 @@ function loadCompComparison(){
     requestAnimationFrame(_applyFreeze);
     // إعادة الحساب عند تغيير حجم الشاشة (اختلاف ارتفاع الصفوف بين اللاب والموبايل)
     if(!window.__cmpFreezeBound){ window.__cmpFreezeBound=true; window.addEventListener('resize',()=>{ if(document.getElementById('mtab-comp')?.classList.contains('active')) requestAnimationFrame(_applyFreeze); }); }
-  }).catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
+  }).catch(e=>{ if(attempt<4){ setTimeout(function(){loadCompComparison(attempt+1);},1600); return; } c.innerHTML='<div style="text-align:center;color:#b91c1c;padding:30px;font-weight:700">❌ تعذر التحميل: '+e+'</div>'; });
 }
 // حساب حيود اليوم على العميل من البيانات المخزّنة (بدون ما يعيد المشرف الإدخال):
 // ضغط الدخول من قراءات اليوم + الفعلى اليوم من compReport + الاستاندرد الموحّد
