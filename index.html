@@ -949,7 +949,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V165</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V166</span>
       </div>
     </div>
   </div>
@@ -1373,7 +1373,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 165; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 166; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4144,8 +4144,6 @@ function loadCompComparison(){
     const f0=v=>(v==null||v===''||isNaN(v))?null:String(Math.round(v)); // رقم صحيح (بدون كسور) لتقليل عرض الأعمدة
     window.__devBoxes=[]; // مخزن حسبات الحيود القابلة للضغط
     let html='<div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:8px 11px;margin-bottom:12px;font-size:11px;font-weight:700;color:#0F766E;line-height:1.9">📊 مقارنة الضواغط المتطابقة بالموديل — عمود المحطة وصفوف العناوين ثابتة (Freeze) عند التمرير. <b>Flow Dev</b> = حيود اليوم (اضغط على القيمة تشوف الحسبة). Actual Flow = فعلى اليوم لما الضاغط يشتغل لوحده. باقى الأداء (KWH/m³ · Lit/100hr · Efficiency) = متوسط آخر 7 أيام. القراءات (Pressure · Ratio · Temperature · Oil · Water · Other) = آخر إرسال.</div>';
-    // منطقة تمرير واحدة لكل جداول المقارنة → الفريز (صفوف العناوين + عمود المحطة) يثبت فعلاً عند التمرير
-    html+='<div id="cmp-all" style="max-height:80vh;overflow:auto;border:1px solid #CBD5E1;border-radius:12px;background:#fff">';
     const G={pre:'#1D4ED8',rat:'#6D28D9',tmp:'#B45309',oil:'#a16207',wat:'#0891B2',oth:'#7C3AED',flw:'#0F766E'};
     groups.forEach(g=>{
       const model=g.model, units=g.units||[]; const R=READINGS_CFG(model);
@@ -4157,9 +4155,10 @@ function loadCompComparison(){
       const gth2=(bg,txt,unit)=>'<th rowspan="2" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;vertical-align:middle">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
       const sth=(txt,unit)=>'<th style="padding:4px 6px;border:1px solid #CBD5E1;background:#F1F5F9;color:#475569;font-weight:700;font-size:10px">'+txt+(unit?'<span style="display:block;font-size:8px;color:#94A3B8">'+unit+'</span>':'')+'</th>';
       const froz='position:sticky;left:0;';
-      html+='<div style="margin-bottom:10px;min-width:max-content">';
-      html+='<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:9px 13px;font-weight:800;font-size:13px;direction:ltr;text-align:left;position:sticky;left:0">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
-      html+='<table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr">';
+      // كارت مستقل لكل ضاغط فى تدفق الصفحة العادى — الفريز على تمرير الصفحة
+      html+='<div class="cmp-card" style="margin-bottom:18px;width:max-content">';
+      html+='<div class="cmp-banner" style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px;direction:ltr;text-align:left;border-radius:10px 10px 0 0;position:sticky;top:0;left:0;z-index:8">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
+      html+='<table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr;border:1px solid #CBD5E1">';
       html+='<thead><tr>';
       html+='<th rowspan="2" style="padding:5px 8px;border:1px solid #CBD5E1;background:#0F172A;color:#fff;'+froz+'z-index:5;min-width:150px;text-align:left">Station</th>';
       html+=gth2(G.flw,'KWH/m³')+gth2(G.flw,'Actual Flow','m³/h')+gth2(G.flw,'Flow Dev','%')+gth2(G.flw,'Lit/100hr')+gth2(G.flw,'Efficiency','%');
@@ -4202,17 +4201,23 @@ function loadCompComparison(){
       });
       html+='</tbody></table></div>';
     });
-    html+='</div>'; // إغلاق #cmp-all
     c.innerHTML=html;
-    // فريز صفوف العناوين فوق كل ضاغط: الصف الأول (المجموعات) يثبت أعلى، والصف الثانى (العناوين الفرعية) تحته مباشرة
-    requestAnimationFrame(()=>{
-      c.querySelectorAll('table').forEach(tb=>{
-        const rows=tb.querySelectorAll('thead tr'); if(rows.length<2) return;
+    // فريز على تمرير الصفحة: شريط الموديل يثبت أعلى، وتحته صف المجموعات، وتحته صف العناوين الفرعية — لكل ضاغط لوحده
+    const _applyFreeze=()=>{
+      const appH=Math.round(document.querySelector('.app-header')?.getBoundingClientRect().height||0); // الهيدر العلوى ثابت → نثبّت تحته
+      c.querySelectorAll('.cmp-card').forEach(card=>{
+        const banner=card.querySelector('.cmp-banner');
+        const rows=card.querySelectorAll('thead tr'); if(rows.length<2) return;
+        if(banner){ banner.style.top=appH+'px'; }
+        const bh=banner?Math.round(banner.getBoundingClientRect().height):0;
         const h0=Math.round(rows[0].getBoundingClientRect().height);
-        rows[0].querySelectorAll('th').forEach((th,i)=>{ th.style.position='sticky'; th.style.top='0px'; th.style.zIndex=(i===0?'7':'6'); });
-        rows[1].querySelectorAll('th').forEach(th=>{ th.style.position='sticky'; th.style.top=h0+'px'; th.style.zIndex='6'; });
+        rows[0].querySelectorAll('th').forEach((th,i)=>{ th.style.position='sticky'; th.style.top=(appH+bh)+'px'; th.style.zIndex=(i===0?'9':'7'); });
+        rows[1].querySelectorAll('th').forEach(th=>{ th.style.position='sticky'; th.style.top=(appH+bh+h0)+'px'; th.style.zIndex='7'; });
       });
-    });
+    };
+    requestAnimationFrame(_applyFreeze);
+    // إعادة الحساب عند تغيير حجم الشاشة (اختلاف ارتفاع الصفوف بين اللاب والموبايل)
+    if(!window.__cmpFreezeBound){ window.__cmpFreezeBound=true; window.addEventListener('resize',()=>{ if(document.getElementById('mtab-comp')?.classList.contains('active')) requestAnimationFrame(_applyFreeze); }); }
   }).catch(e=>{c.innerHTML='❌ تعذر التحميل: '+e;});
 }
 // حساب حيود اليوم على العميل من البيانات المخزّنة (بدون ما يعيد المشرف الإدخال):
