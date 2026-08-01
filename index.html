@@ -949,7 +949,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V169</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V170</span>
       </div>
     </div>
   </div>
@@ -1373,7 +1373,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 169; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 170; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4178,15 +4178,18 @@ function loadCompComparison(){
         const rowBg = ri%2 ? '#F8FAFC' : '#fff';
         html+='<tr style="background:'+rowBg+'">';
         html+='<td style="padding:5px 8px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:2;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
-        let _dev=(u._sd&&u._sd.dev)?u._sd.dev:null;
-        if(!_dev) _dev=_devFromToday(u, (u._sd&&u._sd.pres)?u._sd.pres.in:0); // احسبه من بيانات اليوم المخزّنة بدون إعادة إدخال
-        const _actCell=(_dev&&_dev.act!=null)?_pcell(f0(_dev.act)):_pcell(u.fr);
-        let _devCell;
-        if(_dev&&_dev.pct!=null){
-          const di=window.__devBoxes.push({dev:_dev,name:u.name,model:model})-1;
-          const _sg=_dev.pct>=0?'+':''; const _dc=Math.abs(_dev.pct)<=5?'#16A34A':Math.abs(_dev.pct)<=15?'#B45309':'#DC2626';
-          _devCell='<td onclick="showDevBox('+di+')" title="اضغط لعرض طريقة حساب الحيود" style="padding:5px 7px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dc+';cursor:pointer;text-decoration:underline dotted 1.5px">'+_sg+Math.round(_dev.pct)+'%</td>';
-        } else { _devCell=_pcell(u.dev); }
+        const _actCell=_pcell((u.fr!=null&&u.fr!==''&&u.fr!=='—'&&!isNaN(u.fr))?f0(u.fr):(u.fr||'—'));
+        // الحيود: نفس قيمة وحسبة أداء المحطات اليومى (frDev + frChain) والبوكس نفسه (showFlowChain)، واللون بالإشارة
+        let _devCell; const _dv=(u.dev==null?'':String(u.dev)).trim();
+        if(_dv && _dv!=='—' && _dv!=='N/A'){
+          const _dcol=_dv.charAt(0)==='-'?'#9C0006':'#276221'; // نفس ألوان أداء المحطات اليومى: سالب أحمر / موجب أخضر
+          if(u.frChain){
+            const _fc=encodeURIComponent(JSON.stringify({name:u.name,model:model,chain:u.frChain,dev:u.dev}));
+            _devCell='<td onclick="showFlowChain(\''+_fc+'\')" title="اضغط لعرض حسبة الحيود" style="padding:5px 7px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dcol+';cursor:pointer;text-decoration:underline dotted 1.5px">'+_dv+'</td>';
+          } else {
+            _devCell='<td style="padding:5px 7px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dcol+'">'+_dv+'</td>';
+          }
+        } else { _devCell=_pcell('—'); }
         html+=_pcell(u.kwhM3,'#6D28D9')+_actCell+_devCell+_pcell(u.oilRate,'#C2410C')+_pcell((u.util!=null&&u.util!==''&&u.util!=='—')?(String(u.util).replace(/%/g,'')+'%'):'—');
         // ضغوط: الدخول (in) بعلامة عشرية، وباقى المراحل أرقام صحيحة
         pk.forEach(pp=>{const v=p[pp.k];const _d=(pp.k==='in')?f1(v):f0(v);html+=_scell(_d,isOut(v,units.map(z=>(z._sd&&z._sd.pres)?z._sd.pres[pp.k]:null)));});
