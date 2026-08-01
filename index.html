@@ -967,7 +967,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V173</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V174</span>
       </div>
     </div>
   </div>
@@ -1403,7 +1403,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 173; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 174; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4098,20 +4098,39 @@ function drawSalesChart(chartEl, kpiEl, series, color){
     kpiEl.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0';
     kpiEl.innerHTML=kpi(_fmtNum(tot),'إجمالى الفترة (م³)')+kpi(_fmtNum(Math.round(avg)),'المتوسط اليومى')+kpi(_fmtNum(mx),'أعلى يوم','#16A34A')+kpi(_fmtNum(mn),'أدنى يوم','#DC2626');
   }
-  const W=840,H=250,PADL=48,PADR=14,PADT=14,PADB=28, iw=W-PADL-PADR, ih=H-PADT-PADB;
-  const maxV=mx*1.08, minV=Math.max(0,mn*0.9), rng=(maxV-minV)||1;
+  const W=840,H=274,PADL=48,PADR=14,PADT=22,PADB=40, iw=W-PADL-PADR, ih=H-PADT-PADB;
+  const maxV=mx*1.10, minV=Math.max(0,mn*0.9), rng=(maxV-minV)||1;
   const X=i=> n===1?PADL+iw/2 : PADL+iw*(i/(n-1));
   const Y=v=> PADT+ih*(1-(v-minV)/rng);
   const pts=series.map((p,i)=>X(i)+','+Y(p.sales));
   const fmtK=v=> v>=1000?(v/1000).toFixed(v>=10000?0:1)+'k':String(Math.round(v));
+  // اليوم من الأسبوع (محلى) — الأحد=0
+  const DOWS=['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+  const _dow=ds=>{const a=ds.split('-');return new Date(+a[0],+a[1]-1,+a[2]).getDay();};
+  const short = n<=14;                     // فترة قصيرة → اسم اليوم تحت كل نقطة
   let grid='';
   for(let g=0;g<=4;g++){ const gv=minV+rng*g/4, gy=Y(gv); grid+='<line x1="'+PADL+'" y1="'+gy+'" x2="'+(W-PADR)+'" y2="'+gy+'" stroke="#EDE4F5"/><text x="'+(PADL-6)+'" y="'+(gy+3)+'" text-anchor="end" font-size="9" fill="#9C7BC0" font-weight="700">'+fmtK(gv)+'</text>'; }
-  let xlab=''; const step=Math.max(1,Math.ceil(n/6));
-  for(let t=0;t<n;t+=step){ const dd=series[t].date.split('-'); xlab+='<text x="'+X(t)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#9C7BC0" font-weight="700">'+parseInt(dd[2],10)+'/'+parseInt(dd[1],10)+'</text>'; }
+  // خطوط رأسية خفيفة + تسميات + قيم أيام الأحد
+  let guides='', xlab='', vlab='';
+  for(let i=0;i<n;i++){
+    const ds=series[i].date, a=ds.split('-'), dm=parseInt(a[2],10)+'/'+parseInt(a[1],10), wd=_dow(ds), isSun=wd===0;
+    if(isSun){ guides+='<line x1="'+X(i)+'" y1="'+PADT+'" x2="'+X(i)+'" y2="'+(PADT+ih)+'" stroke="#E9DDF7" stroke-dasharray="3 3"/>'; }
+    if(short){
+      // كل نقطة: اسم اليوم + التاريخ (الأحد بلون مميّز)
+      xlab+='<text x="'+X(i)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8.5" fill="'+(isSun?'#6D28D9':'#9C7BC0')+'" font-weight="'+(isSun?'800':'700')+'">'+DOWS[wd]+'</text>';
+      xlab+='<text x="'+X(i)+'" y="'+(H-5)+'" text-anchor="middle" font-size="8" fill="#B9A0D4" font-weight="600">'+dm+'</text>';
+    } else if(isSun){
+      // فترة كبيرة: تحت أيام الأحد فقط
+      xlab+='<text x="'+X(i)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8.5" fill="#6D28D9" font-weight="800">أحد</text>';
+      xlab+='<text x="'+X(i)+'" y="'+(H-5)+'" text-anchor="middle" font-size="8" fill="#9C7BC0" font-weight="700">'+dm+'</text>';
+    }
+    // القيمة فوق نقاط الأحد فقط (فى الحالتين)
+    if(isSun){ vlab+='<text x="'+X(i)+'" y="'+(Y(series[i].sales)-7)+'" text-anchor="middle" font-size="8.5" fill="#4A148C" font-weight="800">'+fmtK(series[i].sales)+'</text>'; }
+  }
   const area='M'+X(0)+','+Y(minV)+' L'+pts.join(' L')+' L'+X(n-1)+','+Y(minV)+' Z';
   const line='M'+pts.join(' L');
-  const dots= n<=45 ? series.map((p,i)=>'<circle cx="'+X(i)+'" cy="'+Y(p.sales)+'" r="2.4" fill="'+color+'"><title>'+p.date+': '+_fmtNum(p.sales)+' م³</title></circle>').join('') : '';
-  chartEl.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+'<path d="'+area+'" fill="url(#scg)"/><path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+xlab+'</svg>';
+  const dots= n<=45 ? series.map((p,i)=>'<circle cx="'+X(i)+'" cy="'+Y(p.sales)+'" r="'+(_dow(p.date)===0?'3.1':'2.4')+'" fill="'+(_dow(p.date)===0?'#4A148C':color)+'"><title>'+DOWS[_dow(p.date)]+' '+p.date+': '+_fmtNum(p.sales)+' م³</title></circle>').join('') : '';
+  chartEl.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+guides+'<path d="'+area+'" fill="url(#scg)"/><path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+vlab+xlab+'</svg>';
 }
 function initSalesPanel(hostId, fixedCode, fixedName){
   const host=document.getElementById(hostId); if(!host) return;
