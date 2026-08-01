@@ -967,7 +967,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V174</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V175</span>
       </div>
     </div>
   </div>
@@ -1120,12 +1120,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   </div>
 
   <!-- نافذة سبب التوقف -->
-  <div id="stop-reason-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeStopReason()">
-    <div style="background:#fff;border-radius:16px;padding:20px;max-width:380px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3);max-height:80vh;overflow:auto">
-      <div id="stop-reason-body"></div>
-      <button onclick="closeStopReason()" style="width:100%;margin-top:14px;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:11px;font-family:Cairo;font-weight:800;cursor:pointer">إغلاق</button>
-    </div>
-  </div>
+  <!-- (نُقلت نافذة تفاصيل التدفق/الحيود إلى مستوى الصفحة عشان تظهر للمشرف والمسؤول — انظر أسفل قبل </body>) -->
 
   <!-- نافذة إعدادات سعر المتر المباع وتعريفة الكهرباء -->
   <div id="tariff-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px">
@@ -1403,7 +1398,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 174; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 175; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4098,8 +4093,8 @@ function drawSalesChart(chartEl, kpiEl, series, color){
     kpiEl.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0';
     kpiEl.innerHTML=kpi(_fmtNum(tot),'إجمالى الفترة (م³)')+kpi(_fmtNum(Math.round(avg)),'المتوسط اليومى')+kpi(_fmtNum(mx),'أعلى يوم','#16A34A')+kpi(_fmtNum(mn),'أدنى يوم','#DC2626');
   }
-  const W=840,H=274,PADL=48,PADR=14,PADT=22,PADB=40, iw=W-PADL-PADR, ih=H-PADT-PADB;
-  const maxV=mx*1.10, minV=Math.max(0,mn*0.9), rng=(maxV-minV)||1;
+  const W=840,H=292,PADL=50,PADR=16,PADT=30,PADB=46, iw=W-PADL-PADR, ih=H-PADT-PADB;
+  const maxV=mx*1.12, minV=Math.max(0,mn*0.9), rng=(maxV-minV)||1;
   const X=i=> n===1?PADL+iw/2 : PADL+iw*(i/(n-1));
   const Y=v=> PADT+ih*(1-(v-minV)/rng);
   const pts=series.map((p,i)=>X(i)+','+Y(p.sales));
@@ -4108,28 +4103,34 @@ function drawSalesChart(chartEl, kpiEl, series, color){
   const DOWS=['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
   const _dow=ds=>{const a=ds.split('-');return new Date(+a[0],+a[1]-1,+a[2]).getDay();};
   const short = n<=14;                     // فترة قصيرة → اسم اليوم تحت كل نقطة
+  const _sun=i=>_dow(series[i].date)===0;
+  // أعلى يوم مبيعات فى كل أسبوع (الأسابيع تبدأ عند كل أحد)
+  const isWeekMax=new Array(n).fill(false); let _ws=0;
+  for(let i=1;i<=n;i++){ if(i===n || _sun(i)){ let mi=_ws; for(let j=_ws+1;j<i;j++){ if(series[j].sales>series[mi].sales) mi=j; } isWeekMax[mi]=true; _ws=i; } }
+  // نقاط التعليم = كل أيام الأحد + أعلى يوم فى الأسبوع (نتجاهل الأعلى لو ملاصق للأحد عشان ما تتزاحمش التسميات)
+  const _sundays=[]; for(let i=0;i<n;i++) if(_sun(i)) _sundays.push(i);
+  const MINGAP=46, labelSet={};
+  _sundays.forEach(i=>{labelSet[i]=1;});
+  for(let i=0;i<n;i++){ if(isWeekMax[i] && !_sun(i)){ if(!_sundays.some(s=>Math.abs(X(s)-X(i))<MINGAP)) labelSet[i]=1; } }
   let grid='';
   for(let g=0;g<=4;g++){ const gv=minV+rng*g/4, gy=Y(gv); grid+='<line x1="'+PADL+'" y1="'+gy+'" x2="'+(W-PADR)+'" y2="'+gy+'" stroke="#EDE4F5"/><text x="'+(PADL-6)+'" y="'+(gy+3)+'" text-anchor="end" font-size="9" fill="#9C7BC0" font-weight="700">'+fmtK(gv)+'</text>'; }
-  // خطوط رأسية خفيفة + تسميات + قيم أيام الأحد
+  // خطوط رأسية خفيفة + تسميات (أسماء الأيام) + قيم المبيعات (أيام الأحد + أعلى يوم فى الأسبوع)
   let guides='', xlab='', vlab='';
   for(let i=0;i<n;i++){
-    const ds=series[i].date, a=ds.split('-'), dm=parseInt(a[2],10)+'/'+parseInt(a[1],10), wd=_dow(ds), isSun=wd===0;
+    const ds=series[i].date, a=ds.split('-'), dm=parseInt(a[2],10)+'/'+parseInt(a[1],10), wd=_dow(ds), isSun=wd===0, isMax=isWeekMax[i], marked=!!labelSet[i];
     if(isSun){ guides+='<line x1="'+X(i)+'" y1="'+PADT+'" x2="'+X(i)+'" y2="'+(PADT+ih)+'" stroke="#E9DDF7" stroke-dasharray="3 3"/>'; }
-    if(short){
-      // كل نقطة: اسم اليوم + التاريخ (الأحد بلون مميّز)
-      xlab+='<text x="'+X(i)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8.5" fill="'+(isSun?'#6D28D9':'#9C7BC0')+'" font-weight="'+(isSun?'800':'700')+'">'+DOWS[wd]+'</text>';
-      xlab+='<text x="'+X(i)+'" y="'+(H-5)+'" text-anchor="middle" font-size="8" fill="#B9A0D4" font-weight="600">'+dm+'</text>';
-    } else if(isSun){
-      // فترة كبيرة: تحت أيام الأحد فقط
-      xlab+='<text x="'+X(i)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8.5" fill="#6D28D9" font-weight="800">أحد</text>';
-      xlab+='<text x="'+X(i)+'" y="'+(H-5)+'" text-anchor="middle" font-size="8" fill="#9C7BC0" font-weight="700">'+dm+'</text>';
+    // أسفل المنحنى: اسم اليوم + التاريخ (قصيرة=كل يوم، كبيرة=النقاط المعلّمة فقط)
+    if(short || marked){
+      const nameColor = isSun ? '#6D28D9' : (isMax ? '#15803D' : '#9C7BC0');
+      xlab+='<text x="'+X(i)+'" y="'+(H-18)+'" text-anchor="middle" font-size="10.5" fill="'+nameColor+'" font-weight="800">'+DOWS[wd]+'</text>';
+      xlab+='<text x="'+X(i)+'" y="'+(H-5)+'" text-anchor="middle" font-size="9" fill="#9C7BC0" font-weight="700">'+dm+'</text>';
     }
-    // القيمة فوق نقاط الأحد فقط (فى الحالتين)
-    if(isSun){ vlab+='<text x="'+X(i)+'" y="'+(Y(series[i].sales)-7)+'" text-anchor="middle" font-size="8.5" fill="#4A148C" font-weight="800">'+fmtK(series[i].sales)+'</text>'; }
+    // فوق المنحنى: قيمة المبيعات كاملة بعلامة الآلاف (أيام الأحد + أعلى يوم فى الأسبوع)
+    if(marked){ vlab+='<text x="'+X(i)+'" y="'+(Y(series[i].sales)-8)+'" text-anchor="middle" font-size="10.5" fill="'+(isMax&&!isSun?'#15803D':'#4A148C')+'" font-weight="800">'+_fmtNum(series[i].sales)+'</text>'; }
   }
   const area='M'+X(0)+','+Y(minV)+' L'+pts.join(' L')+' L'+X(n-1)+','+Y(minV)+' Z';
   const line='M'+pts.join(' L');
-  const dots= n<=45 ? series.map((p,i)=>'<circle cx="'+X(i)+'" cy="'+Y(p.sales)+'" r="'+(_dow(p.date)===0?'3.1':'2.4')+'" fill="'+(_dow(p.date)===0?'#4A148C':color)+'"><title>'+DOWS[_dow(p.date)]+' '+p.date+': '+_fmtNum(p.sales)+' م³</title></circle>').join('') : '';
+  const dots= n<=45 ? series.map((p,i)=>{const isSun=_dow(p.date)===0,isMax=isWeekMax[i];const r=isSun?'3.3':(isMax?'3.3':'2.4');const cl=isSun?'#4A148C':(isMax?'#15803D':color);return '<circle cx="'+X(i)+'" cy="'+Y(p.sales)+'" r="'+r+'" fill="'+cl+'"><title>'+DOWS[_dow(p.date)]+' '+p.date+': '+_fmtNum(p.sales)+' م³</title></circle>';}).join('') : '';
   chartEl.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+guides+'<path d="'+area+'" fill="url(#scg)"/><path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+vlab+xlab+'</svg>';
 }
 function initSalesPanel(hostId, fixedCode, fixedName){
@@ -6492,6 +6493,14 @@ function resetToLogin(){
         <button onclick="closeFireWorkOrderModal()" style="flex:1;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">إلغاء</button>
         <button onclick="generateFireWorkOrder()" style="flex:2;background:linear-gradient(135deg,#B91C1C,#EF4444);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;cursor:pointer">📥 إنشاء وتحميل</button>
       </div>
+    </div>
+  </div>
+
+  <!-- نافذة تفاصيل التدفق/الحيود (مستوى الصفحة — تظهر فوق شاشة المشرف أو المسؤول) -->
+  <div id="stop-reason-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeStopReason()">
+    <div style="background:#fff;border-radius:16px;padding:20px;max-width:380px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3);max-height:80vh;overflow:auto">
+      <div id="stop-reason-body"></div>
+      <button onclick="closeStopReason()" style="width:100%;margin-top:14px;background:#E5E7EB;color:#374151;border:none;border-radius:10px;padding:11px;font-family:Cairo;font-weight:800;cursor:pointer">إغلاق</button>
     </div>
   </div>
 </body>
