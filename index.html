@@ -465,6 +465,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800">📊 بيان القابضة</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">إجمالى مبيعات محطتك خلال الفترة نصف الشهرية</div>
     </div>
+    <div onclick="openSupSection('mycharts')" style="background:linear-gradient(135deg,#6D28D9,#A855F7);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">📈 محطتى: مبيعات ومقارنة</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">منحنى مبيعات محطتك + مقارنة ضواغطك بمثيلاتها</div>
+    </div>
     <div onclick="openSupSection('tadamon')" style="background:linear-gradient(135deg,#0369A1,#0EA5E9);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
       <div style="font-size:17px;font-weight:800">⚡ محضر التضامن</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">تسجيل قراءة عداد الكهرباء عند زيارة المندوب</div>
@@ -486,6 +490,20 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div id="my-holding-content" style="font-size:13px"></div>
   </div>
   </div><!-- /tab-holding -->
+
+  <!-- تاب منحنيات ومقارنة محطتى (للمشرف) -->
+  <div class="sup-tab-content" id="tab-mycharts">
+  <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
+    <button onclick="openSupCompare()" style="width:100%;background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">🔧 قارن ضواغطى بالمثيلات</button>
+    <div id="sup-compare-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:10px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+      <div style="font-size:11.5px;color:#0F766E;font-weight:700;background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:7px 10px;margin-bottom:8px;line-height:1.8">محطتك متظللة باللون الأصفر ◄ — قارن قراءاتك بباقى المحطات اللى بنفس موديل الضاغط.</div>
+      <div id="sup-comp-content" style="font-size:13px"></div>
+    </div>
+    <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">📈 منحنى مبيعات محطتى</div>
+    <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+      <div id="sales-sup"></div>
+    </div>
+  </div><!-- /tab-mycharts -->
 
   <!-- تاب منظومة الحريق -->
   <div class="sup-tab-content" id="tab-fire">
@@ -949,7 +967,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V172</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V173</span>
       </div>
     </div>
   </div>
@@ -1082,6 +1100,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800">🔧 مقارنة الضواغط</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">مقارنة الضواغط المتطابقة بالموديل — FR والحيود والكفاءة</div>
     </div>
+    <div onclick="openMgrSection('sales')" style="background:linear-gradient(135deg,#6D28D9,#A855F7);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">📈 منحنى المبيعات</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">مبيعات المنطقة أو محطة على مدار فترة تختارها</div>
+    </div>
     <div onclick="openMgrSection('fire')" style="background:linear-gradient(135deg,#B91C1C,#DC2626);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
       <div style="font-size:17px;font-weight:800">🧯 منظومات الحريق</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">ملخص أعطال منظومات الحريق + حالة الإرسال</div>
@@ -1205,6 +1227,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <span id="comp-dl-status" style="font-size:12px;color:#1A6B4A;font-weight:700"></span>
     </div>
     <div id="comp-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل...</div></div>
+  </div>
+
+  <!-- ══════ تاب منحنى المبيعات ══════ -->
+  <div class="mgr-tab-content" id="mtab-sales">
+  <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
+    <div class="mgr-tab-title">📈 منحنى المبيعات</div>
+    <div class="mgr-last-update">من «بيان القابضة» — بيانات يومية حتى ٣ شهور</div>
+    <div id="sales-mgr" style="margin-top:8px"></div>
   </div>
 
   <!-- ══════ تاب منظومات الحريق ══════ -->
@@ -1373,7 +1403,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 172; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 173; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1669,6 +1699,7 @@ function doLogin(){
   const st=STATIONS[code];
   if(!st){document.getElementById('login-err').style.display='block';return;}
   currentStation={...st,code};
+  window.__salesSupLoaded=false; { const _cp=document.getElementById('sup-compare-panel'); if(_cp){ _cp.__loaded=false; _cp.style.display='none'; } }
   document.getElementById('login-err').style.display='none';
   loadForm();
 }
@@ -4054,13 +4085,103 @@ function renderMaintGroup(tg, items){
   return html;
 }
 
+// ══════════ منحنيات المبيعات (من بيان القابضة) — مشتركة بين المسؤول والمشرف ══════════
+function _isoDate(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+function _fmtNum(n){ return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
+function drawSalesChart(chartEl, kpiEl, series, color){
+  color=color||'#7C3AED';
+  if(!series || !series.length){ if(kpiEl)kpiEl.innerHTML=''; chartEl.innerHTML='<div style="text-align:center;color:#94A3B8;padding:40px;font-weight:700">لا توجد بيانات في هذه الفترة</div>'; return; }
+  const vals=series.map(p=>p.sales), n=series.length;
+  const tot=vals.reduce((a,b)=>a+b,0), avg=tot/n, mx=Math.max.apply(null,vals), mn=Math.min.apply(null,vals);
+  if(kpiEl){
+    const kpi=(v,l,c)=>'<div style="background:#FAF5FF;border:1px solid #EEE0FA;border-radius:12px;padding:9px 6px;text-align:center"><div style="font-size:17px;font-weight:800;color:'+(c||'#4A148C')+';direction:ltr">'+v+'</div><div style="font-size:10px;color:#7C5AA0;font-weight:700;margin-top:2px">'+l+'</div></div>';
+    kpiEl.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0';
+    kpiEl.innerHTML=kpi(_fmtNum(tot),'إجمالى الفترة (م³)')+kpi(_fmtNum(Math.round(avg)),'المتوسط اليومى')+kpi(_fmtNum(mx),'أعلى يوم','#16A34A')+kpi(_fmtNum(mn),'أدنى يوم','#DC2626');
+  }
+  const W=840,H=250,PADL=48,PADR=14,PADT=14,PADB=28, iw=W-PADL-PADR, ih=H-PADT-PADB;
+  const maxV=mx*1.08, minV=Math.max(0,mn*0.9), rng=(maxV-minV)||1;
+  const X=i=> n===1?PADL+iw/2 : PADL+iw*(i/(n-1));
+  const Y=v=> PADT+ih*(1-(v-minV)/rng);
+  const pts=series.map((p,i)=>X(i)+','+Y(p.sales));
+  const fmtK=v=> v>=1000?(v/1000).toFixed(v>=10000?0:1)+'k':String(Math.round(v));
+  let grid='';
+  for(let g=0;g<=4;g++){ const gv=minV+rng*g/4, gy=Y(gv); grid+='<line x1="'+PADL+'" y1="'+gy+'" x2="'+(W-PADR)+'" y2="'+gy+'" stroke="#EDE4F5"/><text x="'+(PADL-6)+'" y="'+(gy+3)+'" text-anchor="end" font-size="9" fill="#9C7BC0" font-weight="700">'+fmtK(gv)+'</text>'; }
+  let xlab=''; const step=Math.max(1,Math.ceil(n/6));
+  for(let t=0;t<n;t+=step){ const dd=series[t].date.split('-'); xlab+='<text x="'+X(t)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#9C7BC0" font-weight="700">'+parseInt(dd[2],10)+'/'+parseInt(dd[1],10)+'</text>'; }
+  const area='M'+X(0)+','+Y(minV)+' L'+pts.join(' L')+' L'+X(n-1)+','+Y(minV)+' Z';
+  const line='M'+pts.join(' L');
+  const dots= n<=45 ? series.map((p,i)=>'<circle cx="'+X(i)+'" cy="'+Y(p.sales)+'" r="2.4" fill="'+color+'"><title>'+p.date+': '+_fmtNum(p.sales)+' م³</title></circle>').join('') : '';
+  chartEl.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+'<path d="'+area+'" fill="url(#scg)"/><path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+xlab+'</svg>';
+}
+function initSalesPanel(hostId, fixedCode, fixedName){
+  const host=document.getElementById(hostId); if(!host) return;
+  const uid=hostId;
+  const segHTML = fixedCode ? '' :
+    '<div style="display:inline-flex;background:#F1F5F9;border-radius:10px;padding:3px;margin-bottom:10px">'
+    +'<button id="'+uid+'-breg" onclick="salesSetScope(\''+uid+'\',\'reg\')" style="border:none;background:#6B21A8;color:#fff;padding:7px 16px;border-radius:8px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer">المنطقة بالكامل</button>'
+    +'<button id="'+uid+'-bstn" onclick="salesSetScope(\''+uid+'\',\'stn\')" style="border:none;background:none;color:#64748B;padding:7px 16px;border-radius:8px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer">محطة محددة</button></div>';
+  const stnHTML = fixedCode ? '' :
+    '<div id="'+uid+'-stnwrap" style="display:none;flex-direction:column;gap:4px"><label style="font-size:11px;font-weight:800;color:#6B21A8">المحطة</label><select id="'+uid+'-stn" onchange="salesLoad(\''+uid+'\')" style="border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-family:Cairo;font-weight:700;font-size:13px;min-width:150px"></select></div>';
+  host.innerHTML=
+    segHTML
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">'
+    + stnHTML
+    +'<div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:11px;font-weight:800;color:#6B21A8">من</label><input type="date" id="'+uid+'-from" dir="ltr" style="border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-weight:700;font-size:13px"></div>'
+    +'<div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:11px;font-weight:800;color:#6B21A8">إلى</label><input type="date" id="'+uid+'-to" dir="ltr" style="border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-weight:700;font-size:13px"></div>'
+    +'<button onclick="salesLoad(\''+uid+'\')" style="background:#6B21A8;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-family:Cairo;font-weight:800;cursor:pointer;height:38px">عرض</button>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;margin:8px 0 2px;flex-wrap:wrap">'
+    +'<button onclick="salesPreset(\''+uid+'\',7)" style="border:1px solid #E2E8F0;background:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:#6B21A8;cursor:pointer">آخر 7 أيام</button>'
+    +'<button onclick="salesPreset(\''+uid+'\',30)" style="border:1px solid #E2E8F0;background:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:#6B21A8;cursor:pointer">آخر 30 يوم</button>'
+    +'<button onclick="salesPreset(\''+uid+'\',90)" style="border:1px solid #E2E8F0;background:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:#6B21A8;cursor:pointer">آخر 90 يوم</button>'
+    +'</div>'
+    +'<div id="'+uid+'-kpis"></div>'
+    +'<div style="border:1px solid #F0E7FA;border-radius:12px;padding:10px 6px 4px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"><div id="'+uid+'-chart"><div style="text-align:center;color:#6B21A8;padding:40px;font-weight:800">⏳ جارى التحميل...</div></div></div>'
+    +'<div style="font-size:11px;color:#94A3B8;font-weight:600;margin-top:8px;line-height:1.7">🟣 كل نقطة = إجمالى مبيعات اليوم'+(fixedCode?' لمحطتك':' (للمنطقة أو المحطة المختارة)')+'. الفترة محدودة بآخر ٣ شهور المخزّنة في القابضة.</div>';
+  host._sales={fixedCode:fixedCode||'', scope:'reg', stations:[]};
+  const to=new Date(), from=new Date(); from.setDate(from.getDate()-29);
+  document.getElementById(uid+'-to').value=_isoDate(to);
+  document.getElementById(uid+'-from').value=_isoDate(from);
+  salesLoad(uid);
+}
+function salesSetScope(uid,scope){
+  const host=document.getElementById(uid); if(!host||!host._sales) return;
+  host._sales.scope=scope;
+  const breg=document.getElementById(uid+'-breg'), bstn=document.getElementById(uid+'-bstn'), sw=document.getElementById(uid+'-stnwrap');
+  if(breg){ breg.style.background=scope==='reg'?'#6B21A8':'transparent'; breg.style.color=scope==='reg'?'#fff':'#64748B'; }
+  if(bstn){ bstn.style.background=scope==='stn'?'#6B21A8':'transparent'; bstn.style.color=scope==='stn'?'#fff':'#64748B'; }
+  if(sw) sw.style.display = scope==='stn' ? 'flex' : 'none';
+  salesLoad(uid);
+}
+function salesPreset(uid,days){
+  const to=new Date(), from=new Date(); from.setDate(from.getDate()-(days-1));
+  document.getElementById(uid+'-to').value=_isoDate(to);
+  document.getElementById(uid+'-from').value=_isoDate(from);
+  salesLoad(uid);
+}
+function salesLoad(uid){
+  const host=document.getElementById(uid); if(!host||!host._sales) return;
+  const st=host._sales;
+  const from=document.getElementById(uid+'-from').value, to=document.getElementById(uid+'-to').value;
+  let code = st.fixedCode || ((st.scope==='stn') ? (document.getElementById(uid+'-stn')?.value||'') : '');
+  const chartEl=document.getElementById(uid+'-chart'), kpiEl=document.getElementById(uid+'-kpis');
+  chartEl.innerHTML='<div style="text-align:center;color:#6B21A8;padding:40px;font-weight:800">⏳ جارى التحميل...</div>';
+  const url=APPS_SCRIPT_URL+'?action=salesSeries&from='+from+'&to='+to+(code?'&code='+encodeURIComponent(code):'');
+  fetch(url).then(r=>r.json()).then(j=>{
+    if(!st.fixedCode && st.stations.length===0 && j.stations && j.stations.length){
+      st.stations=j.stations; const sel=document.getElementById(uid+'-stn');
+      if(sel) sel.innerHTML=j.stations.map(s=>'<option value="'+s.code+'">'+s.name+'</option>').join('');
+    }
+    drawSalesChart(chartEl,kpiEl,j.series||[]);
+  }).catch(e=>{ chartEl.innerHTML='<div style="text-align:center;color:#b91c1c;padding:30px;font-weight:700">❌ تعذر التحميل</div>'; });
+}
 function showMgr(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('mgr-screen').style.display='block';
   const d=document.getElementById('mgr-day');
   if(d&&!d.value){const t=new Date();d.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);}
   // نصفّر flags التحميل ونبدأ بالقائمة الرئيسية
-  window.__compLoaded=false; window.__oilLoaded=false; window.__fireLoaded=false; window.__tadLoaded=false; window.__holdingLoaded=false;
+  window.__compLoaded=false; window.__oilLoaded=false; window.__fireLoaded=false; window.__tadLoaded=false; window.__holdingLoaded=false; window.__salesMgrLoaded=false;
   const hub=document.getElementById('mgr-hub'); if(hub) hub.style.display='block';
   const area=document.getElementById('mgr-sections-area'); if(area) area.style.display='none';
   loadMgrDay();
@@ -4119,6 +4240,7 @@ function openMgrSection(tab){
   if(tab==='comp' && !window.__compLoaded){ window.__compLoaded=true; loadCompComparison(); }
   if(tab==='fire' && !window.__fireLoaded){ window.__fireLoaded=true; loadFireIssues(); }
   if(tab==='tadamon' && !window.__tadLoaded){ window.__tadLoaded=true; loadTadamonMgr(); }
+  if(tab==='sales' && !window.__salesMgrLoaded){ window.__salesMgrLoaded=true; initSalesPanel('sales-mgr','',''); }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function mgrBackToHub(){
@@ -4127,19 +4249,21 @@ function mgrBackToHub(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // عرض مقارنة الضواغط على الصفحة
-function loadCompComparison(attempt){
-  attempt=attempt||0;
-  const c=document.getElementById('comp-content');
+function loadCompComparison(attempt, containerId, filterCode){
+  attempt=attempt||0; containerId=containerId||'comp-content';
+  const c=document.getElementById(containerId);
   if(!attempt) c.innerHTML='<div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل...</div>';
   Promise.all([
     fetch(APPS_SCRIPT_URL+'?action=compReport').then(r=>r.json()).catch(()=>({groups:[]})),
     fetch(APPS_SCRIPT_URL+'?action=stageReadings').then(r=>r.json()).catch(()=>({readings:[]}))
   ]).then(function(res){
     const j=res[0]||{groups:[]}, sr=res[1]||{readings:[]};
-    const groups=j.groups||[];
+    let groups=j.groups||[];
+    // فلتر المشرف: نعرض فقط مجموعة الموديل اللى فيها ضاغط محطته
+    if(filterCode){ groups=groups.filter(g=>(g.units||[]).some(u=>String(u.code)===String(filterCode))); }
     if(groups.length===0){
       // البيانات لسه ما وصلتش (تحميل بطيء أول مرة) → نعيد المحاولة تلقائيًا بدل ما المستخدم يعمل رفريش
-      if(attempt<4){ c.innerHTML='<div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل... (محاولة '+(attempt+2)+')</div>'; setTimeout(function(){loadCompComparison(attempt+1);},1600); return; }
+      if(attempt<4 && !filterCode){ c.innerHTML='<div style="text-align:center;padding:30px;color:#0F766E;font-weight:800">⏳ جارى التحميل... (محاولة '+(attempt+2)+')</div>'; setTimeout(function(){loadCompComparison(attempt+1,containerId,filterCode);},1600); return; }
       c.innerHTML='<div style="text-align:center;color:#888;padding:40px">لا توجد بيانات للمقارنة بعد</div>'; return;
     }
     // خريطة قراءات المراحل: code|comp — نخزّن كمان تاريخ آخر إرسال للقراءات
@@ -4184,9 +4308,10 @@ function loadCompComparison(attempt){
       html+='</tr></thead><tbody>';
       units.forEach((u,ri)=>{
         const sd=u._sd||{}, p=sd.pres||{},t=sd.temp||{},o=sd.oil||{},w=sd.water||{},x=sd.other||{};
-        const rowBg = ri%2 ? '#F8FAFC' : '#fff';
+        const _mine = filterCode && String(u.code)===String(filterCode);   // محطة المشرف نفسه
+        const rowBg = _mine ? '#FEF3C7' : (ri%2 ? '#F8FAFC' : '#fff');
         html+='<tr style="background:'+rowBg+'">';
-        html+='<td style="padding:5px 8px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:2;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
+        html+='<td style="padding:5px 8px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:2;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)'+(_mine?';color:#92400E':'')+'">'+(_mine?'◄ ':'')+u.name+'</td>';
         // عمود التاريخ: يوم البيان (من الباك-إند) أو تاريخ آخر قراءة إن غاب
         const _rowDate=(u.date||srDate[String(u.code)+'|'+String(u.comp)]||'');
         html+='<td style="padding:5px 6px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:700;color:#334155;background:'+rowBg+'">'+_fdate(_rowDate)+'</td>';
@@ -4229,7 +4354,7 @@ function loadCompComparison(attempt){
     requestAnimationFrame(_applyFreeze);
     // إعادة الحساب عند تغيير حجم الشاشة (اختلاف ارتفاع الصفوف بين اللاب والموبايل)
     if(!window.__cmpFreezeBound){ window.__cmpFreezeBound=true; window.addEventListener('resize',()=>{ if(document.getElementById('mtab-comp')?.classList.contains('active')) requestAnimationFrame(_applyFreeze); }); }
-  }).catch(e=>{ if(attempt<4){ setTimeout(function(){loadCompComparison(attempt+1);},1600); return; } c.innerHTML='<div style="text-align:center;color:#b91c1c;padding:30px;font-weight:700">❌ تعذر التحميل: '+e+'</div>'; });
+  }).catch(e=>{ if(attempt<4){ setTimeout(function(){loadCompComparison(attempt+1,containerId,filterCode);},1600); return; } c.innerHTML='<div style="text-align:center;color:#b91c1c;padding:30px;font-weight:700">❌ تعذر التحميل: '+e+'</div>'; });
 }
 // حساب حيود اليوم على العميل من البيانات المخزّنة (بدون ما يعيد المشرف الإدخال):
 // ضغط الدخول من قراءات اليوم + الفعلى اليوم من compReport + الاستاندرد الموحّد
@@ -4404,6 +4529,14 @@ function openSupSection(tab){
   if(tab==='holding'){ const p=document.getElementById('my-holding-panel'); if(p&&p.style.display==='none') toggleMyHolding(); }
   if(tab==='fire'){ const p=document.getElementById('fire-safety-panel'); if(p&&p.style.display==='none') toggleFireSafety(); }
   if(tab==='tadamon'){ const p=document.getElementById('tadamon-panel'); if(p&&p.style.display==='none') toggleTadamon(); }
+  if(tab==='mycharts' && currentStation && !window.__salesSupLoaded){ window.__salesSupLoaded=true; initSalesPanel('sales-sup', currentStation.code, currentStation.name); }
+}
+// المشرف: فتح مقارنة ضواغط محطته بمثيلاتها
+function openSupCompare(){
+  const p=document.getElementById('sup-compare-panel'); if(!p) return;
+  const show = p.style.display==='none';
+  p.style.display = show ? 'block' : 'none';
+  if(show && currentStation && !p.__loaded){ p.__loaded=true; loadCompComparison(0,'sup-comp-content',currentStation.code); }
 }
 // الرجوع للقائمة الرئيسية
 function backToHub(){
