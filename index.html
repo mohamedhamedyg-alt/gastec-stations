@@ -949,7 +949,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V167</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V169</span>
       </div>
     </div>
   </div>
@@ -1373,7 +1373,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 167; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 169; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4151,16 +4151,17 @@ function loadCompComparison(){
       units.forEach(u=>{const sd=srMap[String(u.code)+'|'+String(u.comp)]||{}; u._sd=sd; const p=sd.pres||{}; u._r=ratF.map(r=>{const cur=p[r.num],prev=p[r.den];return (prev>0&&cur>0)?cur/prev:null;});});
       const isOut=()=>false; // تم إلغاء تلوين القيم العالية (هاى لايت) بناءً على طلب المستخدم
       const othDisp=(f,v)=>{ if(v==null)return null; if(f.kind==='powerw')return f1(v/1000); if(f.kind==='power')return f1(v); if(f.k==='ss')return v; if(f.k==='amp')return f0(v); return f1(v); };
-      const gth=(bg,span,txt,unit)=>'<th colspan="'+span+'" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
-      const gth2=(bg,txt,unit)=>'<th rowspan="2" style="padding:5px 6px;border:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;vertical-align:middle">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
-      const sth=(txt,unit)=>'<th style="padding:4px 6px;border:1px solid #CBD5E1;background:#F1F5F9;color:#475569;font-weight:700;font-size:10px">'+txt+(unit?'<span style="display:block;font-size:8px;color:#94A3B8">'+unit+'</span>':'')+'</th>';
+      const gth=(bg,span,txt,unit)=>'<th colspan="'+span+'" style="padding:5px 6px;border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;position:sticky;top:0;z-index:5">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
+      const gth2=(bg,txt,unit)=>'<th rowspan="2" style="padding:5px 6px;border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;background:'+bg+';color:#fff;font-weight:800;vertical-align:middle;position:sticky;top:0;z-index:5">'+txt+(unit?'<span style="display:block;font-size:8px;opacity:.85;font-weight:600">'+unit+'</span>':'')+'</th>';
+      const sth=(txt,unit)=>'<th style="padding:4px 6px;border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;background:#F1F5F9;color:#475569;font-weight:700;font-size:10px;position:sticky;z-index:4">'+txt+(unit?'<span style="display:block;font-size:8px;color:#94A3B8">'+unit+'</span>':'')+'</th>';
       const froz='position:sticky;left:0;';
-      // كارت مستقل لكل ضاغط فى تدفق الصفحة العادى — الفريز على تمرير الصفحة
-      html+='<div class="cmp-card" style="margin-bottom:18px;width:max-content;min-width:100%">';
-      html+='<div class="cmp-banner" style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px;direction:ltr;text-align:left;border-radius:10px 10px 0 0;position:sticky;top:0;left:0;z-index:8">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
-      html+='<table style="border-collapse:collapse;font-size:11px;white-space:nowrap;direction:ltr;border:1px solid #CBD5E1;width:100%">';
+      // كارت مستقل لكل ضاغط داخل إطار اللوحة — نفس أسلوب جدول أداء المحطات اليومى: صندوق محدود + رأس مجمّد + عمود المحطة مجمّد
+      html+='<div class="cmp-card" style="margin-bottom:18px;max-width:100%">';
+      html+='<div class="cmp-banner" style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px;direction:ltr;text-align:left;border-radius:10px 10px 0 0">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
+      html+='<div class="cmp-scroll mgr-table-wrap" style="overflow:auto;max-height:calc(100vh - 160px);border:1px solid #CBD5E1;border-top:none;border-radius:0 0 10px 10px;direction:ltr;position:relative;margin-bottom:0">';
+      html+='<table style="border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap;direction:ltr;width:max-content;min-width:100%">';
       html+='<thead><tr>';
-      html+='<th rowspan="2" style="padding:5px 8px;border:1px solid #CBD5E1;background:#0F172A;color:#fff;'+froz+'z-index:5;min-width:150px;text-align:left">Station</th>';
+      html+='<th rowspan="2" style="padding:5px 8px;border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;background:#0F172A;color:#fff;'+froz+'top:0;z-index:7;min-width:150px;text-align:left">Station</th>';
       html+=gth2(G.flw,'KWH/m³')+gth2(G.flw,'Actual Flow','m³/h')+gth2(G.flw,'Flow Dev','%')+gth2(G.flw,'Lit/100hr')+gth2(G.flw,'Efficiency','%');
       html+=gth(G.pre,pk.length,'Pressure','bar')+gth(G.rat,Math.max(ratF.length,1),'Ratio')+gth(G.tmp,tk.length,'Temperature','°C')+gth(G.oil,oilF.length,'Oil')+(hasW?gth(G.wat,watF.length,'Water'):'')+gth(G.oth,othF.length,'Other');
       html+='</tr><tr>';
@@ -4176,7 +4177,7 @@ function loadCompComparison(){
         const sd=u._sd||{}, p=sd.pres||{},t=sd.temp||{},o=sd.oil||{},w=sd.water||{},x=sd.other||{};
         const rowBg = ri%2 ? '#F8FAFC' : '#fff';
         html+='<tr style="background:'+rowBg+'">';
-        html+='<td style="padding:5px 8px;border:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:1;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
+        html+='<td style="padding:5px 8px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;font-weight:800;'+froz+'z-index:2;background:'+rowBg+';text-align:right;min-width:150px;box-shadow:3px 0 6px -3px rgba(0,0,0,.18)">'+u.name+'</td>';
         let _dev=(u._sd&&u._sd.dev)?u._sd.dev:null;
         if(!_dev) _dev=_devFromToday(u, (u._sd&&u._sd.pres)?u._sd.pres.in:0); // احسبه من بيانات اليوم المخزّنة بدون إعادة إدخال
         const _actCell=(_dev&&_dev.act!=null)?_pcell(f0(_dev.act)):_pcell(u.fr);
@@ -4184,7 +4185,7 @@ function loadCompComparison(){
         if(_dev&&_dev.pct!=null){
           const di=window.__devBoxes.push({dev:_dev,name:u.name,model:model})-1;
           const _sg=_dev.pct>=0?'+':''; const _dc=Math.abs(_dev.pct)<=5?'#16A34A':Math.abs(_dev.pct)<=15?'#B45309':'#DC2626';
-          _devCell='<td onclick="showDevBox('+di+')" title="اضغط لعرض طريقة حساب الحيود" style="padding:5px 7px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dc+';cursor:pointer;text-decoration:underline dotted 1.5px">'+_sg+Math.round(_dev.pct)+'%</td>';
+          _devCell='<td onclick="showDevBox('+di+')" title="اضغط لعرض طريقة حساب الحيود" style="padding:5px 7px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+_dc+';cursor:pointer;text-decoration:underline dotted 1.5px">'+_sg+Math.round(_dev.pct)+'%</td>';
         } else { _devCell=_pcell(u.dev); }
         html+=_pcell(u.kwhM3,'#6D28D9')+_actCell+_devCell+_pcell(u.oilRate,'#C2410C')+_pcell((u.util!=null&&u.util!==''&&u.util!=='—')?(String(u.util).replace(/%/g,'')+'%'):'—');
         // ضغوط: الدخول (in) بعلامة عشرية، وباقى المراحل أرقام صحيحة
@@ -4199,20 +4200,15 @@ function loadCompComparison(){
         othF.forEach(f=>{const v=x[f.k];html+=_scell(othDisp(f,v),isOut(v,units.map(z=>(z._sd&&z._sd.other)?z._sd.other[f.k]:null)),'#7C3AED');});
         html+='</tr>';
       });
-      html+='</tbody></table></div>';
+      html+='</tbody></table></div></div>';
     });
     c.innerHTML=html;
-    // فريز على تمرير الصفحة: شريط الموديل يثبت أعلى، وتحته صف المجموعات، وتحته صف العناوين الفرعية — لكل ضاغط لوحده
+    // كل كارت داخل إطار اللوحة: تمرير أفقى داخلى + تجميد صف العناوين الفرعية تحت صف المجموعات، وعمود المحطة يمين/شمال
     const _applyFreeze=()=>{
-      const appH=Math.round(document.querySelector('.app-header')?.getBoundingClientRect().height||0); // الهيدر العلوى ثابت → نثبّت تحته
       c.querySelectorAll('.cmp-card').forEach(card=>{
-        const banner=card.querySelector('.cmp-banner');
         const rows=card.querySelectorAll('thead tr'); if(rows.length<2) return;
-        if(banner){ banner.style.top=appH+'px'; }
-        const bh=banner?Math.round(banner.getBoundingClientRect().height):0;
         const h0=Math.round(rows[0].getBoundingClientRect().height);
-        rows[0].querySelectorAll('th').forEach((th,i)=>{ th.style.position='sticky'; th.style.top=(appH+bh)+'px'; th.style.zIndex=(i===0?'9':'7'); });
-        rows[1].querySelectorAll('th').forEach(th=>{ th.style.position='sticky'; th.style.top=(appH+bh+h0)+'px'; th.style.zIndex='7'; });
+        rows[1].querySelectorAll('th').forEach(th=>{ th.style.top=h0+'px'; });
       });
     };
     requestAnimationFrame(_applyFreeze);
@@ -4235,40 +4231,45 @@ function _devFromToday(u, srInlet){
   if(pct==null) return null;
   return {origFlow:spec.flow, origP:spec.suction, inlet:Math.round(inlet*100)/100, std:Math.round(std*10)/10, act:Math.round(act*10)/10, pct:Math.round(pct*10)/10};
 }
-// بوكس طريقة حساب الحيود عند الضغط على القيمة فى جدول المقارنة (بنعرض الطريقة فقط بدون أرقام الحسبة)
+// بوكس طريقة حساب الحيود عند الضغط على القيمة فى جدول المقارنة
 function showDevBox(i){
   const b=(window.__devBoxes||[])[i]; if(!b) return;
   const d=b.dev; const old=document.getElementById('dev-box-ov'); if(old) old.remove();
+  const _fu=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:0})+' m³/hr';
   const pct=d.pct; const sign=pct>=0?'+':''; const col=Math.abs(pct)<=5?'#16A34A':Math.abs(pct)<=15?'#B45309':'#DC2626';
-  const shared=!!d.shared;
-  const step=(n,t)=>'<div style="display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="flex:none;width:22px;height:22px;border-radius:50%;background:#0F766E;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">'+n+'</span><span style="font-size:12.5px;color:#334155;line-height:1.8">'+t+'</span></div>';
-  const steps=
-     step('١','<b>التدفق الفعلى</b> = كمية الغاز المباعة ÷ ساعات تشغيل الضاغط الفعلية.')
-    +step('٢','<b>التدفق المعيارى</b> = تدفق الضاغط من الكتالوج، معدّلاً حسب ضغط الدخول الفعلى:<br><span style="direction:ltr;unicode-bidi:isolate;color:#0F766E;font-weight:700">تدفق الكتالوج × ضغط الدخول ÷ ضغط السحب المعيارى</span>')
-    +step('٣','<b>الحيود</b> = (التدفق الفعلى − التدفق المعيارى) ÷ التدفق المعيارى × ١٠٠٪.');
-  const note=shared?'ملاحظة: الضاغطان اشتغلا معاً — الحيود محسوب على مجموع تدفقهما.':'';
+  let stdLine, actLine, note='';
+  if(d.shared){
+    stdLine='المعيارى الكلى (الضاغطان معاً): <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.std)+'</b>';
+    actLine='الفعلى المشترك: <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.act)+'</b>';
+    note='الضاغطان اشتغلا معاً — الحيود محسوب على مجموعهم.';
+  } else {
+    stdLine='المعيارى: <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.origFlow)+' @ '+d.origP+' bar → '+_fu(d.std)+' @ '+d.inlet+' bar</b>';
+    actLine='الفعلى: <b style="direction:ltr;unicode-bidi:isolate">'+_fu(d.act)+' @ '+d.inlet+' bar</b>';
+  }
   const ov=document.createElement('div'); ov.id='dev-box-ov';
   ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
-  ov.innerHTML='<div style="background:#fff;border-radius:16px;max-width:430px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;font-family:Cairo" onclick="event.stopPropagation()">'
-    +'<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-weight:800;font-size:15px">📐 طريقة حساب الحيود</div><button onclick="document.getElementById(\'dev-box-ov\').remove()" style="background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:800">✕</button></div>'
+  ov.innerHTML='<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;font-family:Cairo" onclick="event.stopPropagation()">'
+    +'<div style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-weight:800;font-size:15px">📐 طريقة حساب الحيود — Flow Rate</div><button onclick="document.getElementById(\'dev-box-ov\').remove()" style="background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:800">✕</button></div>'
     +'<div style="padding:14px 16px">'
-    +'<div style="font-weight:800;color:#0F172A;font-size:14px;margin-bottom:8px">'+b.name+' <span style="color:#64748B;font-size:11px;direction:ltr;unicode-bidi:isolate">('+b.model+')</span></div>'
-    +steps
-    +'<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 2px;margin-top:4px"><span style="font-weight:800;color:#334155">حيود اليوم</span><span style="font-weight:900;font-size:22px;direction:ltr;unicode-bidi:isolate;color:'+col+'">'+sign+pct+'%</span></div>'
-    +(note?'<div style="font-size:11px;color:#94A3B8;margin-top:6px;line-height:1.7">'+note+'</div>':'')
+    +'<div style="font-weight:800;color:#0F172A;font-size:14px;margin-bottom:10px">'+b.name+' <span style="color:#64748B;font-size:11px;direction:ltr;unicode-bidi:isolate">('+b.model+')</span></div>'
+    +'<div style="font-size:13px;color:#334155;padding:7px 0;border-bottom:1px solid #E5E7EB">'+stdLine+'</div>'
+    +'<div style="font-size:13px;color:#334155;padding:7px 0;border-bottom:1px solid #E5E7EB">'+actLine+'</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px"><span style="font-weight:800;color:#334155">الحيود</span><span style="font-weight:900;font-size:22px;direction:ltr;unicode-bidi:isolate;color:'+col+'">'+sign+pct+'%</span></div>'
+    +(note?'<div style="font-size:11px;color:#94A3B8;margin-top:6px">'+note+'</div>':'')
+    +'<div style="font-size:10.5px;color:#94A3B8;margin-top:8px;line-height:1.7">المعيارى بيتعدّل حسب ضغط الدخول الفعلى: (التدفق المعيارى × ضغط الدخول ÷ ضغط السحب المعيارى). الحيود = (الفعلى − المعيارى) ÷ المعيارى.</div>'
     +'</div></div>';
   ov.onclick=()=>ov.remove();
   document.body.appendChild(ov);
 }
 function _pcell(v,color){
   const disp=(v==null||v===''||v==='—')?'—':v;
-  return '<td style="padding:5px 7px;border:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+(color||'#0F766E')+'">'+disp+'</td>';
+  return '<td style="padding:5px 7px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;font-weight:800;background:#F5F3FF;color:'+(color||'#0F766E')+'">'+disp+'</td>';
 }
 // مقارنة قراءات المراحل (ضغوط/نِسب/حرارات) للموديلات المتطابقة — القيمة الشاذّة بالأحمر
 function _scell(v,out,color){
   const disp=(v==null||v==='')?'—':v;
   const stl=out?'background:#FEE2E2;color:#991B1B;font-weight:900':('font-weight:700'+(color?';color:'+color:''));
-  return '<td style="padding:5px 6px;border:1px solid #E5E7EB;text-align:center;direction:ltr;'+stl+'">'+disp+'</td>';
+  return '<td style="padding:5px 6px;border-right:1px solid #E5E7EB;border-bottom:1px solid #E5E7EB;text-align:center;direction:ltr;'+stl+'">'+disp+'</td>';
 }
 // (تم دمج مقارنة قراءات المراحل داخل loadCompComparison — الدالة القديمة اتشالت)
 // عرض بيان استهلاك الزيت + المقارنة
