@@ -379,7 +379,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 <body>
 <!-- تسخين وزن 900 من بداية التشغيل حتى يكون محمّلاً وقت التصوير -->
 <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;font-size:16px"><span style="font-family:Cairo;font-weight:900">غازتك 0123456789 Power</span><span style="font-family:'CairoCapture';font-weight:900">غازتك 0123456789 Power</span></div>
-<div class="app-header">
+<div class="app-header" id="app-header" style="display:none">
   <div class="header-main">
     <div class="logo">
       <div class="logo-text" style="flex:1">
@@ -394,7 +394,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div style="padding:4px 10px;width:100%;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 100px)">
+  <div style="padding:4px 10px;width:100%;display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 16px)">
     <div class="login-card" style="max-width:400px;padding:0;overflow:hidden;margin:4px">
       <!-- بانر علوى مبهج -->
       <div style="background:linear-gradient(135deg,#0EA5E9 0%,#6366F1 50%,#A855F7 100%);padding:6px 16px 6px;text-align:center;position:relative;overflow:hidden">
@@ -977,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V199</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V200</span>
       </div>
     </div>
   </div>
@@ -1164,7 +1164,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     </div>
     <div onclick="openTariffSettings()" style="background:linear-gradient(135deg,#B45309,#F59E0B);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
       <div style="font-size:15px;font-weight:800">💰 إعدادات سعر المتر الغاز المباع والمشترى وتعريفة الكهرباء</div>
-      <div style="font-size:12px;opacity:.85;margin-top:4px">سعر المتر: <span id="hub-gas-price">13</span> — كهرباء صناعى: <span id="hub-tariff-ind">2.74</span> — تجارى: <span id="hub-tariff-com">2.79</span></div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">المُباع: <span id="hub-gas-price">13</span> — المُشترى: <span id="hub-gas-buy-price">0</span> — كهرباء صناعى: <span id="hub-tariff-ind">2.74</span> — تجارى: <span id="hub-tariff-com">2.79</span></div>
     </div>
     <button class="btn-mgr back" onclick="resetToLogin()" style="margin-top:6px">خروج</button>
   </div>
@@ -1178,8 +1178,12 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800;color:#B45309;margin-bottom:6px">💰 سعر المتر المباع وتعريفة الكهرباء</div>
       <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px;font-size:12px;color:#92400E;font-weight:700;margin-bottom:14px">⚠️ تنبيه: هذه القيم موحّدة لكل المحطات وتؤثر على الحسابات المالية والحافز/الغرامة. تأكد قبل الحفظ.</div>
       <div class="form-group" style="margin-bottom:12px">
-        <label style="font-size:13px;font-weight:700">💵 سعر المتر المكعب من الغاز (جنيه)</label>
+        <label style="font-size:13px;font-weight:700">💵 سعر المتر المكعب من الغاز — المُباع (جنيه)</label>
         <input type="number" id="gas-price-modal" class="form-control" style="direction:ltr;font-size:15px;font-weight:800" step="0.01" value="13">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:700">🛒 سعر المتر المكعب من الغاز — المُشترى (جنيه)</label>
+        <input type="number" id="gas-buy-price-modal" class="form-control" style="direction:ltr;font-size:15px;font-weight:800" step="0.01" value="0">
       </div>
       <div style="border-top:1px dashed #E5E7EB;margin:14px 0;padding-top:6px"></div>
       <div class="form-group" style="margin-bottom:12px">
@@ -1280,21 +1284,36 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-tab-title">📊 المبيعات — الخطة والمحقق</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px;align-items:center">
       <button onclick="loadSalesKpi()" style="background:#64748B;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button>
-      <button onclick="captureSalesImg('sales-kpi-only','جدول_المبيعات_الشهر.png','جدول متابعة تحقيق خطة المبيعات')" style="background:#166534;color:#fff;border:2px solid #0B3D2E;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 تحميل صورة الجدول</button>
       <button onclick="toggleSalesAdmin()" title="أدوات التعديل" style="background:#EEF0FF;color:#4C1D95;border:1px solid #C7D2FE;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">⚙️ تعديل</button>
     </div>
     <div id="sales-admin-tools" style="display:none;gap:8px;flex-wrap:wrap;margin:0 0 8px;padding:9px;background:#FAF5FF;border:1px dashed #C7B2E8;border-radius:10px">
       <button onclick="openSalesEdit('plan')" style="background:#6B21A8;color:#fff;border:none;border-radius:9px;padding:9px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🎯 تعديل الخطة اليومية</button>
       <button onclick="openSalesEdit('ach')" style="background:#0F766E;color:#fff;border:none;border-radius:9px;padding:9px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">✍️ تعديل المحقق</button>
     </div>
-    <div id="sales-kpi-board" style="margin-top:6px"><div style="text-align:center;padding:26px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
-    <div style="height:1px;background:#E2E8F0;margin:20px 0 14px"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="mgr-tab-title" style="margin:0">📈 المنحنى الشهري — الخطة والمحقق</div><button onclick="captureSalesImg('sales-monthly','المنحنى_الشهري_المبيعات.png','المنحنى الشهري للمبيعات')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 تحميل صورة</button></div>
-    <div id="sales-monthly" style="margin-top:8px"><div style="text-align:center;padding:22px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
-    <div style="height:1px;background:#E2E8F0;margin:20px 0 14px"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="mgr-tab-title" style="margin:0">📉 منحنى المبيعات اليومي</div><button onclick="captureSalesImg('sales-mgr','منحنى_المبيعات_اليومي.png','منحنى المبيعات اليومي')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 تحميل صورة</button></div>
-    <div class="mgr-last-update">من «بيان القابضة» — بيانات يومية حتى ٣ شهور</div>
-    <div id="sales-mgr" style="margin-top:8px"></div>
+    <!-- إطار جدول المبيعات (زر التحميل جوه الإطار من فوق) -->
+    <div style="border:2px solid #6B21A8;border-radius:14px;overflow:hidden;margin-top:8px">
+      <div style="background:linear-gradient(135deg,#4C1D95,#6B21A8);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:800;font-size:14px">📊 جدول المبيعات — الخطة والمحقق</span>
+        <button onclick="captureSalesImg('sales-kpi-only','جدول_المبيعات_الشهر.png','جدول متابعة تحقيق خطة المبيعات')" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:7px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12.5px">📥 تحميل صورة الجدول</button>
+      </div>
+      <div style="padding:10px 12px"><div id="sales-kpi-board"><div style="text-align:center;padding:26px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div></div>
+    </div>
+    <!-- إطار المنحنى الشهري -->
+    <div style="border:2px solid #7C3AED;border-radius:14px;overflow:hidden;margin-top:16px">
+      <div style="background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:800;font-size:14px">📈 المنحنى الشهري — الخطة والمحقق</span>
+        <button onclick="captureSalesImg('sales-monthly','المنحنى_الشهري_المبيعات.png','المنحنى الشهري للمبيعات (متوسط يومي)')" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:7px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12.5px">📥 تحميل صورة</button>
+      </div>
+      <div style="padding:10px 12px"><div id="sales-monthly"><div style="text-align:center;padding:22px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div></div>
+    </div>
+    <!-- إطار المنحنى اليومي -->
+    <div style="border:2px solid #5B21B6;border-radius:14px;overflow:hidden;margin-top:16px">
+      <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:800;font-size:14px">📉 منحنى المبيعات اليومي</span>
+        <button onclick="captureSalesImg('sales-mgr','منحنى_المبيعات_اليومي.png','منحنى المبيعات اليومي')" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:7px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12.5px">📥 تحميل صورة</button>
+      </div>
+      <div style="padding:10px 12px"><div class="mgr-last-update" style="margin:0 0 6px">من «بيان القابضة» — بيانات يومية حتى ٣ شهور</div><div id="sales-mgr"></div></div>
+    </div>
   </div>
 
   <!-- نافذة تعديل خطة/محقق المبيعات (لكل محطة × سنة، قيم يومية) -->
@@ -1512,6 +1531,7 @@ const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbyB81Q2UuGMEjHe44
 window.__tariffInd = 2.74;
 window.__tariffCom = 2.79;
 window.__gasPrice = 13;
+window.__gasBuyPrice = 0;
 function loadTariffSettings(){
   fetch(APPS_SCRIPT_URL+'?action=getTariff')
     .then(r=>r.json())
@@ -1519,6 +1539,7 @@ function loadTariffSettings(){
       if(j.ind>0) window.__tariffInd=parseFloat(j.ind);
       if(j.com>0) window.__tariffCom=parseFloat(j.com);
       if(j.gas>0) window.__gasPrice=parseFloat(j.gas);
+      if(j.gasbuy!=null && j.gasbuy!=='' && !isNaN(parseFloat(j.gasbuy))) window.__gasBuyPrice=parseFloat(j.gasbuy);
       syncTariffInputs();
       if(typeof calcLive==='function') calcLive();
     })
@@ -1528,7 +1549,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 199; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 200; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1550,6 +1571,7 @@ setTimeout(function(){
 function openTariffSettings(){
   const m=document.getElementById('tariff-modal');
   document.getElementById('gas-price-modal').value=window.__gasPrice;
+  const _gb=document.getElementById('gas-buy-price-modal'); if(_gb)_gb.value=window.__gasBuyPrice;
   document.getElementById('tariff-modal-ind').value=window.__tariffInd;
   document.getElementById('tariff-modal-com').value=window.__tariffCom;
   document.getElementById('tariff-modal-status').textContent='';
@@ -1560,14 +1582,15 @@ function closeTariffSettings(){
 }
 function saveTariffSettings(){
   const gas=parseFloat(document.getElementById('gas-price-modal')?.value)||0;
+  const gasbuy=parseFloat(document.getElementById('gas-buy-price-modal')?.value)||0;
   const ind=parseFloat(document.getElementById('tariff-modal-ind')?.value)||0;
   const com=parseFloat(document.getElementById('tariff-modal-com')?.value)||0;
   const st=document.getElementById('tariff-modal-status');
   if(gas<=0||ind<=0||com<=0){ st.style.color='#B91C1C'; st.textContent='❌ أدخل قيم صحيحة'; return; }
   st.style.color='#0369A1'; st.textContent='⏳ جارى الحفظ...';
-  window.__gasPrice=gas; window.__tariffInd=ind; window.__tariffCom=com;
+  window.__gasPrice=gas; window.__gasBuyPrice=gasbuy; window.__tariffInd=ind; window.__tariffCom=com;
   syncTariffInputs();
-  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com+'&gas='+gas)
+  fetch(APPS_SCRIPT_URL+'?action=setTariff&ind='+ind+'&com='+com+'&gas='+gas+'&gasbuy='+gasbuy)
     .then(r=>r.json())
     .then(()=>{ st.style.color='#166534'; st.textContent='✅ تم الحفظ — القيم محدّثة لكل المحطات'; setTimeout(closeTariffSettings,1400); })
     .catch(()=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ — أعد المحاولة'; });
@@ -1577,7 +1600,7 @@ function syncTariffInputs(){
   [['tariff-disp-ind',window.__tariffInd],['tariff-disp-com',window.__tariffCom],
    ['tariff-ind-t',window.__tariffInd],['tariff-com-t',window.__tariffCom],
    ['hub-tariff-ind',window.__tariffInd],['hub-tariff-com',window.__tariffCom],
-   ['hub-gas-price',window.__gasPrice]].forEach(([id,v])=>{
+   ['hub-gas-price',window.__gasPrice],['hub-gas-buy-price',window.__gasBuyPrice]].forEach(([id,v])=>{
     const e=document.getElementById(id); if(!e) return;
     if(e.tagName==='INPUT') e.value=v; else e.textContent=v;
   });
@@ -1835,6 +1858,7 @@ function doLogin(){
 function loadForm(){
   const st=currentStation;
   document.getElementById('login-screen').style.display='none';
+  (function(){var _ah=document.getElementById('app-header'); if(_ah)_ah.style.display='';})();
   document.getElementById('form-screen').style.display='block';
   document.getElementById('si-name').textContent=st.name;
   document.getElementById('si-region').textContent=st.region;
@@ -4138,6 +4162,7 @@ function buildOilPanel(totals){
 // ══════════ لوحة الصيانة ══════════
 function showMaintPanel(){
   document.getElementById('login-screen').style.display='none';
+  (function(){var _ah=document.getElementById('app-header'); if(_ah)_ah.style.display='';})();
   document.getElementById('maint-screen').style.display='block';
   window.scrollTo(0,0);
   loadMaintDue();
@@ -4368,6 +4393,7 @@ function salesLoad(uid){
 // ══════════ التحويل والاختبار — شاشة مسئول التحويل (CANAL) ══════════
 function showConvert(){
   document.getElementById('login-screen').style.display='none';
+  (function(){var _ah=document.getElementById('app-header'); if(_ah)_ah.style.display='';})();
   document.getElementById('convert-screen').style.display='block';
   const d=document.getElementById('conv-date'); if(d&&!d.value){ const t=new Date(); d.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2); }
   document.getElementById('conv-after').style.display='none';
@@ -4760,10 +4786,10 @@ function renderSalesKpi(rep){
     +'<td style="'+cV+';border-top:2px solid #6B21A8">'+f(tot.monPlan)+'</td><td style="'+cV+';border-top:2px solid #6B21A8">'+f(tot.monAch)+'</td><td style="'+cV+';border-top:2px solid #6B21A8;color:'+col(tMP)+'">'+tMP+'%</td></tr></tfoot>'
     +'</table></div>'
     +'</div>'
-    + salesAchBarsHTML(st);
+    + salesAchBarsHTML(st, MN[mon-1]+' '+yr);
 }
 // منحنى أفقي لتحقيق الخطة لكل محطة — أخضر فوق الخطة / أحمر تحت الخطة، وخط عند 100٪
-function salesAchBarsHTML(st){
+function salesAchBarsHTML(st, periodLabel){
   const rows=(st||[]).map(s=>({name:s.name, pct: s.monPlan>0?Math.round(s.monAch/s.monPlan*100):0}));
   rows.sort((a,b)=>a.pct-b.pct); // الأقل (تحت الخطة) فوق
   const above=rows.filter(r=>r.pct>=100).length, below=rows.length-above;
@@ -4777,13 +4803,15 @@ function salesAchBarsHTML(st){
       +'<div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:#334155;opacity:.55"></div></div>'
       +'<div style="width:44px;min-width:44px;font-size:11px;font-weight:800;color:'+c+';direction:ltr;text-align:center">'+r.pct+'%</div></div>';
   };
-  return '<div style="margin-top:16px">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
-    +'<div style="font-size:13px;font-weight:800;color:#4C1D95">📊 تحقيق الخطة لكل محطة (الخط عند 100٪)</div>'
-    +'<button onclick="captureSalesImg(\'sales-ach-bars\',\'تحقيق_الخطة_للمحطات.png\',\'تحقيق الخطة لكل محطة\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 تحميل صورة</button></div>'
+  const pl=periodLabel?(' — '+periodLabel):'';
+  return '<div style="margin-top:16px;border:2px solid #16A34A;border-radius:14px;overflow:hidden">'
+    +'<div style="background:linear-gradient(135deg,#166534,#16A34A);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+    +'<span style="font-size:13.5px;font-weight:800">📊 تحقيق خطة المبيعات لكل محطة'+pl+' (الخط عند 100٪)</span>'
+    +'<button onclick="captureSalesImg(\'sales-ach-bars\',\'تحقيق_خطة_المبيعات_للمحطات.png\',\'تحقيق خطة المبيعات لكل محطة'+pl+'\')" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:7px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12.5px">📥 تحميل صورة</button></div>'
+    +'<div style="padding:10px 12px">'
     +'<div id="sales-ach-bars" style="background:#fff;border:1px solid #E9D5FF;border-radius:12px;padding:12px 12px 6px;max-height:60vh;overflow:auto">'
     +'<div style="font-size:11.5px;font-weight:800;color:#334155;margin-bottom:9px;text-align:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 8px">🟢 فوق الخطة: '+above+' محطة  ·  🔴 تحت الخطة: '+below+' محطة</div>'
-    +rows.map(bar).join('')+'</div></div>';
+    +rows.map(bar).join('')+'</div></div></div>';
 }
 // تحميل صورة بإطار البرنامج (هيدر + تاريخ + توقيع) لأى قسم
 function captureSalesImg(elId, fname, title, subtitle){
@@ -4798,8 +4826,8 @@ function captureSalesImg(elId, fname, title, subtitle){
       if(el.style.position==='sticky'){ el.style.position='static'; el.style.top='auto'; el.style.right='auto'; el.style.left='auto'; el.style.zIndex='auto'; }
       ['overflow','overflowX','overflowY'].forEach(function(k){ if(el.style[k]==='auto'||el.style[k]==='scroll') el.style[k]='visible'; }); }
   });
-  // مسافة أمان أسفل المحتوى قبل التوقيع
-  clone.style.marginBottom='6px';
+  // نتأكد إن المحتوى بلوك عادى فى مجرى الصفحة (مش عائم/لاصق) عشان التوقيع ما يركبش عليه
+  clone.style.display='block'; clone.style.position='static'; clone.style.marginBottom='0';
   const holder=document.createElement('div');
   holder.style.cssText='position:fixed;left:-99999px;top:0;background:#fff';
   // إطار بعرض المحتوى الكامل (inline-block) عشان الجداول العريضة ما تتقصّش
@@ -4810,11 +4838,15 @@ function captureSalesImg(elId, fname, title, subtitle){
     +'<div style="font-size:13px;color:#B8D4E8;margin-top:3px;font-weight:700">منطقة القناة وسيناء'+(title?(' — '+title):'')+'</div>'
     +(subtitle?('<div style="display:inline-block;background:rgba(255,255,255,.16);border-radius:20px;padding:4px 16px;margin-top:7px;font-size:16px;color:#fff;font-weight:800">🏭 '+subtitle+'</div>'):'')
     +'<div style="font-size:12.5px;color:#DCE9F5;margin-top:6px;direction:ltr;unicode-bidi:isolate;font-weight:700">'+(new Date()).toLocaleDateString('ar-EG')+'</div></div>'
-    +'<div style="padding:14px 16px" id="__bcbody"></div>'
+    +'<div style="padding:14px 16px 8px" id="__bcbody"></div>'
+    +'<div style="height:16px"></div>'
     +'<div style="background:#F4F6FB;text-align:center;padding:13px;font-size:15px;font-weight:800;color:#1A4A7A;border-top:1px solid #E2E8F0">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</div>';
   holder.appendChild(frame);
   document.body.appendChild(holder);
-  frame.querySelector('#__bcbody').appendChild(clone);
+  const bcbody=frame.querySelector('#__bcbody');
+  bcbody.appendChild(clone);
+  // فاصل أمان أسفل المحتوى قبل التوقيع
+  var _sp=document.createElement('div'); _sp.style.cssText='height:10px;clear:both'; bcbody.appendChild(_sp);
   const wpx=frame.offsetWidth;   // العرض الحقيقى بعد فرد المحتوى
   captureNode(frame,{scale:2,width:wpx,windowWidth:wpx+60})
     .then(function(c){ _saveCanvasPng(c,fname); holder.remove(); })
@@ -5028,6 +5060,7 @@ function downloadConvMonthImage(){
 }
 function showMgr(){
   document.getElementById('login-screen').style.display='none';
+  (function(){var _ah=document.getElementById('app-header'); if(_ah)_ah.style.display='';})();
   document.getElementById('mgr-screen').style.display='block';
   const d=document.getElementById('mgr-day');
   if(d&&!d.value){const t=new Date();d.value=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);}
@@ -7251,6 +7284,7 @@ function renderFireItemTable(item, list){
 function resetToLogin(){
   ['form-screen','dashboard-screen','mgr-screen','maint-screen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('login-screen').style.display='flex';
+  (function(){var _ah=document.getElementById('app-header'); if(_ah)_ah.style.display='none';})();
   document.getElementById('station-code').value='';
   currentStation=null;faultCount=0;activeComps=[];hmMode={};
   document.getElementById('comps-container').innerHTML='';
