@@ -977,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V188</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V189</span>
       </div>
     </div>
   </div>
@@ -1515,7 +1515,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 188; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 189; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4202,11 +4202,13 @@ function renderMaintGroup(tg, items){
 // ══════════ منحنيات المبيعات (من بيان القابضة) — مشتركة بين المسؤول والمشرف ══════════
 function _isoDate(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
 function _fmtNum(n){ return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0}); }
-function drawSalesChart(chartEl, kpiEl, series, color){
+function drawSalesChart(chartEl, kpiEl, series, color, planArr){
   color=color||'#7C3AED';
   if(!series || !series.length){ if(kpiEl)kpiEl.innerHTML=''; chartEl.innerHTML='<div style="text-align:center;color:#94A3B8;padding:40px;font-weight:700">لا توجد بيانات في هذه الفترة</div>'; return; }
   const vals=series.map(p=>p.sales), n=series.length;
-  const tot=vals.reduce((a,b)=>a+b,0), avg=tot/n, mx=Math.max.apply(null,vals), mn=Math.min.apply(null,vals);
+  const hasPlan = planArr && planArr.length===n && planArr.some(v=>v>0);
+  const tot=vals.reduce((a,b)=>a+b,0), avg=tot/n, mn=Math.min.apply(null,vals);
+  const mx=Math.max(Math.max.apply(null,vals), hasPlan?Math.max.apply(null,planArr):0);
   if(kpiEl){
     const kpi=(v,l,c)=>'<div style="background:#FAF5FF;border:1px solid #EEE0FA;border-radius:12px;padding:9px 6px;text-align:center"><div style="font-size:17px;font-weight:800;color:'+(c||'#4A148C')+';direction:ltr">'+v+'</div><div style="font-size:10px;color:#7C5AA0;font-weight:700;margin-top:2px">'+l+'</div></div>';
     kpiEl.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0';
@@ -4249,8 +4251,10 @@ function drawSalesChart(chartEl, kpiEl, series, color){
   }
   const area='M'+X(0)+','+Y(minV)+' L'+pts.join(' L')+' L'+X(n-1)+','+Y(minV)+' Z';
   const line='M'+pts.join(' L');
+  const planLine = hasPlan ? '<path d="M'+series.map((p,i)=>X(i)+','+Y(planArr[i])).join(' L')+'" fill="none" stroke="#D97706" stroke-width="2.2" stroke-dasharray="7 4" stroke-linejoin="round"/>' : '';
+  const legend = hasPlan ? '<rect x="'+PADL+'" y="8" width="14" height="4" fill="'+color+'"/><text x="'+(PADL+18)+'" y="12" font-size="10.5" fill="#4A148C" font-weight="800">المحقق</text><rect x="'+(PADL+82)+'" y="8" width="14" height="4" fill="#D97706"/><text x="'+(PADL+100)+'" y="12" font-size="10.5" fill="#B45309" font-weight="800">الخطة</text>' : '';
   const dots= n<=45 ? series.map((p,i)=>{const isSun=_dow(p.date)===0,isMax=isWeekMax[i];const r=isSun?'3.3':(isMax?'3.3':'2.4');const cl=isSun?'#4A148C':(isMax?'#15803D':color);return '<circle cx="'+X(i)+'" cy="'+Y(p.sales)+'" r="'+r+'" fill="'+cl+'"><title>'+DOWS[_dow(p.date)]+' '+p.date+': '+_fmtNum(p.sales)+' م³</title></circle>';}).join('') : '';
-  chartEl.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+guides+'<path d="'+area+'" fill="url(#scg)"/><path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+vlab+xlab+'</svg>';
+  chartEl.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+guides+'<path d="'+area+'" fill="url(#scg)"/>'+planLine+'<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+vlab+xlab+legend+'</svg>';
 }
 function initSalesPanel(hostId, fixedCode, fixedName){
   const host=document.getElementById(hostId); if(!host) return;
@@ -4311,7 +4315,13 @@ function salesLoad(uid){
       st.stations=j.stations; const sel=document.getElementById(uid+'-stn');
       if(sel) sel.innerHTML=j.stations.map(s=>'<option value="'+s.code+'">'+s.name+'</option>').join('');
     }
-    drawSalesChart(chartEl,kpiEl,j.series||[]);
+    // للمشرف: نمرّر خطته اليومية (لكل يوم = خطة شهره) عشان تظهر خط الخطة للمقارنة
+    let planArr=null;
+    if(st.fixedCode && window.__supSales && window.__supIdx!=null && window.__supSales[window.__supIdx]){
+      const sp=window.__supSales[window.__supIdx].plan||[];
+      planArr=(j.series||[]).map(p=>{ const mo=parseInt(String(p.date).split('-')[1],10)-1; return (mo>=0&&mo<12)?(sp[mo]||0):0; });
+    }
+    drawSalesChart(chartEl,kpiEl,j.series||[], undefined, planArr);
   }).catch(e=>{ chartEl.innerHTML='<div style="text-align:center;color:#b91c1c;padding:30px;font-weight:700">❌ تعذر التحميل</div>'; });
 }
 // ══════════ التحويل والاختبار — شاشة مسئول التحويل (CANAL) ══════════
@@ -4737,6 +4747,7 @@ function loadSupSalesPlan(stationName){
     stns.forEach((s,i)=>{ const sc=_supScore(target,_supNorm(s.name)); if(sc>bestScore){bestScore=sc;best=i;} });
     window.__supFr=null; window.__supTo=null;   // إعادة ضبط الفترة للمحطة الجديدة
     renderSupSalesPlan(best);
+    try{ if(document.getElementById('sales-sup')&&document.getElementById('sales-sup')._sales) salesLoad('sales-sup'); }catch(e){}  // إعادة رسم المنحنى اليومي بخط الخطة
   }).catch(e=>{ box.innerHTML='<div style="color:#b91c1c;text-align:center;padding:18px">تعذر التحميل</div>'; });
 }
 function supSetPeriod(fr,to){
