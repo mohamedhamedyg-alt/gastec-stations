@@ -977,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V193</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V194</span>
       </div>
     </div>
   </div>
@@ -1274,7 +1274,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <button onclick="openSalesEdit('plan')" style="background:#6B21A8;color:#fff;border:none;border-radius:9px;padding:9px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🎯 تعديل الخطة اليومية</button>
       <button onclick="openSalesEdit('ach')" style="background:#0F766E;color:#fff;border:none;border-radius:9px;padding:9px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">✍️ تعديل المحقق</button>
       <button onclick="loadSalesKpi()" style="background:#64748B;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button>
-      <button onclick="captureSalesImg('sales-kpi-board','جدول_المبيعات_الشهر.png','جدول المبيعات — الخطة والمحقق')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 صورة الجدول</button>
+      <button onclick="captureSalesImg('sales-kpi-only','جدول_المبيعات_الشهر.png','جدول متابعة تحقيق خطة المبيعات')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 صورة الجدول</button>
     </div>
     <div id="sales-kpi-board" style="margin-top:6px"><div style="text-align:center;padding:26px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
     <div style="height:1px;background:#E2E8F0;margin:20px 0 14px"></div>
@@ -1515,7 +1515,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 193; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 194; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4262,7 +4262,10 @@ function drawSalesChart(chartEl, kpiEl, series, color, planArr){
   }
   const legend = hasPlan ? '<rect x="'+PADL+'" y="8" width="16" height="4.5" fill="'+color+'"/><text x="'+(PADL+20)+'" y="12" font-size="11" fill="#4A148C" font-weight="800">المحقق</text><rect x="'+(PADL+86)+'" y="8" width="16" height="4.5" fill="#D97706"/><text x="'+(PADL+106)+'" y="12" font-size="11" fill="#B45309" font-weight="800">الخطة</text>' : '';
   const dots= n<=45 ? series.map((p,i)=>{const isSun=_dow(p.date)===0,isMax=isWeekMax[i];const r=isSun?'3.3':(isMax?'3.3':'2.4');const cl=isSun?'#4A148C':(isMax?'#15803D':color);return '<circle cx="'+X(i)+'" cy="'+Y(p.sales)+'" r="'+r+'" fill="'+cl+'"><title>'+DOWS[_dow(p.date)]+' '+p.date+': '+_fmtNum(p.sales)+' م³</title></circle>';}).join('') : '';
-  chartEl.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+guides+'<path d="'+area+'" fill="url(#scg)"/>'+planLine+'<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+vlab+xlab+planLbl+legend+'</svg>';
+  // عنوان واضح للفترة فوق الجراف (يظهر في العرض وفي الصورة)
+  const _fd=ds=>{ const a=String(ds).split('-'); return (a[2]?a[2].replace(/^0/,''):'')+'/'+(a[1]?a[1].replace(/^0/,''):'')+'/'+(a[0]||''); };
+  const periodTitle='<div style="text-align:center;font-size:13px;font-weight:800;color:#4C1D95;background:#F3E8FF;border:1px solid #E9D5FF;border-radius:9px;padding:6px 10px;margin-bottom:8px;direction:rtl">📅 الفترة من '+_fd(series[0].date)+' إلى '+_fd(series[n-1].date)+' <span style="color:#7C5AA0;font-weight:700">('+n+' يوم)</span></div>';
+  chartEl.innerHTML=periodTitle+'<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr"><defs><linearGradient id="scg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.26"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.02"/></linearGradient></defs>'+grid+guides+'<path d="'+area+'" fill="url(#scg)"/>'+planLine+'<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.3" stroke-linejoin="round"/>'+dots+vlab+xlab+planLbl+legend+'</svg>';
 }
 function initSalesPanel(hostId, fixedCode, fixedName){
   const host=document.getElementById(hostId); if(!host) return;
@@ -4323,11 +4326,26 @@ function salesLoad(uid){
       st.stations=j.stations; const sel=document.getElementById(uid+'-stn');
       if(sel) sel.innerHTML=j.stations.map(s=>'<option value="'+s.code+'">'+s.name+'</option>').join('');
     }
-    // للمشرف: نمرّر خطته اليومية (لكل يوم = خطة شهره) عشان تظهر خط الخطة للمقارنة
+    // خط الخطة على المنحنى اليومي (لكل يوم = خطة شهره اليومية) للمقارنة:
+    //  • المشرف → خطة محطته   • المدير/منطقة → مجموع خطط كل المحطات   • المدير/محطة → خطة المحطة المطابقة بالاسم
     let planArr=null;
+    const _mkPlanArr=fn=> (j.series||[]).map(p=>{ const mo=parseInt(String(p.date).split('-')[1],10)-1; return (mo>=0&&mo<12)?(fn(mo)||0):0; });
     if(st.fixedCode && window.__supSales && window.__supIdx!=null && window.__supSales[window.__supIdx]){
       const sp=window.__supSales[window.__supIdx].plan||[];
-      planArr=(j.series||[]).map(p=>{ const mo=parseInt(String(p.date).split('-')[1],10)-1; return (mo>=0&&mo<12)?(sp[mo]||0):0; });
+      planArr=_mkPlanArr(mo=>sp[mo]);
+    } else if(!st.fixedCode && window.__salesMY && window.__salesMY.length){
+      const my=window.__salesMY;
+      if(code){
+        // محطة محددة: طابق اسمها مع بيانات الخطة الشهرية
+        let selName=''; (st.stations||[]).forEach(x=>{ if(String(x.code)===String(code)) selName=x.name; });
+        if(selName){ const target=_supNorm(selName); let best=-1,bs=-1;
+          my.forEach((s,i)=>{ const sc=_supScore(target,_supNorm(s.name)); if(sc>bs){bs=sc;best=i;} });
+          if(best>=0 && bs>0){ const sp=my[best].plan||[]; planArr=_mkPlanArr(mo=>sp[mo]); }
+        }
+      } else {
+        // المنطقة بالكامل: مجموع خطط كل المحطات لكل شهر
+        planArr=_mkPlanArr(mo=>{ let t=0; my.forEach(s=>{ t+=(s.plan[mo]||0); }); return t; });
+      }
     }
     drawSalesChart(chartEl,kpiEl,j.series||[], undefined, planArr);
   }).catch(e=>{ chartEl.innerHTML='<div style="text-align:center;color:#b91c1c;padding:30px;font-weight:700">❌ تعذر التحميل</div>'; });
@@ -4477,8 +4495,34 @@ function buildConvPerfHTML(rep){
     t+='<tr style="background:#EEF0FF;font-weight:800;color:#312E81"><td style="text-align:right;padding:8px;border-top:2px solid #4338CA">إجمالى المنطقة</td><td style="border-top:2px solid #4338CA;direction:ltr">'+f(P)+'</td><td style="border-top:2px solid #4338CA;direction:ltr">'+f(M)+'</td><td style="border-top:2px solid #4338CA">'+achM(M,P)+'%</td><td style="border-top:2px solid #4338CA;direction:ltr">'+f(D)+'</td><td style="border-top:2px solid #4338CA">'+achD(D,P)+'%</td></tr></tbody></table></div>';
     return t;
   };
-  h+=metric('🔄 التحويل','#4338CA','planConv','monConv','todayConv')+metric('🧪 الاختبار','#0369A1','planTest','monTest','todayTest');
+  h+=metric('🔄 التحويل','#4338CA','planConv','monConv','todayConv')
+    +convAchBarsHTML(centers,'planConv','monConv','تحقيق خطة التحويل لكل مركز','#4338CA','conv-ach-bars-conv','تحقيق_خطة_التحويل.png')
+    +metric('🧪 الاختبار','#0369A1','planTest','monTest','todayTest')
+    +convAchBarsHTML(centers,'planTest','monTest','تحقيق خطة الاختبار لكل مركز','#0369A1','conv-ach-bars-test','تحقيق_خطة_الاختبار.png');
   return h;
+}
+// منحنى أفقي لتحقيق خطة الشهر لكل مركز (تحويل/اختبار) — أخضر فوق الخطة / أحمر تحت، وخط عند 100٪
+function convAchBarsHTML(centers, planKey, moKey, title, color, elId, fname){
+  const rows=(centers||[]).map(c=>({name:c.name, pct:(c[planKey]||0)>0?Math.round((c[moKey]||0)/(c[planKey])*100):0}));
+  rows.sort((a,b)=>a.pct-b.pct); // الأقل (تحت الخطة) فوق
+  const above=rows.filter(r=>r.pct>=100).length, below=rows.length-above;
+  const bar=r=>{
+    const w=Math.min(r.pct,200)/2; // مقياس 0..200٪ → 0..100
+    const cc=r.pct>=100?'#16A34A':(r.pct>=80?'#D97706':'#DC2626');
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">'
+      +'<div style="width:150px;min-width:150px;font-size:10.5px;font-weight:700;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+r.name+'">'+r.name+'</div>'
+      +'<div style="flex:1;background:#F1F5F9;border-radius:5px;height:15px;position:relative;overflow:hidden">'
+      +'<div style="height:100%;width:'+w+'%;background:'+cc+';border-radius:5px"></div>'
+      +'<div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:#334155;opacity:.55"></div></div>'
+      +'<div style="width:44px;min-width:44px;font-size:11px;font-weight:800;color:'+cc+';direction:ltr;text-align:center">'+r.pct+'%</div></div>';
+  };
+  return '<div style="margin:2px 0 18px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
+    +'<div style="font-size:13px;font-weight:800;color:'+color+'">📊 '+title+' (الخط عند 100٪)</div>'
+    +'<button onclick="captureSalesImg(\''+elId+'\',\''+fname+'\',\''+title+'\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>'
+    +'<div id="'+elId+'" style="background:#fff;border:1px solid #C7D2FE;border-radius:12px;padding:12px 12px 6px;max-height:60vh;overflow:auto">'
+    +'<div style="font-size:11.5px;font-weight:800;color:#334155;margin-bottom:9px;text-align:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 8px">🟢 فوق الخطة: '+above+' مركز  ·  🔴 تحت الخطة: '+below+' مركز</div>'
+    +rows.map(bar).join('')+'</div></div>';
 }
 function buildConvYearHTML(y){
   const centers=(y&&y.centers)||[]; const ML=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
@@ -4638,7 +4682,10 @@ function renderSalesKpi(rep){
     +'<select id="sk-year" onchange="loadSalesKpi(document.getElementById(\'sk-month\').value, this.value)" style="'+selSt+'">'+years.map(y=>'<option value="'+y+'"'+(y==yr?' selected':'')+'>'+y+'</option>').join('')+'</select>'
     +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8;margin-right:4px">الشهر:</label>'
     +'<select id="sk-month" onchange="loadSalesKpi(this.value, document.getElementById(\'sk-year\').value)" style="'+selSt+';flex:1;min-width:110px">'+MN.map((m,i)=>'<option value="'+i+'"'+((i===mon-1)?' selected':'')+'>'+m+'</option>').join('')+'</select></div>';
-  box.innerHTML=sel+'<div style="font-size:11.5px;color:#6B21A8;font-weight:700;margin-bottom:6px">الأساس اليومي: خطة الشهر ÷ '+dim+' يوم (الشهر كامل بكل أيامه)</div>'
+  box.innerHTML=sel
+    +'<div id="sales-kpi-only">'
+    +'<div style="text-align:center;font-size:13.5px;font-weight:800;color:#4C1D95;background:#F3E8FF;border:1px solid #E9D5FF;border-radius:9px;padding:7px 10px;margin-bottom:8px">📋 متابعة تحقيق خطة المبيعات — '+MN[mon-1]+' '+yr+'</div>'
+    +'<div style="font-size:11.5px;color:#6B21A8;font-weight:700;margin-bottom:6px">الأساس اليومي: خطة الشهر ÷ '+dim+' يوم (الشهر كامل بكل أيامه)</div>'
     +'<div style="overflow:auto;max-height:70vh;border:1px solid #E9D5FF;border-radius:12px"><table style="border-collapse:separate;border-spacing:0;font-size:12px;width:100%;min-width:560px">'
     +'<thead><tr style="position:sticky;top:0;z-index:3">'
     +'<th style="padding:8px 9px;background:#4C1D95;color:#fff;text-align:right;position:sticky;right:0;z-index:4">المحطة</th>'
@@ -4649,6 +4696,7 @@ function renderSalesKpi(rep){
     +'<td style="'+cV+';border-top:2px solid #6B21A8">'+f(tot.dayPlan)+'</td><td style="'+cV+';border-top:2px solid #6B21A8">'+f(tot.dayAch)+'</td><td style="'+cV+';border-top:2px solid #6B21A8;color:'+col(tDP)+'">'+tDP+'%</td>'
     +'<td style="'+cV+';border-top:2px solid #6B21A8">'+f(tot.monPlan)+'</td><td style="'+cV+';border-top:2px solid #6B21A8">'+f(tot.monAch)+'</td><td style="'+cV+';border-top:2px solid #6B21A8;color:'+col(tMP)+'">'+tMP+'%</td></tr></tfoot>'
     +'</table></div>'
+    +'</div>'
     + salesAchBarsHTML(st);
 }
 // منحنى أفقي لتحقيق الخطة لكل محطة — أخضر فوق الخطة / أحمر تحت الخطة، وخط عند 100٪
@@ -4670,8 +4718,9 @@ function salesAchBarsHTML(st){
     +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
     +'<div style="font-size:13px;font-weight:800;color:#4C1D95">📊 تحقيق الخطة لكل محطة (الخط عند 100٪)</div>'
     +'<button onclick="captureSalesImg(\'sales-ach-bars\',\'تحقيق_الخطة_للمحطات.png\',\'تحقيق الخطة لكل محطة\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>'
-    +'<div style="font-size:11px;font-weight:700;color:#64748B;margin-bottom:8px">🟢 فوق الخطة: '+above+' محطة · 🔴 تحت الخطة: '+below+' محطة</div>'
-    +'<div id="sales-ach-bars" style="background:#fff;border:1px solid #E9D5FF;border-radius:12px;padding:12px 12px 6px;max-height:60vh;overflow:auto">'+rows.map(bar).join('')+'</div></div>';
+    +'<div id="sales-ach-bars" style="background:#fff;border:1px solid #E9D5FF;border-radius:12px;padding:12px 12px 6px;max-height:60vh;overflow:auto">'
+    +'<div style="font-size:11.5px;font-weight:800;color:#334155;margin-bottom:9px;text-align:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 8px">🟢 فوق الخطة: '+above+' محطة  ·  🔴 تحت الخطة: '+below+' محطة</div>'
+    +rows.map(bar).join('')+'</div></div>';
 }
 // تحميل صورة بإطار البرنامج (هيدر + تاريخ + توقيع) لأى قسم
 function captureSalesImg(elId, fname, title, subtitle){
@@ -4714,6 +4763,8 @@ function loadSalesMonthly(year){
     window.__salesMY=(j&&j.stations)||[]; window.__salesMYYear=(j&&j.year)||yr;
     window.__salesMYFr=null; window.__salesMYTo=null; window.__salesMYScope=-1;
     renderSalesMonthly(-1);
+    // إعادة رسم المنحنى اليومي للمدير بخط الخطة بعد توفّر بيانات الخطة الشهرية
+    try{ if(document.getElementById('sales-mgr')&&document.getElementById('sales-mgr')._sales) salesLoad('sales-mgr'); }catch(e){}
   }).catch(e=>{ box.innerHTML='<div style="color:#b91c1c;text-align:center;padding:20px">تعذر التحميل</div>'; });
 }
 function salesMonthlySetPeriod(fr,to){
@@ -4752,9 +4803,9 @@ function renderSalesMonthly(scope){
   box.innerHTML=h;
   drawPlanAchChart('sales-monthly-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1));
 }
-function drawPlanAchChart(elId, plan, ach, labels){
+function drawPlanAchChart(elId, plan, ach, labels, showPlanLabels){
   const el=document.getElementById(elId); if(!el) return;
-  const W=840,H=280,PADL=54,PADR=14,PADT=16,PADB=46, iw=W-PADL-PADR, ih=H-PADT-PADB, n=plan.length;
+  const W=840,H=280,PADL=54,PADR=14,PADT=showPlanLabels?26:16,PADB=46, iw=W-PADL-PADR, ih=H-PADT-PADB, n=plan.length;
   const all=plan.concat(ach).filter(v=>v>0);
   const maxV=Math.max.apply(null, all.length?all:[1])*1.12, minV=0;
   const X=i=>PADL+iw*(i/(n-1)), Y=v=>PADT+ih*(1-(v-minV)/(maxV-minV||1));
@@ -4764,7 +4815,11 @@ function drawPlanAchChart(elId, plan, ach, labels){
   let xlab=''; for(let i=0;i<n;i++){ xlab+='<text x="'+X(i)+'" y="'+(H-24)+'" text-anchor="middle" font-size="10" fill="#7C5AA0" font-weight="700" direction="rtl">'+labels[i]+'</text>'; }
   const legend='<rect x="'+PADL+'" y="'+(H-13)+'" width="14" height="4" fill="#B45309"/><text x="'+(PADL+18)+'" y="'+(H-9)+'" font-size="10.5" fill="#4C1D95" font-weight="800">الخطة</text>'
     +'<rect x="'+(PADL+80)+'" y="'+(H-13)+'" width="14" height="4" fill="#7C3AED"/><text x="'+(PADL+98)+'" y="'+(H-9)+'" font-size="10.5" fill="#4C1D95" font-weight="800">المحقق</text>';
-  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr">'+grid+drawLine(plan,'#B45309')+drawLine(ach,'#7C3AED')+xlab+legend+'</svg>';
+  // أرقام الخطة على كل شهر (اختيارى) — عشان المشرف يعرف خطته الشهرية بوضوح
+  let planLbl='';
+  if(showPlanLabels){ const kf=v=>v>=10000?(v/1000).toFixed(0)+'k':Number(v).toLocaleString('en-US',{maximumFractionDigits:0});
+    for(let i=0;i<n;i++){ const v=plan[i]; if(v>0){ planLbl+='<text x="'+X(i)+'" y="'+(Y(v)-7)+'" text-anchor="middle" font-size="10" fill="#B45309" font-weight="800" direction="ltr">'+kf(v)+'</text>'; } } }
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr">'+grid+drawLine(plan,'#B45309')+drawLine(ach,'#7C3AED')+xlab+legend+planLbl+'</svg>';
 }
 // ══════════ صفحة المشرف: خطة ومحقق محطته (شهري) + نسبة يومي وشهري ══════════
 function _supNorm(s){ s=String(s||'').replace(/[إأآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي'); s=s.replace(/\([^)]*\)/g,'').replace(/[\/\-.]/g,' ').replace(/[0-9]/g,''); return s.replace(/\s+/g,' ').trim(); }
@@ -4815,7 +4870,7 @@ function renderSupSalesPlan(idx){
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pct)+';direction:ltr">'+pct+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">نسبة التحقيق</div></div></div>'
     +'<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+'</div>'
     +'<div id="sup-sales-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:8px 4px 2px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>';
-  drawPlanAchChart('sup-sales-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1));
+  drawPlanAchChart('sup-sales-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1), true);
 }
 // ══════════ تعديل خطة/محقق المبيعات (يومي، لكل محطة × سنة) ══════════
 function openSalesEdit(mode, year){
