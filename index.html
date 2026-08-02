@@ -505,11 +505,11 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:11.5px;color:#0F766E;font-weight:700;background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:7px 10px;margin-bottom:8px;line-height:1.8">محطتك متظللة باللون الأصفر ◄ — قارن قراءاتك بباقى المحطات اللى بنفس موديل الضاغط.</div>
       <div id="sup-comp-content" style="font-size:13px"></div>
     </div>
-    <div style="background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>🎯 خطة ومحقق محطتى (شهري)</span><button onclick="captureSalesImg('sup-sales-plan','خطة_ومحقق_محطتى.png','خطة ومحقق محطتى (شهري)')" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>
+    <div style="background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>🎯 خطة ومحقق محطتى (شهري)</span><button onclick="captureSalesImg('sup-sales-plan','خطة_ومحقق_محطتى.png','خطة ومحقق محطتى (شهري)',(currentStation&&currentStation.name)||'')" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>
     <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
       <div id="sup-sales-plan"><div style="text-align:center;padding:18px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
     </div>
-    <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>📉 منحنى مبيعات محطتى اليومي</span><button onclick="captureSalesImg('sales-sup','منحنى_مبيعات_محطتى_اليومي.png','منحنى مبيعات محطتى اليومي')" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>
+    <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>📉 منحنى مبيعات محطتى اليومي</span><button onclick="captureSalesImg('sales-sup','منحنى_مبيعات_محطتى_اليومي.png','منحنى مبيعات محطتى اليومي',(currentStation&&currentStation.name)||'')" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>
     <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
       <div id="sales-sup"></div>
     </div>
@@ -977,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V191</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V193</span>
       </div>
     </div>
   </div>
@@ -1515,7 +1515,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 191; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 193; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4674,28 +4674,33 @@ function salesAchBarsHTML(st){
     +'<div id="sales-ach-bars" style="background:#fff;border:1px solid #E9D5FF;border-radius:12px;padding:12px 12px 6px;max-height:60vh;overflow:auto">'+rows.map(bar).join('')+'</div></div>';
 }
 // تحميل صورة بإطار البرنامج (هيدر + تاريخ + توقيع) لأى قسم
-function captureSalesImg(elId, fname, title){
+function captureSalesImg(elId, fname, title, subtitle){
   const src=document.getElementById(elId);
   if(!src || typeof html2canvas==='undefined'){ alert('تعذّر إنشاء الصورة — أعد المحاولة'); return; }
-  const w=Math.max(src.scrollWidth||0, src.offsetWidth||0, 720);
   const clone=src.cloneNode(true);
-  // نشيل أى تحديد ارتفاع/تمرير عشان يظهر المحتوى كامل في الصورة
+  Array.prototype.slice.call(clone.querySelectorAll('.cap-skip')).forEach(function(el){ el.remove(); }); // نشيل أزرار التحميل من الصورة
+  // نشيل أى تحديد ارتفاع/تمرير عشان يظهر المحتوى كامل (بدون قص) في الصورة
   [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))).forEach(function(el){
-    if(el.style){ if(el.style.maxHeight) el.style.maxHeight='none'; if(el.style.overflow==='auto'||el.style.overflow==='scroll') el.style.overflow='visible'; if(el.style.overflowY==='auto'||el.style.overflowY==='scroll') el.style.overflowY='visible'; }
+    if(el.style){ if(el.style.maxHeight) el.style.maxHeight='none';
+      ['overflow','overflowX','overflowY'].forEach(function(k){ if(el.style[k]==='auto'||el.style[k]==='scroll') el.style[k]='visible'; }); }
   });
   const holder=document.createElement('div');
   holder.style.cssText='position:fixed;left:-99999px;top:0;background:#fff';
-  holder.innerHTML='<div style="width:'+w+'px;background:#fff;border:2px solid #1A4A7A;border-radius:16px;overflow:hidden;font-family:Cairo">'
-    +'<div style="background:linear-gradient(135deg,#0F2A47,#2E6BA8);color:#fff;padding:15px 18px;text-align:center">'
+  // إطار بعرض المحتوى الكامل (inline-block) عشان الجداول العريضة ما تتقصّش
+  const frame=document.createElement('div');
+  frame.style.cssText='display:inline-block;background:#fff;border:2px solid #1A4A7A;border-radius:16px;overflow:hidden;font-family:Cairo;min-width:720px';
+  frame.innerHTML='<div style="background:linear-gradient(135deg,#0F2A47,#2E6BA8);color:#fff;padding:15px 18px;text-align:center">'
     +'<div style="font-size:18px;font-weight:800">غازتك | برنامج متابعة وتشغيل المحطات</div>'
     +'<div style="font-size:13px;color:#B8D4E8;margin-top:3px;font-weight:700">منطقة القناة وسيناء'+(title?(' — '+title):'')+'</div>'
-    +'<div style="font-size:12.5px;color:#DCE9F5;margin-top:5px;direction:ltr;unicode-bidi:isolate;font-weight:700">'+(new Date()).toLocaleDateString('ar-EG')+'</div></div>'
+    +(subtitle?('<div style="display:inline-block;background:rgba(255,255,255,.16);border-radius:20px;padding:4px 16px;margin-top:7px;font-size:16px;color:#fff;font-weight:800">🏭 '+subtitle+'</div>'):'')
+    +'<div style="font-size:12.5px;color:#DCE9F5;margin-top:6px;direction:ltr;unicode-bidi:isolate;font-weight:700">'+(new Date()).toLocaleDateString('ar-EG')+'</div></div>'
     +'<div style="padding:14px 16px" id="__bcbody"></div>'
-    +'<div style="background:#F4F6FB;text-align:center;padding:13px;font-size:15px;font-weight:800;color:#1A4A7A;border-top:1px solid #E2E8F0">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</div></div>';
+    +'<div style="background:#F4F6FB;text-align:center;padding:13px;font-size:15px;font-weight:800;color:#1A4A7A;border-top:1px solid #E2E8F0">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</div>';
+  holder.appendChild(frame);
   document.body.appendChild(holder);
-  holder.querySelector('#__bcbody').appendChild(clone);
-  const node=holder.firstElementChild;
-  captureNode(node,{scale:2,width:node.offsetWidth,windowWidth:Math.max(node.offsetWidth+40,980)})
+  frame.querySelector('#__bcbody').appendChild(clone);
+  const wpx=frame.offsetWidth;   // العرض الحقيقى بعد فرد المحتوى
+  captureNode(frame,{scale:2,width:wpx,windowWidth:wpx+60})
     .then(function(c){ _saveCanvasPng(c,fname); holder.remove(); })
     .catch(function(e){ holder.remove(); alert('تعذّر إنشاء الصورة'); });
 }
@@ -4976,8 +4981,9 @@ function loadCompComparison(attempt, containerId, filterCode){
     window.__devBoxes=[]; // مخزن طرق حساب الحيود القابلة للضغط
     let html='';
     const G={pre:'#1D4ED8',rat:'#6D28D9',tmp:'#B45309',oil:'#a16207',wat:'#0891B2',oth:'#7C3AED',flw:'#0F766E'};
-    groups.forEach(g=>{
+    groups.forEach((g,gi)=>{
       const model=g.model, units=g.units||[]; const R=READINGS_CFG(model);
+      const _cid='cmp-card-'+containerId+'-'+gi, _fn='مقارنة_'+String(model).replace(/[^A-Za-z0-9]+/g,'_')+'.png';
       const pk=R.pres, tk=R.temp, oilF=R.oil, hasW=!!R.water, watF=R.water||[], othF=R.other, ratF=R.ratio;
       units.forEach(u=>{const sd=srMap[String(u.code)+'|'+String(u.comp)]||{}; u._sd=sd; const p=sd.pres||{}; u._r=ratF.map(r=>{const cur=p[r.num],prev=p[r.den];return (prev>0&&cur>0)?cur/prev:null;});});
       const isOut=()=>false; // تم إلغاء تلوين القيم العالية (هاى لايت) بناءً على طلب المستخدم
@@ -4987,8 +4993,10 @@ function loadCompComparison(attempt, containerId, filterCode){
       const sth=(txt,unit)=>'<th style="padding:4px 6px;border-right:1px solid #CBD5E1;border-bottom:1px solid #CBD5E1;background:#F1F5F9;color:#475569;font-weight:700;font-size:10px;position:sticky;z-index:4">'+txt+(unit?'<span style="display:block;font-size:8px;color:#94A3B8">'+unit+'</span>':'')+'</th>';
       const froz='position:sticky;left:0;';
       // كارت مستقل لكل ضاغط داخل إطار اللوحة — نفس أسلوب جدول أداء المحطات اليومى: صندوق محدود + رأس مجمّد + عمود المحطة مجمّد
-      html+='<div class="cmp-card" style="margin-bottom:18px;max-width:100%">';
-      html+='<div class="cmp-banner" style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px;direction:ltr;text-align:left;border-radius:10px 10px 0 0">'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></div>';
+      html+='<div class="cmp-card" id="'+_cid+'" style="margin-bottom:18px;max-width:100%">';
+      html+='<div class="cmp-banner" style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px;direction:ltr;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center;gap:8px">'
+        +'<span>'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></span>'
+        +'<button class="cap-skip" onclick="captureSalesImg(\''+_cid+'\',\''+_fn+'\',\'مقارنة الضواغط — '+model+'\')" style="background:rgba(255,255,255,.22);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px;white-space:nowrap;direction:rtl">📥 صورة</button></div>';
       html+='<div class="cmp-scroll mgr-table-wrap" style="overflow:auto;max-height:calc(100vh - 160px);border:1px solid #CBD5E1;border-top:none;border-radius:0 0 10px 10px;direction:ltr;position:relative;margin-bottom:0">';
       html+='<table style="border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap;direction:ltr;width:max-content;min-width:100%">';
       html+='<thead><tr>';
