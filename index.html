@@ -505,11 +505,11 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:11.5px;color:#0F766E;font-weight:700;background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:7px 10px;margin-bottom:8px;line-height:1.8">محطتك متظللة باللون الأصفر ◄ — قارن قراءاتك بباقى المحطات اللى بنفس موديل الضاغط.</div>
       <div id="sup-comp-content" style="font-size:13px"></div>
     </div>
-    <div style="background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>🎯 خطة ومحقق محطتى (شهري)</span><button onclick="captureSalesImg('sup-sales-plan','خطة_ومحقق_محطتى.png','خطة ومحقق محطتى (شهري)',(currentStation&&currentStation.name)||'')" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>
+    <div style="background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>🎯 خطة ومحقق محطتى (شهري)</span><button onclick="captureSalesImg('sup-sales-plan','خطة_ومحقق_محطتى.png','خطة ومحقق محطتى (شهري)',(currentStation&&currentStation.name)||'')" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:6px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 تحميل صورة</button></div>
     <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
       <div id="sup-sales-plan"><div style="text-align:center;padding:18px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
     </div>
-    <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>📉 منحنى مبيعات محطتى اليومي</span><button onclick="captureSalesImg('sales-sup','منحنى_مبيعات_محطتى_اليومي.png','منحنى مبيعات محطتى اليومي',(currentStation&&currentStation.name)||'')" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>
+    <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>📉 منحنى مبيعات محطتى اليومي</span><button onclick="captureSalesImg('sales-sup','منحنى_مبيعات_محطتى_اليومي.png','منحنى مبيعات محطتى اليومي',(currentStation&&currentStation.name)||'')" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:6px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 تحميل صورة</button></div>
     <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
       <div id="sales-sup"></div>
     </div>
@@ -977,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V195</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V196</span>
       </div>
     </div>
   </div>
@@ -1270,18 +1270,21 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <div class="mgr-tab-content" id="mtab-sales">
   <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
     <div class="mgr-tab-title">📊 المبيعات — الخطة والمحقق</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px;align-items:center">
+      <button onclick="loadSalesKpi()" style="background:#64748B;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button>
+      <button onclick="captureSalesImg('sales-kpi-only','جدول_المبيعات_الشهر.png','جدول متابعة تحقيق خطة المبيعات')" style="background:#166534;color:#fff;border:2px solid #0B3D2E;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 تحميل صورة الجدول</button>
+      <button onclick="toggleSalesAdmin()" title="أدوات التعديل" style="background:#EEF0FF;color:#4C1D95;border:1px solid #C7D2FE;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">⚙️ تعديل</button>
+    </div>
+    <div id="sales-admin-tools" style="display:none;gap:8px;flex-wrap:wrap;margin:0 0 8px;padding:9px;background:#FAF5FF;border:1px dashed #C7B2E8;border-radius:10px">
       <button onclick="openSalesEdit('plan')" style="background:#6B21A8;color:#fff;border:none;border-radius:9px;padding:9px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🎯 تعديل الخطة اليومية</button>
       <button onclick="openSalesEdit('ach')" style="background:#0F766E;color:#fff;border:none;border-radius:9px;padding:9px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">✍️ تعديل المحقق</button>
-      <button onclick="loadSalesKpi()" style="background:#64748B;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button>
-      <button onclick="captureSalesImg('sales-kpi-only','جدول_المبيعات_الشهر.png','جدول متابعة تحقيق خطة المبيعات')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:9px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 صورة الجدول</button>
     </div>
     <div id="sales-kpi-board" style="margin-top:6px"><div style="text-align:center;padding:26px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
     <div style="height:1px;background:#E2E8F0;margin:20px 0 14px"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="mgr-tab-title" style="margin:0">📈 المنحنى الشهري — الخطة والمحقق</div><button onclick="captureSalesImg('sales-monthly','المنحنى_الشهري_المبيعات.png','المنحنى الشهري للمبيعات')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 صورة</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="mgr-tab-title" style="margin:0">📈 المنحنى الشهري — الخطة والمحقق</div><button onclick="captureSalesImg('sales-monthly','المنحنى_الشهري_المبيعات.png','المنحنى الشهري للمبيعات')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 تحميل صورة</button></div>
     <div id="sales-monthly" style="margin-top:8px"><div style="text-align:center;padding:22px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
     <div style="height:1px;background:#E2E8F0;margin:20px 0 14px"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="mgr-tab-title" style="margin:0">📉 منحنى المبيعات اليومي</div><button onclick="captureSalesImg('sales-mgr','منحنى_المبيعات_اليومي.png','منحنى المبيعات اليومي')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 صورة</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="mgr-tab-title" style="margin:0">📉 منحنى المبيعات اليومي</div><button onclick="captureSalesImg('sales-mgr','منحنى_المبيعات_اليومي.png','منحنى المبيعات اليومي')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 تحميل صورة</button></div>
     <div class="mgr-last-update">من «بيان القابضة» — بيانات يومية حتى ٣ شهور</div>
     <div id="sales-mgr" style="margin-top:8px"></div>
   </div>
@@ -1515,7 +1518,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 195; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 196; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4271,9 +4274,9 @@ function initSalesPanel(hostId, fixedCode, fixedName){
   const host=document.getElementById(hostId); if(!host) return;
   const uid=hostId;
   const segHTML = fixedCode ? '' :
-    '<div style="display:inline-flex;background:#F1F5F9;border-radius:10px;padding:3px;margin-bottom:10px">'
-    +'<button id="'+uid+'-breg" onclick="salesSetScope(\''+uid+'\',\'reg\')" style="border:none;background:#6B21A8;color:#fff;padding:7px 16px;border-radius:8px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer">المنطقة بالكامل</button>'
-    +'<button id="'+uid+'-bstn" onclick="salesSetScope(\''+uid+'\',\'stn\')" style="border:none;background:none;color:#64748B;padding:7px 16px;border-radius:8px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer">محطة محددة</button></div>';
+    '<div style="display:inline-flex;gap:6px;background:#F1F5F9;border-radius:12px;padding:4px;margin-bottom:10px">'
+    +'<button id="'+uid+'-breg" onclick="salesSetScope(\''+uid+'\',\'reg\')" style="border:2px solid #4C1D95;background:#6B21A8;color:#fff;padding:8px 18px;border-radius:9px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 2px 6px rgba(107,33,168,.35)">🌐 المنطقة بالكامل</button>'
+    +'<button id="'+uid+'-bstn" onclick="salesSetScope(\''+uid+'\',\'stn\')" style="border:2px solid #D8C7EC;background:#fff;color:#6B21A8;padding:8px 18px;border-radius:9px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer">🏭 محطة محددة</button></div>';
   const stnHTML = fixedCode ? '' :
     '<div id="'+uid+'-stnwrap" style="display:none;flex-direction:column;gap:4px"><label style="font-size:11px;font-weight:800;color:#6B21A8">المحطة</label><select id="'+uid+'-stn" onchange="salesLoad(\''+uid+'\')" style="border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-family:Cairo;font-weight:700;font-size:13px;min-width:150px"></select></div>';
   host.innerHTML=
@@ -4291,7 +4294,7 @@ function initSalesPanel(hostId, fixedCode, fixedName){
     +'</div>'
     +'<div id="'+uid+'-kpis"></div>'
     +'<div style="border:1px solid #F0E7FA;border-radius:12px;padding:10px 6px 4px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"><div id="'+uid+'-chart"><div style="text-align:center;color:#6B21A8;padding:40px;font-weight:800">⏳ جارى التحميل...</div></div></div>'
-    +'<div style="font-size:11px;color:#94A3B8;font-weight:600;margin-top:8px;line-height:1.7">🟣 كل نقطة = إجمالى مبيعات اليوم'+(fixedCode?' لمحطتك':' (للمنطقة أو المحطة المختارة)')+'. الفترة محدودة بآخر ٣ شهور المخزّنة في القابضة.</div>';
+    +'<div style="font-size:11px;color:#94A3B8;font-weight:600;margin-top:8px;line-height:1.7">🟣 كل نقطة = إجمالى مبيعات اليوم'+(fixedCode?' لمحطتك':' (للمنطقة أو المحطة المختارة)')+'. الفترة محدودة بآخر ٣ شهور المخزّنة في بيان القابضة.</div>';
   host._sales={fixedCode:fixedCode||'', scope:'reg', stations:[]};
   const to=new Date(), from=new Date(); from.setDate(from.getDate()-29);
   document.getElementById(uid+'-to').value=_isoDate(to);
@@ -4302,8 +4305,8 @@ function salesSetScope(uid,scope){
   const host=document.getElementById(uid); if(!host||!host._sales) return;
   host._sales.scope=scope;
   const breg=document.getElementById(uid+'-breg'), bstn=document.getElementById(uid+'-bstn'), sw=document.getElementById(uid+'-stnwrap');
-  if(breg){ breg.style.background=scope==='reg'?'#6B21A8':'transparent'; breg.style.color=scope==='reg'?'#fff':'#64748B'; }
-  if(bstn){ bstn.style.background=scope==='stn'?'#6B21A8':'transparent'; bstn.style.color=scope==='stn'?'#fff':'#64748B'; }
+  if(breg){ breg.style.background=scope==='reg'?'#6B21A8':'#fff'; breg.style.color=scope==='reg'?'#fff':'#6B21A8'; breg.style.boxShadow=scope==='reg'?'0 2px 6px rgba(107,33,168,.35)':'none'; breg.style.border=scope==='reg'?'2px solid #4C1D95':'2px solid #D8C7EC'; }
+  if(bstn){ bstn.style.background=scope==='stn'?'#6B21A8':'#fff'; bstn.style.color=scope==='stn'?'#fff':'#6B21A8'; bstn.style.boxShadow=scope==='stn'?'0 2px 6px rgba(107,33,168,.35)':'none'; bstn.style.border=scope==='stn'?'2px solid #4C1D95':'2px solid #D8C7EC'; }
   if(sw) sw.style.display = scope==='stn' ? 'flex' : 'none';
   salesLoad(uid);
 }
@@ -4466,7 +4469,7 @@ function renderConvPerf(view){
   const c=document.getElementById('convperf-content');
   const sb=(v,l)=>'<button onclick="renderConvPerf(\''+v+'\')" style="border:2px solid '+(view===v?'#4338CA':'#C7D2FE')+';background:'+(view===v?'#4338CA':'#fff')+';color:'+(view===v?'#fff':'#4338CA')+';padding:9px 20px;border-radius:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 1px 4px rgba(67,56,202,.12)">'+l+'</button>';
   const seg='<div style="display:inline-flex;gap:8px;margin-bottom:12px">'+sb('month','الشهر الحالى')+sb('year','العرض السنوى')+'</div>';
-  const dlBtn='<button onclick="captureSalesImg(\'convyear-body\',\'اداء_التحويل_والاختبار_سنوى.png\',\'أداء التحويل والاختبار — العرض السنوى\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px;margin-right:8px">📥 صورة</button>';
+  const dlBtn='<button onclick="captureSalesImg(\'convyear-body\',\'اداء_التحويل_والاختبار_سنوى.png\',\'أداء التحويل والاختبار — العرض السنوى\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px;margin-right:8px">📥 تحميل صورة</button>';
   if(view==='year'){
     c.innerHTML=seg+dlBtn+'<div id="convyear-body"><div style="text-align:center;padding:24px;color:#4338CA;font-weight:800">⏳ جارى تحميل السنة...</div></div>';
     if(window.__convYear){ document.getElementById('convyear-body').innerHTML=buildConvYearHTML(window.__convYear); }
@@ -4519,7 +4522,7 @@ function convAchBarsHTML(centers, planKey, moKey, title, color, elId, fname){
   return '<div style="margin:2px 0 18px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
     +'<div style="font-size:13px;font-weight:800;color:'+color+'">📊 '+title+' (الخط عند 100٪)</div>'
-    +'<button onclick="captureSalesImg(\''+elId+'\',\''+fname+'\',\''+title+'\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>'
+    +'<button onclick="captureSalesImg(\''+elId+'\',\''+fname+'\',\''+title+'\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 تحميل صورة</button></div>'
     +'<div id="'+elId+'" style="background:#fff;border:1px solid #C7D2FE;border-radius:12px;padding:12px 12px 6px;max-height:60vh;overflow:auto">'
     +'<div style="font-size:11.5px;font-weight:800;color:#334155;margin-bottom:9px;text-align:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 8px">🟢 فوق الخطة: '+above+' مركز  ·  🔴 تحت الخطة: '+below+' مركز</div>'
     +rows.map(bar).join('')+'</div></div>';
@@ -4645,6 +4648,8 @@ function saveConvAchEdit(){
     else { st.textContent='❌ تعذر الحفظ'; st.style.color='#b91c1c'; }
   }).catch(e=>{ st.textContent='❌ تعذر الحفظ'; st.style.color='#b91c1c'; });
 }
+// إظهار/إخفاء أدوات التعديل (على جنب) عشان ما تكترش قدام المتابع
+function toggleSalesAdmin(){ const el=document.getElementById('sales-admin-tools'); if(el) el.style.display = (el.style.display==='none'||!el.style.display) ? 'flex' : 'none'; }
 // ══════════ لوحة KPI المبيعات (خطة/محقق يومي وشهري + النِسب) ══════════
 function loadSalesKpi(month, year){
   const box=document.getElementById('sales-kpi-board'); if(!box) return;
@@ -4676,12 +4681,13 @@ function renderSalesKpi(rep){
   });
   const tDP=pc(tot.dayAch,tot.dayPlan), tMP=pc(tot.monAch,tot.monPlan);
   const cy=(new Date()).getFullYear(); const yr=(rep&&rep.year)||cy; const years=[cy-2,cy-1,cy,cy+1];
-  const selSt='border:1px solid #E9D5FF;border-radius:9px;padding:7px;font-family:Cairo;font-weight:800;color:#5B21B6;background:#FAF5FF';
+  const selY='border:2px solid #4C1D95;border-radius:10px;padding:8px 10px;font-family:Cairo;font-weight:800;color:#fff;background:#6B21A8;cursor:pointer';
+  const selM='border:2px solid #5B21B6;border-radius:10px;padding:8px 10px;font-family:Cairo;font-weight:800;color:#fff;background:#7C3AED;cursor:pointer';
   const sel='<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">'
-    +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8">السنة:</label>'
-    +'<select id="sk-year" onchange="loadSalesKpi(document.getElementById(\'sk-month\').value, this.value)" style="'+selSt+'">'+years.map(y=>'<option value="'+y+'"'+(y==yr?' selected':'')+'>'+y+'</option>').join('')+'</select>'
-    +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8;margin-right:4px">الشهر:</label>'
-    +'<select id="sk-month" onchange="loadSalesKpi(this.value, document.getElementById(\'sk-year\').value)" style="'+selSt+';flex:1;min-width:110px">'+MN.map((m,i)=>'<option value="'+i+'"'+((i===mon-1)?' selected':'')+'>'+m+'</option>').join('')+'</select></div>';
+    +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8">📅 السنة:</label>'
+    +'<select id="sk-year" onchange="loadSalesKpi(document.getElementById(\'sk-month\').value, this.value)" style="'+selY+'">'+years.map(y=>'<option value="'+y+'"'+(y==yr?' selected':'')+'>'+y+'</option>').join('')+'</select>'
+    +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8;margin-right:4px">🗓️ الشهر:</label>'
+    +'<select id="sk-month" onchange="loadSalesKpi(this.value, document.getElementById(\'sk-year\').value)" style="'+selM+';flex:1;min-width:110px">'+MN.map((m,i)=>'<option value="'+i+'"'+((i===mon-1)?' selected':'')+'>'+m+'</option>').join('')+'</select></div>';
   box.innerHTML=sel
     +'<div id="sales-kpi-only">'
     +'<div style="text-align:center;font-size:13.5px;font-weight:800;color:#4C1D95;background:#F3E8FF;border:1px solid #E9D5FF;border-radius:9px;padding:7px 10px;margin-bottom:8px">📋 متابعة تحقيق خطة المبيعات — '+MN[mon-1]+' '+yr+'</div>'
@@ -4717,7 +4723,7 @@ function salesAchBarsHTML(st){
   return '<div style="margin-top:16px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
     +'<div style="font-size:13px;font-weight:800;color:#4C1D95">📊 تحقيق الخطة لكل محطة (الخط عند 100٪)</div>'
-    +'<button onclick="captureSalesImg(\'sales-ach-bars\',\'تحقيق_الخطة_للمحطات.png\',\'تحقيق الخطة لكل محطة\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 صورة</button></div>'
+    +'<button onclick="captureSalesImg(\'sales-ach-bars\',\'تحقيق_الخطة_للمحطات.png\',\'تحقيق الخطة لكل محطة\')" style="background:#166534;color:#fff;border:none;border-radius:9px;padding:7px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 تحميل صورة</button></div>'
     +'<div id="sales-ach-bars" style="background:#fff;border:1px solid #E9D5FF;border-radius:12px;padding:12px 12px 6px;max-height:60vh;overflow:auto">'
     +'<div style="font-size:11.5px;font-weight:800;color:#334155;margin-bottom:9px;text-align:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:5px 8px">🟢 فوق الخطة: '+above+' محطة  ·  🔴 تحت الخطة: '+below+' محطة</div>'
     +rows.map(bar).join('')+'</div></div>';
@@ -4783,9 +4789,9 @@ function renderSalesMonthly(scope){
   const data=window.__salesMY||[]; const yr=window.__salesMYYear||(new Date()).getFullYear();
   const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   if(!data.length){ box.innerHTML='<div style="text-align:center;color:#888;padding:22px;font-weight:700">لا توجد بيانات بعد — شغّل الاستيراد أو أدخل الخطة.</div>'; return; }
-  const planM=new Array(12).fill(0), achM=new Array(12).fill(0), planDaily=new Array(12).fill(0);
+  const planM=new Array(12).fill(0), achM=new Array(12).fill(0), planDaily=new Array(12).fill(0), achDaily=new Array(12).fill(0);
   const list = scope<0 ? data : [data[scope]].filter(Boolean);
-  list.forEach(s=>{ for(let m=0;m<12;m++){ const d=_daysIn(yr,m); planM[m]+=(s.plan[m]||0)*d; achM[m]+=(s.ach[m]||0)*d; planDaily[m]+=(s.plan[m]||0); } });
+  list.forEach(s=>{ for(let m=0;m<12;m++){ const d=_daysIn(yr,m); planM[m]+=(s.plan[m]||0)*d; achM[m]+=(s.ach[m]||0)*d; planDaily[m]+=(s.plan[m]||0); achDaily[m]+=(s.ach[m]||0); } });
   const f=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
   // الفترة الافتراضية: من يناير لآخر شهر فيه محقق
   let frM=window.__salesMYFr, toM=window.__salesMYTo;
@@ -4802,10 +4808,11 @@ function renderSalesMonthly(scope){
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:800;color:#4C1D95;direction:ltr">'+f(totP)+'</div><div style="font-size:10.5px;color:#7C5AA0;font-weight:700">خطة الفترة (م³)</div></div>'
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:800;color:#4C1D95;direction:ltr">'+f(totA)+'</div><div style="font-size:10.5px;color:#7C5AA0;font-weight:700">المحقق (م³)</div></div>'
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col+';direction:ltr">'+pct+'%</div><div style="font-size:10.5px;color:#7C5AA0;font-weight:700">نسبة التحقيق</div></div></div>';
-  h+='<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+'</div>';
+  h+='<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+' · المنحنى بالمتوسط اليومي (م³/يوم)</div>';
   h+='<div id="sales-monthly-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:10px 6px 4px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>';
   box.innerHTML=h;
-  drawPlanAchChart('sales-monthly-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1), planDaily.slice(frM,toM+1));
+  // المنحنى بالمتوسط اليومي عشان المحور والأرقام يبقوا متطابقين
+  drawPlanAchChart('sales-monthly-chart', planDaily.slice(frM,toM+1), achDaily.slice(frM,toM+1), MN.slice(frM,toM+1), planDaily.slice(frM,toM+1));
 }
 function drawPlanAchChart(elId, plan, ach, labels, planLabelVals){
   const el=document.getElementById(elId); if(!el) return;
@@ -4873,9 +4880,33 @@ function renderSupSalesPlan(idx){
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:16px;font-weight:800;color:#4C1D95;direction:ltr">'+f(pP)+'</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">خطة الفترة (م³)</div></div>'
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:16px;font-weight:800;color:#4C1D95;direction:ltr">'+f(pA)+'</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">المحقق (م³)</div></div>'
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pct)+';direction:ltr">'+pct+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">نسبة التحقيق</div></div></div>'
-    +'<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+'</div>'
-    +'<div id="sup-sales-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:8px 4px 2px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>';
-  drawPlanAchChart('sup-sales-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1), (s.plan||[]).slice(frM,toM+1));
+    +'<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+' · المنحنى بالمتوسط اليومي (م³/يوم)</div>'
+    +'<div id="sup-sales-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:8px 4px 2px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>'
+    + supMonthlyTableHTML(MN, planM, achM, frM, toM, pP, pA, pct);
+  // المنحنى بالمتوسط اليومي (خطة/محقق) عشان المحور والأرقام متطابقين
+  drawPlanAchChart('sup-sales-chart', (s.plan||[]).slice(frM,toM+1), (s.ach||[]).slice(frM,toM+1), MN.slice(frM,toM+1), (s.plan||[]).slice(frM,toM+1));
+}
+// جدول شهور الفترة: الشهر | الخطة | المحقق | % + إجماليات (م³ شهري)
+function supMonthlyTableHTML(MN, planM, achM, frM, toM, totP, totA, totPct){
+  const f=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  const col=v=>v>=100?'#166534':(v>=80?'#B45309':'#B91C1C');
+  let t='<div style="margin-top:12px;overflow:auto;border:1px solid #E9D5FF;border-radius:12px"><table style="border-collapse:separate;border-spacing:0;font-size:12px;width:100%">'
+    +'<thead><tr>'
+    +'<th style="padding:8px 6px;background:#4C1D95;color:#fff;text-align:right">الشهر</th>'
+    +'<th style="padding:8px 6px;background:#6B21A8;color:#fff">الخطة (م³)</th>'
+    +'<th style="padding:8px 6px;background:#7C3AED;color:#fff">المحقق (م³)</th>'
+    +'<th style="padding:8px 6px;background:#6B21A8;color:#fff">%</th></tr></thead><tbody>';
+  for(let m=frM;m<=toM;m++){ const p=planM[m]||0,a=achM[m]||0,pc=p>0?Math.round(a/p*100):0; const bg=(m-frM)%2?'#FAFBFF':'#fff';
+    t+='<tr style="background:'+bg+'"><td style="padding:6px 8px;border:1px solid #EEE;text-align:right;font-weight:700">'+MN[m]+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #EEE;text-align:center;direction:ltr">'+f(p)+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #EEE;text-align:center;direction:ltr;font-weight:700">'+f(a)+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #EEE;text-align:center;font-weight:800;color:'+col(pc)+'">'+pc+'%</td></tr>'; }
+  t+='</tbody><tfoot><tr style="font-weight:800;color:#4C1D95;background:#F3E8FF">'
+    +'<td style="padding:8px 6px;border-top:2px solid #6B21A8;text-align:right">إجمالى الفترة</td>'
+    +'<td style="padding:8px 6px;border-top:2px solid #6B21A8;text-align:center;direction:ltr">'+f(totP)+'</td>'
+    +'<td style="padding:8px 6px;border-top:2px solid #6B21A8;text-align:center;direction:ltr">'+f(totA)+'</td>'
+    +'<td style="padding:8px 6px;border-top:2px solid #6B21A8;text-align:center;color:'+col(totPct)+'">'+totPct+'%</td></tr></tfoot></table></div>';
+  return t;
 }
 // ══════════ تعديل خطة/محقق المبيعات (يومي، لكل محطة × سنة) ══════════
 function openSalesEdit(mode, year){
@@ -5056,7 +5087,7 @@ function loadCompComparison(attempt, containerId, filterCode){
       html+='<div class="cmp-card" id="'+_cid+'" style="margin-bottom:18px;max-width:100%">';
       html+='<div class="cmp-banner" style="background:linear-gradient(135deg,#0F766E,#14B8A6);color:#fff;padding:10px 14px;font-weight:800;font-size:13px;direction:ltr;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center;gap:8px">'
         +'<span>'+(g.brand?g.brand+' — ':'')+model+' <span style="opacity:.85;font-size:11px">('+R.stages+' stages · '+units.length+')</span></span>'
-        +'<button class="cap-skip" onclick="captureSalesImg(\''+_cid+'\',\''+_fn+'\',\'مقارنة الضواغط — '+model+'\')" style="background:rgba(255,255,255,.22);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px;white-space:nowrap;direction:rtl">📥 صورة</button></div>';
+        +'<button class="cap-skip" onclick="captureSalesImg(\''+_cid+'\',\''+_fn+'\',\'مقارنة الضواغط — '+model+'\')" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:5px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px;white-space:nowrap;direction:rtl">📥 تحميل صورة</button></div>';
       html+='<div class="cmp-scroll mgr-table-wrap" style="overflow:auto;max-height:calc(100vh - 160px);border:1px solid #CBD5E1;border-top:none;border-radius:0 0 10px 10px;direction:ltr;position:relative;margin-bottom:0">';
       html+='<table style="border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap;direction:ltr;width:max-content;min-width:100%">';
       html+='<thead><tr>';
