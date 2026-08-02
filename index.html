@@ -977,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V194</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V195</span>
       </div>
     </div>
   </div>
@@ -1515,7 +1515,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 194; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 195; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4731,8 +4731,12 @@ function captureSalesImg(elId, fname, title, subtitle){
   // نشيل أى تحديد ارتفاع/تمرير عشان يظهر المحتوى كامل (بدون قص) في الصورة
   [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))).forEach(function(el){
     if(el.style){ if(el.style.maxHeight) el.style.maxHeight='none';
+      // نلغى الـ sticky (رأس/تذييل/عمود الجدول) عشان ما يتزحلقش فوق باقى المحتوى أو التوقيع فى الصورة
+      if(el.style.position==='sticky'){ el.style.position='static'; el.style.top='auto'; el.style.right='auto'; el.style.left='auto'; el.style.zIndex='auto'; }
       ['overflow','overflowX','overflowY'].forEach(function(k){ if(el.style[k]==='auto'||el.style[k]==='scroll') el.style[k]='visible'; }); }
   });
+  // مسافة أمان أسفل المحتوى قبل التوقيع
+  clone.style.marginBottom='6px';
   const holder=document.createElement('div');
   holder.style.cssText='position:fixed;left:-99999px;top:0;background:#fff';
   // إطار بعرض المحتوى الكامل (inline-block) عشان الجداول العريضة ما تتقصّش
@@ -4779,9 +4783,9 @@ function renderSalesMonthly(scope){
   const data=window.__salesMY||[]; const yr=window.__salesMYYear||(new Date()).getFullYear();
   const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   if(!data.length){ box.innerHTML='<div style="text-align:center;color:#888;padding:22px;font-weight:700">لا توجد بيانات بعد — شغّل الاستيراد أو أدخل الخطة.</div>'; return; }
-  const planM=new Array(12).fill(0), achM=new Array(12).fill(0);
+  const planM=new Array(12).fill(0), achM=new Array(12).fill(0), planDaily=new Array(12).fill(0);
   const list = scope<0 ? data : [data[scope]].filter(Boolean);
-  list.forEach(s=>{ for(let m=0;m<12;m++){ const d=_daysIn(yr,m); planM[m]+=(s.plan[m]||0)*d; achM[m]+=(s.ach[m]||0)*d; } });
+  list.forEach(s=>{ for(let m=0;m<12;m++){ const d=_daysIn(yr,m); planM[m]+=(s.plan[m]||0)*d; achM[m]+=(s.ach[m]||0)*d; planDaily[m]+=(s.plan[m]||0); } });
   const f=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
   // الفترة الافتراضية: من يناير لآخر شهر فيه محقق
   let frM=window.__salesMYFr, toM=window.__salesMYTo;
@@ -4801,10 +4805,11 @@ function renderSalesMonthly(scope){
   h+='<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+'</div>';
   h+='<div id="sales-monthly-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:10px 6px 4px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>';
   box.innerHTML=h;
-  drawPlanAchChart('sales-monthly-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1));
+  drawPlanAchChart('sales-monthly-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1), planDaily.slice(frM,toM+1));
 }
-function drawPlanAchChart(elId, plan, ach, labels, showPlanLabels){
+function drawPlanAchChart(elId, plan, ach, labels, planLabelVals){
   const el=document.getElementById(elId); if(!el) return;
+  const showPlanLabels = planLabelVals && planLabelVals.length;
   const W=840,H=280,PADL=54,PADR=14,PADT=showPlanLabels?26:16,PADB=46, iw=W-PADL-PADR, ih=H-PADT-PADB, n=plan.length;
   const all=plan.concat(ach).filter(v=>v>0);
   const maxV=Math.max.apply(null, all.length?all:[1])*1.12, minV=0;
@@ -4815,10 +4820,10 @@ function drawPlanAchChart(elId, plan, ach, labels, showPlanLabels){
   let xlab=''; for(let i=0;i<n;i++){ xlab+='<text x="'+X(i)+'" y="'+(H-24)+'" text-anchor="middle" font-size="10" fill="#7C5AA0" font-weight="700" direction="rtl">'+labels[i]+'</text>'; }
   const legend='<rect x="'+PADL+'" y="'+(H-13)+'" width="14" height="4" fill="#B45309"/><text x="'+(PADL+18)+'" y="'+(H-9)+'" font-size="10.5" fill="#4C1D95" font-weight="800">الخطة</text>'
     +'<rect x="'+(PADL+80)+'" y="'+(H-13)+'" width="14" height="4" fill="#7C3AED"/><text x="'+(PADL+98)+'" y="'+(H-9)+'" font-size="10.5" fill="#4C1D95" font-weight="800">المحقق</text>';
-  // أرقام الخطة على كل شهر (اختيارى) — عشان المشرف يعرف خطته الشهرية بوضوح
+  // أرقام على كل شهر (اختيارى) = المتوسط اليومي للخطة (مش إجمالى الشهر) — عشان المشرف يعرف خطته اليومية بوضوح
   let planLbl='';
-  if(showPlanLabels){ const kf=v=>v>=10000?(v/1000).toFixed(0)+'k':Number(v).toLocaleString('en-US',{maximumFractionDigits:0});
-    for(let i=0;i<n;i++){ const v=plan[i]; if(v>0){ planLbl+='<text x="'+X(i)+'" y="'+(Y(v)-7)+'" text-anchor="middle" font-size="10" fill="#B45309" font-weight="800" direction="ltr">'+kf(v)+'</text>'; } } }
+  if(showPlanLabels){ const kf=v=>v>=10000?(v/1000).toFixed(1)+'k':Number(Math.round(v)).toLocaleString('en-US');
+    for(let i=0;i<n;i++){ const lv=planLabelVals[i]; if(lv>0){ planLbl+='<text x="'+X(i)+'" y="'+(Y(plan[i])-7)+'" text-anchor="middle" font-size="10" fill="#B45309" font-weight="800" direction="ltr">'+kf(lv)+'</text>'; } } }
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr">'+grid+drawLine(plan,'#B45309')+drawLine(ach,'#7C3AED')+xlab+legend+planLbl+'</svg>';
 }
 // ══════════ صفحة المشرف: خطة ومحقق محطته (شهري) + نسبة يومي وشهري ══════════
@@ -4870,7 +4875,7 @@ function renderSupSalesPlan(idx){
     +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pct)+';direction:ltr">'+pct+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">نسبة التحقيق</div></div></div>'
     +'<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+'</div>'
     +'<div id="sup-sales-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:8px 4px 2px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>';
-  drawPlanAchChart('sup-sales-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1), true);
+  drawPlanAchChart('sup-sales-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1), (s.plan||[]).slice(frM,toM+1));
 }
 // ══════════ تعديل خطة/محقق المبيعات (يومي، لكل محطة × سنة) ══════════
 function openSalesEdit(mode, year){
