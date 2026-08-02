@@ -428,7 +428,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
             <div id="check-admin" style="font-size:18px;color:#CBD5E1">○</div>
           </div>
         </div>
-        <input type="text" class="login-input" id="station-code" placeholder="000" inputmode="numeric" maxlength="10" onkeydown="if(event.key==='Enter')doLogin()" style="margin-bottom:10px">
+        <input type="text" class="login-input" id="station-code" placeholder="000" inputmode="numeric" autocomplete="off" maxlength="10" onkeydown="if(event.key==='Enter')doLogin()" style="margin-bottom:10px">
         <button class="btn-login" onclick="doLogin()">دخول</button>
         <div class="login-err" id="login-err">الكود غير صحيح، تأكد وحاول مرة أخرى</div>
         <!-- أزرار مخفية للتوافق مع الكود القديم -->
@@ -975,7 +975,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V202</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V204</span>
       </div>
     </div>
   </div>
@@ -1547,7 +1547,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 202; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 204; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1812,25 +1812,25 @@ function setLoginMode(mode){
     const card=document.getElementById('role-'+r);
     const chk=document.getElementById('check-'+r);
     if(!card) return;
+    // العنصر اللى فيه اسم الدور (قد يكون فيه وصف قديم أو لأ — نتعامل بأمان)
+    const wrap=card.children[1];
+    const nameEl=wrap&&wrap.children&&wrap.children[0];
+    const descEl=wrap&&wrap.children&&wrap.children[1];
     if(r===mode){
       card.style.background='linear-gradient(135deg,'+roles[r][0]+')';
       card.style.borderColor=roles[r][1];
       card.style.boxShadow='0 3px 10px '+roles[r][1]+'55';
-      card.querySelectorAll('div').forEach(d=>{ if(d.style.color&&d.style.color!=='rgba(255, 255, 255, 0.85)') d.style.color='#fff'; });
-      const t=card.querySelector('div[style*="font-weight:800"]'); if(t)t.style.color='#fff';
-      const sub=card.querySelectorAll('div');
       if(chk){ chk.textContent='●'; chk.style.color='#fff'; }
-      // النصوص
-      card.children[1].children[0].style.color='#fff';
-      card.children[1].children[1].style.color='rgba(255,255,255,.85)';
+      if(nameEl) nameEl.style.color='#fff';
+      if(descEl) descEl.style.color='rgba(255,255,255,.85)';
     } else {
       card.style.background='#fff';
       card.style.borderColor='#E2E8F0';
       card.style.boxShadow='0 2px 6px rgba(0,0,0,.08)';
       if(chk){ chk.textContent='○'; chk.style.color='#CBD5E1'; }
       const clr={station:'#059669',admin:'#1E40AF',maint:'#C2410C',convert:'#4338CA'};
-      card.children[1].children[0].style.color=clr[r];
-      card.children[1].children[1].style.color='#64748B';
+      if(nameEl) nameEl.style.color=clr[r];
+      if(descEl) descEl.style.color='#64748B';
     }
   });
   const inp=document.getElementById('station-code');
