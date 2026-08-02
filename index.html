@@ -973,7 +973,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V178</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V180</span>
       </div>
     </div>
   </div>
@@ -1267,7 +1267,21 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
     <div class="mgr-tab-title">📈 منحنى المبيعات</div>
     <div class="mgr-last-update">من «بيان القابضة» — بيانات يومية حتى ٣ شهور</div>
+    <div style="margin:8px 0"><button onclick="openSalesPlanSettings()" style="background:#6B21A8;color:#fff;border:none;border-radius:9px;padding:9px 15px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🎯 إعدادات خطة المبيعات</button></div>
     <div id="sales-mgr" style="margin-top:8px"></div>
+  </div>
+
+  <!-- نافذة إعدادات خطة المبيعات (لكل محطة × سنة) -->
+  <div id="sales-plan-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99999;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0"><div style="font-weight:800;font-size:15px">🎯 إعدادات خطة المبيعات</div><button onclick="document.getElementById('sales-plan-modal').style.display='none'" style="background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:800">✕</button></div>
+      <div style="padding:14px 16px">
+        <div style="font-size:11.5px;color:#5B21B6;background:#FAF5FF;border:1px solid #E9D5FF;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-weight:700;line-height:1.7">اختر <b>السنة</b> و<b>المحطة</b> وادخل خطة المبيعات (م³) لكل شهر. الحفظ بيخص المحطة والسنة المختارتين، والخطة بتتحفظ لـ٣ سنوات.</div>
+        <div id="sales-plan-wrap"></div>
+        <button onclick="saveSalesPlan()" style="width:100%;background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;border:none;border-radius:11px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:12px">💾 حفظ خطة المحطة</button>
+        <div id="sales-plan-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ══════ تاب منظومات الحريق ══════ -->
@@ -1309,7 +1323,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
       <div style="background:linear-gradient(135deg,#4338CA,#6366F1);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0"><div style="font-weight:800;font-size:15px">🎯 إعدادات خطة التحويل والاختبار</div><button onclick="document.getElementById('conv-plan-modal').style.display='none'" style="background:rgba(255,255,255,.25);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:800">✕</button></div>
       <div style="padding:14px 16px">
-        <div style="font-size:11.5px;color:#3730A3;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-weight:700;line-height:1.7">اختر الشهر وعدّل خطة <b>التحويل والاختبار</b> لكل مركز — <b>شهر بشهر</b>. القيم الظاهرة افتراضية من ملف الشركة لغاية ما تعدّلها. الحفظ بيخص الشهر المختار بس.</div>
+        <div style="font-size:11.5px;color:#3730A3;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-weight:700;line-height:1.7">اختر <b>السنة</b> و<b>الشهر</b> وعدّل خطة <b>التحويل والاختبار</b> لكل مركز. القيم الظاهرة افتراضية لغاية ما تعدّلها. الحفظ بيخص الشهر والسنة المختارين، والخطة بتتحفظ لـ٣ سنوات.</div>
         <div id="conv-plan-wrap"></div>
         <button onclick="saveConvPlan()" style="width:100%;background:linear-gradient(135deg,#4338CA,#6366F1);color:#fff;border:none;border-radius:11px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:12px">💾 حفظ الخطة</button>
         <div id="conv-plan-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
@@ -1472,7 +1486,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 178; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 180; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1992,7 +2006,7 @@ function READINGS_CFG(model){
 
   if(m.indexOf('GEO-BII')>=0){ R.temp=stg(); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P'),_of('otemp','Temperature (°C)','t','Temp')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m==='IMW50-6250DA'||m==='IMW50-5125DA'){ R.temp=[_rf('in','Suction','Suct')].concat(stg(),[_rf('disch','Discharge','Disch')]); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
-  else if(m.indexOf('IMW50 5750')>=0){ R.temp=[_rf('in','Inlet','In')].concat(stg()); /* شيل Amb من الحرارة */ R.other=[_of('vib','Compressor Vibration (mm/sec)','n','Vib'),_of('ss','No. of Start/Stop (No.)','n','S/S')]; /* شيل Amp من Other */ }
+  else if(m.indexOf('IMW50 5750')>=0){ R.temp=stg().concat([_rf('coolant','Coolant','Cool'),_rf('acool','After Cooler','A.Cool')]); /* الإسماعيلية شل آوت: حرارات = المراحل + Coolant + After Cooler (بدون In/Amb) */ R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P')]; /* شيل Temperature من الزيت */ R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('speed','Motor Speed (rpm)','n','Speed')]; /* شيل Vib، زوّد Speed */ }
   else if(m.indexOf('SWSE200')>=0){ R.other=[_of('vib','Compressor Vibration (mm/sec)','n','Vib'),_of('ss','No. of Start/Stop (No.)','n','S/S')]; /* Safe SW: شيل Amp من Other */ }
   else if(m.indexOf('SWSE160')>=0){ R.temp=tempStd().filter(x=>x.k!=='amb'); /* الإسماعيلية أبو عطوة: شيل Ambient من الحرارة (الموتور كهربائى → Amp تفضل فى Other) */ }
   else if(m.indexOf('GRF')>=0){ let _tstg=stg(); if(m.indexOf('115-3-4-200')>=0) _tstg=_tstg.filter(x=>x.k!=='4'); /* GRF 115-3-4-200-2B: بدون حرارة المرحلة الرابعة فقط */ R.temp=[_rf('amb','Ambient','Amb')].concat(_tstg,[_rf('out','Outlet','Out')]); R.oil=[_of('cycle','L.Cycle (sec)','n','L.Cyc'),_of('acycle','A.Cycle (sec)','n','A.Cyc'),_of('carter','Carter Pressure (bar)','p','Carter'),_of('lubcyl','Lub. Cylinder (bar)','p','LubCyl'),_of('otemp','Temperature (°C)','t','Temp')]; }
@@ -4441,15 +4455,22 @@ function buildConvYearHTML(y){
   return head+metric('🔄 التحويل','#4338CA','conv','annualPlanConv')+metric('🧪 الاختبار','#0369A1','test','annualPlanTest');
 }
 const CONV_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-function openConvPlanSettings(){
+function openConvPlanSettings(year){
   const modal=document.getElementById('conv-plan-modal'); modal.style.display='flex';
   const wrap=document.getElementById('conv-plan-wrap'); wrap.innerHTML='<div style="text-align:center;padding:20px;color:#4338CA;font-weight:800">⏳...</div>';
   document.getElementById('conv-plan-status').textContent='';
-  fetch(APPS_SCRIPT_URL+'?action=convPlan').then(r=>r.json()).then(j=>{
+  const cy=(new Date()).getFullYear(); const yr=year||cy;
+  fetch(APPS_SCRIPT_URL+'?action=convPlan&year='+yr).then(r=>r.json()).then(j=>{
     window.__convPlanData=(j&&j.centers)||[];
+    window.__convPlanYear=(j&&j.year)||yr;
     const cm=(j&&typeof j.curMonth==='number')?j.curMonth:(new Date()).getMonth();
-    let h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:11px"><label style="font-size:12.5px;font-weight:800;color:#4338CA">الشهر:</label>'
-      +'<select id="cp-month" onchange="convPlanFill()" style="flex:1;border:1px solid #C7D2FE;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#312E81;background:#F4F6FF">'
+    const years=[cy-2,cy-1,cy,cy+1];
+    let h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:11px;flex-wrap:wrap">'
+      +'<label style="font-size:12.5px;font-weight:800;color:#4338CA">السنة:</label>'
+      +'<select id="cp-year" onchange="openConvPlanSettings(this.value)" style="border:1px solid #C7D2FE;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#312E81;background:#F4F6FF">'
+      +years.map(y=>'<option value="'+y+'"'+(y==window.__convPlanYear?' selected':'')+'>'+y+'</option>').join('')+'</select>'
+      +'<label style="font-size:12.5px;font-weight:800;color:#4338CA;margin-right:4px">الشهر:</label>'
+      +'<select id="cp-month" onchange="convPlanFill()" style="flex:1;min-width:110px;border:1px solid #C7D2FE;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#312E81;background:#F4F6FF">'
       +CONV_MONTHS.map((m,i)=>'<option value="'+i+'"'+(i===cm?' selected':'')+'>'+m+'</option>').join('')+'</select></div>';
     h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>'
       +'<th style="text-align:right;padding:7px 6px;background:#312E81;color:#fff">المركز</th>'
@@ -4478,14 +4499,64 @@ function convPlanTot(){
 }
 function saveConvPlan(){
   const data=window.__convPlanData||[]; const m=parseInt(document.getElementById('cp-month')?.value,10)||0;
+  const yr=parseInt(document.getElementById('cp-year')?.value,10)||window.__convPlanYear||(new Date()).getFullYear();
   const plan=data.map(c=>({code:c.code,name:c.name,planConv:parseFloat(document.getElementById('cp-conv-'+c.code)?.value)||0,planTest:parseFloat(document.getElementById('cp-test-'+c.code)?.value)||0}));
-  const st=document.getElementById('conv-plan-status'); st.textContent='⏳ جارى حفظ خطة '+CONV_MONTHS[m]+'...'; st.style.color='#4338CA';
-  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'convPlan',month:m+1,plan:plan})}).then(r=>r.json()).then(j=>{
-    if(j&&j.ok){ st.textContent='✅ اتحفظت خطة '+CONV_MONTHS[m]; st.style.color='#166534';
+  const st=document.getElementById('conv-plan-status'); st.textContent='⏳ جارى حفظ خطة '+CONV_MONTHS[m]+' '+yr+'...'; st.style.color='#4338CA';
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'convPlan',year:yr,month:m+1,plan:plan})}).then(r=>r.json()).then(j=>{
+    if(j&&j.ok){ st.textContent='✅ اتحفظت خطة '+CONV_MONTHS[m]+' '+yr; st.style.color='#166534';
       data.forEach(c=>{ if(c.conv)c.conv[m]=parseFloat(document.getElementById('cp-conv-'+c.code)?.value)||0; if(c.test)c.test[m]=parseFloat(document.getElementById('cp-test-'+c.code)?.value)||0; });
       setTimeout(()=>{ document.getElementById('conv-plan-modal').style.display='none'; loadConvPerf(); },800); }
     else { st.textContent='❌ تعذر الحفظ'; st.style.color='#b91c1c'; }
   }).catch(e=>{ st.textContent='❌ تعذر الحفظ'; st.style.color='#b91c1c'; });
+}
+// ══════════ خطة المبيعات لكل محطة (سنة × ١٢ شهر) ══════════
+function openSalesPlanSettings(year){
+  const modal=document.getElementById('sales-plan-modal'); modal.style.display='flex';
+  const wrap=document.getElementById('sales-plan-wrap'); wrap.innerHTML='<div style="text-align:center;padding:20px;color:#6B21A8;font-weight:800">⏳...</div>';
+  document.getElementById('sales-plan-status').textContent='';
+  const cy=(new Date()).getFullYear(); const yr=year||cy;
+  fetch(APPS_SCRIPT_URL+'?action=salesPlan&year='+yr).then(r=>r.json()).then(j=>{
+    window.__salesPlanData=(j&&j.stations)||[];
+    window.__salesPlanYear=(j&&j.year)||yr;
+    const years=[cy-2,cy-1,cy,cy+1];
+    if(!window.__salesPlanData.length){ wrap.innerHTML='<div style="text-align:center;color:#888;padding:26px;font-weight:700;line-height:1.9">لا توجد محطات بعد.<br>هتظهر المحطات هنا أول ما تدخل بيانات مبيعاتها في «بيان القابضة».</div>'; return; }
+    let h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'
+      +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8">السنة:</label>'
+      +'<select id="sp-year" onchange="openSalesPlanSettings(this.value)" style="border:1px solid #E9D5FF;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#5B21B6;background:#FAF5FF">'
+      +years.map(y=>'<option value="'+y+'"'+(y==window.__salesPlanYear?' selected':'')+'>'+y+'</option>').join('')+'</select>'
+      +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8;margin-right:4px">المحطة:</label>'
+      +'<select id="sp-stn" onchange="salesPlanFill()" style="flex:1;min-width:150px;border:1px solid #E9D5FF;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#5B21B6;background:#FAF5FF">'
+      +window.__salesPlanData.map((s,i)=>'<option value="'+i+'">'+s.name+'</option>').join('')+'</select></div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>'
+      +'<th style="text-align:right;padding:7px 8px;background:#6B21A8;color:#fff">الشهر</th>'
+      +'<th style="padding:7px 8px;background:#6B21A8;color:#fff">خطة المبيعات (م³)</th></tr></thead><tbody id="sp-tbody"></tbody>'
+      +'<tfoot><tr style="background:#FAF5FF;font-weight:800;color:#5B21B6"><td style="text-align:right;padding:7px 8px;border-top:2px solid #6B21A8">إجمالى السنة</td><td id="sp-tot" style="text-align:center;border-top:2px solid #6B21A8;direction:ltr">0</td></tr></tfoot></table>';
+    wrap.innerHTML=h; salesPlanFill();
+  }).catch(e=>{ wrap.innerHTML='<div style="color:#b91c1c;text-align:center;padding:20px">تعذر التحميل</div>'; });
+}
+function salesPlanFill(){
+  const sel=document.getElementById('sp-stn'); if(!sel) return; const idx=parseInt(sel.value,10)||0;
+  const st=(window.__salesPlanData||[])[idx]; const tb=document.getElementById('sp-tbody'); if(!tb||!st) return;
+  const mo=st.months||[];
+  tb.innerHTML=CONV_MONTHS.map((m,i)=>'<tr style="background:'+(i%2?'#FAFBFF':'#fff')+'"><td style="text-align:right;padding:6px 8px;border:1px solid #EEE;font-weight:700">'+m+'</td>'
+    +'<td style="border:1px solid #EEE;padding:4px;text-align:center"><input type="number" min="0" oninput="salesPlanTot()" id="sp-m-'+i+'" value="'+(mo[i]||0)+'" style="width:120px;border:1px solid #E9D5FF;border-radius:7px;padding:5px;text-align:center;font-weight:800;direction:ltr"></td></tr>').join('');
+  salesPlanTot();
+}
+function salesPlanTot(){
+  let t=0; for(let i=0;i<12;i++){ t+=parseFloat(document.getElementById('sp-m-'+i)?.value)||0; }
+  const el=document.getElementById('sp-tot'); if(el)el.textContent=t.toLocaleString('en-US');
+}
+function saveSalesPlan(){
+  const sel=document.getElementById('sp-stn'); if(!sel) return; const idx=parseInt(sel.value,10)||0;
+  const st=(window.__salesPlanData||[])[idx]; if(!st) return;
+  const yr=parseInt(document.getElementById('sp-year')?.value,10)||window.__salesPlanYear||(new Date()).getFullYear();
+  const months=[]; for(let i=0;i<12;i++){ months[i]=parseFloat(document.getElementById('sp-m-'+i)?.value)||0; }
+  st.months=months;
+  const stt=document.getElementById('sales-plan-status'); stt.textContent='⏳ جارى حفظ خطة '+st.name+' '+yr+'...'; stt.style.color='#6B21A8';
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'salesPlan',year:yr,stations:[{code:st.code,name:st.name,months:months}]})}).then(r=>r.json()).then(j=>{
+    if(j&&j.ok){ stt.textContent='✅ اتحفظت خطة '+st.name+' '+yr; stt.style.color='#166534'; }
+    else { stt.textContent='❌ تعذر الحفظ'; stt.style.color='#b91c1c'; }
+  }).catch(e=>{ stt.textContent='❌ تعذر الحفظ'; stt.style.color='#b91c1c'; });
 }
 function downloadConvMonthImage(){
   const rep=window.__convRepMgr; if(!rep){ alert('جارى تحضير البيانات — افتح التاب وحاول تانى'); return; }
