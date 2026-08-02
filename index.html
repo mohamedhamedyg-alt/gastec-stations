@@ -977,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V184</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V185</span>
       </div>
     </div>
   </div>
@@ -1514,7 +1514,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 184; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 185; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4688,29 +4688,43 @@ function loadSupSalesPlan(stationName){
     if(!stns.length){ box.innerHTML='<div style="text-align:center;color:#888;padding:18px;font-weight:700">لا توجد بيانات مبيعات بعد.</div>'; return; }
     let best=0, bestScore=-1; const target=_supNorm(stationName);
     stns.forEach((s,i)=>{ const sc=_supScore(target,_supNorm(s.name)); if(sc>bestScore){bestScore=sc;best=i;} });
+    window.__supFr=null; window.__supTo=null;   // إعادة ضبط الفترة للمحطة الجديدة
     renderSupSalesPlan(best);
   }).catch(e=>{ box.innerHTML='<div style="color:#b91c1c;text-align:center;padding:18px">تعذر التحميل</div>'; });
 }
+function supSetPeriod(fr,to){
+  if(fr!=null && fr!=='') window.__supFr=parseInt(fr,10);
+  if(to!=null && to!=='') window.__supTo=parseInt(to,10);
+  if(window.__supFr>window.__supTo){ const t=window.__supFr; window.__supFr=window.__supTo; window.__supTo=t; }
+  renderSupSalesPlan(window.__supIdx||0);
+}
 function renderSupSalesPlan(idx){
   const box=document.getElementById('sup-sales-plan'); if(!box) return;
+  window.__supIdx=idx;
   const data=window.__supSales||[]; const yr=window.__supSalesYear||(new Date()).getFullYear();
-  const s=data[idx]; if(!s){ box.innerHTML='—'; return; }
+  const s=data[idx]; if(!s){ box.innerHTML='<div style="text-align:center;color:#888;padding:16px;font-weight:700;line-height:1.9">لم يتم التعرّف على محطتك في بيانات المبيعات بعد.<br>تأكد إن اسم المحطة اتدخل في خطة المبيعات.</div>'; return; }
   const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  const now=new Date(); let cm=(yr===now.getFullYear())?now.getMonth():11;
-  for(let m=Math.min(cm,11);m>=0;m--){ if((s.ach[m]||0)>0){ cm=m; break; } }
-  const dim=new Date(yr,cm+1,0).getDate();
-  const dayPlan=s.plan[cm]||0, dayAch=s.ach[cm]||0, monPlan=dayPlan*dim, monAch=dayAch*dim;
-  const pctD=dayPlan>0?Math.round(dayAch/dayPlan*100):0, pctM=monPlan>0?Math.round(monAch/monPlan*100):0;
-  const col=v=>v>=100?'#166534':(v>=80?'#B45309':'#B91C1C');
   const f=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  const col=v=>v>=100?'#166534':(v>=80?'#B45309':'#B91C1C');
+  // إجماليات شهرية (يومي × أيام الشهر)
   const planM=[],achM=[]; for(let m=0;m<12;m++){ const d=new Date(yr,m+1,0).getDate(); planM.push((s.plan[m]||0)*d); achM.push((s.ach[m]||0)*d); }
-  const sel=data.length>1?('<div style="margin-bottom:8px"><label style="font-size:11.5px;font-weight:800;color:#6B21A8">محطتك: </label><select onchange="renderSupSalesPlan(parseInt(this.value,10))" style="width:100%;margin-top:4px;border:1px solid #E9D5FF;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#5B21B6;background:#FAF5FF">'+data.map((x,i)=>'<option value="'+i+'"'+(i===idx?' selected':'')+'>'+x.name+'</option>').join('')+'</select></div>'):'';
-  box.innerHTML=sel+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
-    +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pctD)+';direction:ltr">'+pctD+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">تحقيق اليوم ('+MN[cm]+')</div></div>'
-    +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pctM)+';direction:ltr">'+pctM+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">تحقيق الشهر ('+MN[cm]+')</div></div></div>'
-    +'<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">خطة اليوم: '+f(dayPlan)+' · محقق اليوم: '+f(dayAch)+' م³</div>'
+  // الفترة الافتراضية: من يناير لآخر شهر فيه محقق
+  let frM=window.__supFr, toM=window.__supTo;
+  if(frM==null||toM==null){ let last=0; for(let m=0;m<12;m++){ if((s.ach[m]||0)>0) last=m; } frM=0; toM=last; window.__supFr=frM; window.__supTo=toM; }
+  // إجماليات الفترة
+  let pP=0,pA=0; for(let m=frM;m<=toM;m++){ pP+=planM[m]; pA+=achM[m]; }
+  const pct=pP>0?Math.round(pA/pP*100):0;
+  const mkSel=(id,cur,cb)=>'<select onchange="'+cb+'" style="border:1px solid #E9D5FF;border-radius:9px;padding:7px;font-family:Cairo;font-weight:800;color:#5B21B6;background:#FAF5FF">'+MN.map((m,i)=>'<option value="'+i+'"'+(i===cur?' selected':'')+'>'+m+'</option>').join('')+'</select>';
+  box.innerHTML='<div style="font-size:12.5px;font-weight:800;color:#4C1D95;margin-bottom:8px">🏭 محطتك: '+s.name+'</div>'
+    +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><label style="font-size:12px;font-weight:800;color:#6B21A8">الفترة من:</label>'+mkSel('f',frM,"supSetPeriod(this.value,null)")
+    +'<label style="font-size:12px;font-weight:800;color:#6B21A8">إلى:</label>'+mkSel('t',toM,"supSetPeriod(null,this.value)")+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
+    +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:16px;font-weight:800;color:#4C1D95;direction:ltr">'+f(pP)+'</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">خطة الفترة (م³)</div></div>'
+    +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:16px;font-weight:800;color:#4C1D95;direction:ltr">'+f(pA)+'</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">المحقق (م³)</div></div>'
+    +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pct)+';direction:ltr">'+pct+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">نسبة التحقيق</div></div></div>'
+    +'<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">الفترة: '+MN[frM]+' → '+MN[toM]+'</div>'
     +'<div id="sup-sales-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:8px 4px 2px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>';
-  drawPlanAchChart('sup-sales-chart', planM, achM, MN);
+  drawPlanAchChart('sup-sales-chart', planM.slice(frM,toM+1), achM.slice(frM,toM+1), MN.slice(frM,toM+1));
 }
 // ══════════ تعديل خطة/محقق المبيعات (يومي، لكل محطة × سنة) ══════════
 function openSalesEdit(mode, year){
