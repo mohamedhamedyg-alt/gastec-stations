@@ -505,7 +505,11 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:11.5px;color:#0F766E;font-weight:700;background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:7px 10px;margin-bottom:8px;line-height:1.8">محطتك متظللة باللون الأصفر ◄ — قارن قراءاتك بباقى المحطات اللى بنفس موديل الضاغط.</div>
       <div id="sup-comp-content" style="font-size:13px"></div>
     </div>
-    <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">📈 منحنى مبيعات محطتى</div>
+    <div style="background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">🎯 خطة ومحقق محطتى (شهري)</div>
+    <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+      <div id="sup-sales-plan"><div style="text-align:center;padding:18px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div></div>
+    </div>
+    <div style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">📉 منحنى مبيعات محطتى اليومي</div>
     <div style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
       <div id="sales-sup"></div>
     </div>
@@ -973,7 +977,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V183</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V184</span>
       </div>
     </div>
   </div>
@@ -1510,7 +1514,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 183; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 184; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4667,10 +4671,46 @@ function drawPlanAchChart(elId, plan, ach, labels){
   let grid='';
   for(let g=0;g<=4;g++){ const gv=minV+(maxV-minV)*g/4, gy=Y(gv); grid+='<line x1="'+PADL+'" y1="'+gy+'" x2="'+(W-PADR)+'" y2="'+gy+'" stroke="#EDE4F5"/><text x="'+(PADL-6)+'" y="'+(gy+3)+'" text-anchor="end" font-size="9" fill="#9C7BC0" font-weight="700">'+(gv>=1000?(gv/1000).toFixed(0)+'k':Math.round(gv))+'</text>'; }
   const drawLine=(arr,color)=>{ const pts=arr.map((v,i)=>X(i)+','+Y(v)); return '<path d="M'+pts.join(' L')+'" fill="none" stroke="'+color+'" stroke-width="2.6" stroke-linejoin="round"/>'+arr.map((v,i)=>'<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="3" fill="'+color+'"/>').join(''); };
-  let xlab=''; for(let i=0;i<n;i++){ xlab+='<text x="'+X(i)+'" y="'+(H-24)+'" text-anchor="middle" font-size="9.5" fill="#7C5AA0" font-weight="700">'+labels[i].slice(0,3)+'</text>'; }
+  let xlab=''; for(let i=0;i<n;i++){ xlab+='<text x="'+X(i)+'" y="'+(H-24)+'" text-anchor="middle" font-size="10" fill="#7C5AA0" font-weight="700" direction="rtl">'+labels[i]+'</text>'; }
   const legend='<rect x="'+PADL+'" y="'+(H-13)+'" width="14" height="4" fill="#B45309"/><text x="'+(PADL+18)+'" y="'+(H-9)+'" font-size="10.5" fill="#4C1D95" font-weight="800">الخطة</text>'
     +'<rect x="'+(PADL+80)+'" y="'+(H-13)+'" width="14" height="4" fill="#7C3AED"/><text x="'+(PADL+98)+'" y="'+(H-9)+'" font-size="10.5" fill="#4C1D95" font-weight="800">المحقق</text>';
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="direction:ltr">'+grid+drawLine(plan,'#B45309')+drawLine(ach,'#7C3AED')+xlab+legend+'</svg>';
+}
+// ══════════ صفحة المشرف: خطة ومحقق محطته (شهري) + نسبة يومي وشهري ══════════
+function _supNorm(s){ s=String(s||'').replace(/[إأآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي'); s=s.replace(/\([^)]*\)/g,'').replace(/[\/\-.]/g,' ').replace(/[0-9]/g,''); return s.replace(/\s+/g,' ').trim(); }
+function _supScore(a,b){ const ta=a.split(' ').filter(x=>x.length>1), tb=b.split(' ').filter(x=>x.length>1); let n=0; ta.forEach(w=>{ if(tb.indexOf(w)>=0) n++; }); return n; }
+function loadSupSalesPlan(stationName){
+  const box=document.getElementById('sup-sales-plan'); if(!box) return;
+  box.innerHTML='<div style="text-align:center;padding:18px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div>';
+  const cy=(new Date()).getFullYear();
+  fetch(APPS_SCRIPT_URL+'?action=salesPlan&year='+cy).then(r=>r.json()).then(j=>{
+    const stns=(j&&j.stations)||[]; window.__supSales=stns; window.__supSalesYear=(j&&j.year)||cy;
+    if(!stns.length){ box.innerHTML='<div style="text-align:center;color:#888;padding:18px;font-weight:700">لا توجد بيانات مبيعات بعد.</div>'; return; }
+    let best=0, bestScore=-1; const target=_supNorm(stationName);
+    stns.forEach((s,i)=>{ const sc=_supScore(target,_supNorm(s.name)); if(sc>bestScore){bestScore=sc;best=i;} });
+    renderSupSalesPlan(best);
+  }).catch(e=>{ box.innerHTML='<div style="color:#b91c1c;text-align:center;padding:18px">تعذر التحميل</div>'; });
+}
+function renderSupSalesPlan(idx){
+  const box=document.getElementById('sup-sales-plan'); if(!box) return;
+  const data=window.__supSales||[]; const yr=window.__supSalesYear||(new Date()).getFullYear();
+  const s=data[idx]; if(!s){ box.innerHTML='—'; return; }
+  const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const now=new Date(); let cm=(yr===now.getFullYear())?now.getMonth():11;
+  for(let m=Math.min(cm,11);m>=0;m--){ if((s.ach[m]||0)>0){ cm=m; break; } }
+  const dim=new Date(yr,cm+1,0).getDate();
+  const dayPlan=s.plan[cm]||0, dayAch=s.ach[cm]||0, monPlan=dayPlan*dim, monAch=dayAch*dim;
+  const pctD=dayPlan>0?Math.round(dayAch/dayPlan*100):0, pctM=monPlan>0?Math.round(monAch/monPlan*100):0;
+  const col=v=>v>=100?'#166534':(v>=80?'#B45309':'#B91C1C');
+  const f=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+  const planM=[],achM=[]; for(let m=0;m<12;m++){ const d=new Date(yr,m+1,0).getDate(); planM.push((s.plan[m]||0)*d); achM.push((s.ach[m]||0)*d); }
+  const sel=data.length>1?('<div style="margin-bottom:8px"><label style="font-size:11.5px;font-weight:800;color:#6B21A8">محطتك: </label><select onchange="renderSupSalesPlan(parseInt(this.value,10))" style="width:100%;margin-top:4px;border:1px solid #E9D5FF;border-radius:9px;padding:8px;font-family:Cairo;font-weight:800;color:#5B21B6;background:#FAF5FF">'+data.map((x,i)=>'<option value="'+i+'"'+(i===idx?' selected':'')+'>'+x.name+'</option>').join('')+'</select></div>'):'';
+  box.innerHTML=sel+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+    +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pctD)+';direction:ltr">'+pctD+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">تحقيق اليوم ('+MN[cm]+')</div></div>'
+    +'<div style="background:#FAF5FF;border:1px solid #E9D5FF;border-radius:12px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:800;color:'+col(pctM)+';direction:ltr">'+pctM+'%</div><div style="font-size:10px;color:#7C5AA0;font-weight:700">تحقيق الشهر ('+MN[cm]+')</div></div></div>'
+    +'<div style="font-size:11px;color:#6B21A8;font-weight:700;text-align:center;margin-bottom:8px">خطة اليوم: '+f(dayPlan)+' · محقق اليوم: '+f(dayAch)+' م³</div>'
+    +'<div id="sup-sales-chart" style="border:1px solid #F0E7FA;border-radius:12px;padding:8px 4px 2px;background:linear-gradient(180deg,#FEFCFF,#FAF5FF)"></div>';
+  drawPlanAchChart('sup-sales-chart', planM, achM, MN);
 }
 // ══════════ تعديل خطة/محقق المبيعات (يومي، لكل محطة × سنة) ══════════
 function openSalesEdit(mode, year){
@@ -5088,7 +5128,7 @@ function openSupSection(tab){
   if(tab==='holding'){ const p=document.getElementById('my-holding-panel'); if(p&&p.style.display==='none') toggleMyHolding(); }
   if(tab==='fire'){ const p=document.getElementById('fire-safety-panel'); if(p&&p.style.display==='none') toggleFireSafety(); }
   if(tab==='tadamon'){ const p=document.getElementById('tadamon-panel'); if(p&&p.style.display==='none') toggleTadamon(); }
-  if(tab==='mycharts' && currentStation && !window.__salesSupLoaded){ window.__salesSupLoaded=true; initSalesPanel('sales-sup', currentStation.code, currentStation.name); }
+  if(tab==='mycharts' && currentStation && !window.__salesSupLoaded){ window.__salesSupLoaded=true; initSalesPanel('sales-sup', currentStation.code, currentStation.name); loadSupSalesPlan(currentStation.name); }
 }
 // المشرف: فتح مقارنة ضواغط محطته بمثيلاتها
 function openSupCompare(){
