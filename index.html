@@ -973,7 +973,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V181</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V182</span>
       </div>
     </div>
   </div>
@@ -1507,7 +1507,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 181; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 182; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4574,10 +4574,13 @@ function saveConvAchEdit(){
   }).catch(e=>{ st.textContent='❌ تعذر الحفظ'; st.style.color='#b91c1c'; });
 }
 // ══════════ لوحة KPI المبيعات (خطة/محقق يومي وشهري + النِسب) ══════════
-function loadSalesKpi(){
+function loadSalesKpi(month, year){
   const box=document.getElementById('sales-kpi-board'); if(!box) return;
   box.innerHTML='<div style="text-align:center;padding:26px;color:#6B21A8;font-weight:800">⏳ جارى التحميل...</div>';
-  fetch(APPS_SCRIPT_URL+'?action=salesKpi').then(r=>r.json()).then(rep=>{ renderSalesKpi(rep); }).catch(e=>{ box.innerHTML='<div style="text-align:center;color:#b91c1c;padding:24px;font-weight:700">❌ تعذر التحميل</div>'; });
+  let u=APPS_SCRIPT_URL+'?action=salesKpi';
+  if(year!=null && year!=='') u+='&year='+year;
+  if(month!=null && month!=='') u+='&month='+month;
+  fetch(u).then(r=>r.json()).then(rep=>{ renderSalesKpi(rep); }).catch(e=>{ box.innerHTML='<div style="text-align:center;color:#b91c1c;padding:24px;font-weight:700">❌ تعذر التحميل</div>'; });
 }
 function renderSalesKpi(rep){
   const box=document.getElementById('sales-kpi-board'); if(!box) return;
@@ -4600,7 +4603,14 @@ function renderSalesKpi(rep){
       +'<td style="'+cV+';font-weight:800;color:'+col(mP)+'">'+mP+'%</td></tr>';
   });
   const tDP=pc(tot.dayAch,tot.dayPlan), tMP=pc(tot.monAch,tot.monPlan);
-  box.innerHTML='<div style="font-size:12px;color:#6B21A8;font-weight:800;margin-bottom:6px">📅 شهر '+MN[mon-1]+' — الأساس اليومي: خطة الشهر ÷ '+dim+' يوم (الشهر كامل)</div>'
+  const cy=(new Date()).getFullYear(); const yr=(rep&&rep.year)||cy; const years=[cy-2,cy-1,cy,cy+1];
+  const selSt='border:1px solid #E9D5FF;border-radius:9px;padding:7px;font-family:Cairo;font-weight:800;color:#5B21B6;background:#FAF5FF';
+  const sel='<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">'
+    +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8">السنة:</label>'
+    +'<select id="sk-year" onchange="loadSalesKpi(document.getElementById(\'sk-month\').value, this.value)" style="'+selSt+'">'+years.map(y=>'<option value="'+y+'"'+(y==yr?' selected':'')+'>'+y+'</option>').join('')+'</select>'
+    +'<label style="font-size:12.5px;font-weight:800;color:#6B21A8;margin-right:4px">الشهر:</label>'
+    +'<select id="sk-month" onchange="loadSalesKpi(this.value, document.getElementById(\'sk-year\').value)" style="'+selSt+';flex:1;min-width:110px">'+MN.map((m,i)=>'<option value="'+i+'"'+((i===mon-1)?' selected':'')+'>'+m+'</option>').join('')+'</select></div>';
+  box.innerHTML=sel+'<div style="font-size:11.5px;color:#6B21A8;font-weight:700;margin-bottom:6px">الأساس اليومي: خطة الشهر ÷ '+dim+' يوم (الشهر كامل بكل أيامه)</div>'
     +'<div style="overflow:auto;max-height:70vh;border:1px solid #E9D5FF;border-radius:12px"><table style="border-collapse:separate;border-spacing:0;font-size:12px;width:100%;min-width:560px">'
     +'<thead><tr style="position:sticky;top:0;z-index:3">'
     +'<th style="padding:8px 9px;background:#4C1D95;color:#fff;text-align:right;position:sticky;right:0;z-index:4">المحطة</th>'
