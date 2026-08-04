@@ -477,6 +477,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800">⚡ محضر التضامن</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">تسجيل قراءة عداد الكهرباء عند زيارة المندوب</div>
     </div>
+    <div onclick="openSupSection('calib')" style="background:linear-gradient(135deg,#475569,#64748B);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">⚙️ المعايرة وشهاداتها</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">شهادات المعايرة (PSV · حساسات الغاز · الخزانات · Pressure Gauges · الديسبنسرات) وجدول الاستحقاق</div>
+    </div>
+    <div onclick="openSupSection('license')" style="background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">📜 التراخيص والموافقات</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">الحماية المدنية · رخصة الإنشاء · رخصة التشغيل · موافقة القابضة · رخصة الإعلانات + جدول الاستحقاق</div>
+    </div>
   </div>
 
   <!-- ══════ منطقة الأقسام (مخفية حتى يختار من القائمة) ══════ -->
@@ -531,6 +539,105 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div id="fire-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
   </div>
   </div><!-- /tab-fire -->
+
+  <!-- تاب المعايرة -->
+  <div class="sup-tab-content" id="tab-calib">
+  <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
+  <button onclick="toggleDocForm('calib')" style="width:100%;background:linear-gradient(135deg,#475569,#64748B);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">➕ تسجيل شهادة معايرة جديدة</button>
+  <div id="calib-form-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #CBD5E1">
+    <div style="background:#F1F5F9;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#334155;font-weight:700;line-height:1.7">صوّر الشهادة وارفعها، واملأ البيانات. لو مفيش تاريخ استحقاق مكتوب هيتحسب تلقائيًا من تاريخ الإصدار + مدة البند.</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label><span class="req">*</span> البند</label>
+      <select class="form-control" id="calib-item" style="font-weight:700" onchange="docItemChange('calib')">
+        <option value="psv">صمامات الأمان PSV (سنة)</option>
+        <option value="gasdet">حساسات تسريب الغاز Gas Detector (سنة)</option>
+        <option value="tank">خزانات الغاز (5 سنوات)</option>
+        <option value="gauge">Pressure Gauges (سنة)</option>
+        <option value="dispenser">معايرة الديسبنسرات (سنة)</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>الوصف / المرحلة</label>
+      <input type="text" class="form-control" id="calib-desc" placeholder="مثال: المرحلة الأولى 1st stage · حساس رقم 1 · بنك الغاز · ديسبنسر 3" style="font-weight:700">
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Serial No.</label>
+      <input type="text" class="form-control" id="calib-serial" placeholder="الرقم التسلسلي على الشهادة" style="direction:ltr;font-weight:700">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="form-group" style="flex:1;min-width:140px;margin-bottom:10px">
+        <label><span class="req">*</span> تاريخ الإصدار (Issued)</label>
+        <input type="date" class="form-control" id="calib-issued" style="direction:ltr;font-weight:700" onchange="docItemChange('calib')">
+      </div>
+      <div class="form-group" style="flex:1;min-width:140px;margin-bottom:10px">
+        <label>تاريخ الاستحقاق (Due)</label>
+        <input type="date" class="form-control" id="calib-due" style="direction:ltr;font-weight:700">
+        <div style="font-size:10.5px;color:#64748B;font-weight:700;margin-top:3px">اتركه فاضي ليتحسب تلقائيًا</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>📷 صورة الشهادة</label>
+      <input type="file" accept="image/*" capture="environment" id="calib-photo" onchange="docPhotoPreview('calib')" style="font-size:12px;width:100%">
+      <div id="calib-photo-prev" style="margin-top:8px"></div>
+    </div>
+    <button onclick="submitDoc('calib')" style="width:100%;background:linear-gradient(135deg,#475569,#64748B);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:4px">حفظ الشهادة</button>
+    <div id="calib-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
+  </div>
+  <div style="background:linear-gradient(135deg,#334155,#475569);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">📋 شهادات محطتى وجدول الاستحقاق</div>
+  <div id="calib-list" style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.1)"><div style="text-align:center;padding:18px;color:#64748B;font-weight:700">⏳ جارى التحميل...</div></div>
+  </div><!-- /tab-calib -->
+
+  <!-- تاب التراخيص والموافقات -->
+  <div class="sup-tab-content" id="tab-license">
+  <button class="back-hub-btn" onclick="backToHub()">رجوع للقائمة</button>
+  <button onclick="toggleDocForm('license')" style="width:100%;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border:none;border-radius:var(--radius);padding:11px;font-family:Cairo;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:12px">➕ تسجيل ترخيص / موافقة جديدة</button>
+  <div id="license-form-panel" style="display:none;background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1);border:1px solid #DDD6FE">
+    <div style="background:#F5F3FF;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#5B21B6;font-weight:700;line-height:1.7">صوّر الوثيقة وارفعها. بعض التراخيص «دائمة» (بدون استحقاق) — اختر المدة المناسبة.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="form-group" style="flex:1;min-width:150px;margin-bottom:10px">
+        <label><span class="req">*</span> النوع</label>
+        <select class="form-control" id="license-item" style="font-weight:700" onchange="docItemChange('license')">
+          <option value="civil">موافقة الحماية المدنية (سنوية)</option>
+          <option value="build">رخصة الإنشاء (دائمة)</option>
+          <option value="operate">رخصة التشغيل (سنوية / دائمة)</option>
+          <option value="holding">موافقة الشركة القابضة (دائمة)</option>
+          <option value="ads">رخصة إعلانات المحطة (سنوية)</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1;min-width:120px;margin-bottom:10px">
+        <label>المدة</label>
+        <select class="form-control" id="license-perm" style="font-weight:700" onchange="docPermChange('license')">
+          <option value="annual">سنوية (لها استحقاق)</option>
+          <option value="perm">دائمة (بدون استحقاق)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>رقم الترخيص / الوثيقة</label>
+      <input type="text" class="form-control" id="license-serial" placeholder="رقم الوثيقة" style="direction:ltr;font-weight:700">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="form-group" style="flex:1;min-width:140px;margin-bottom:10px">
+        <label><span class="req">*</span> تاريخ الإصدار (Issued)</label>
+        <input type="date" class="form-control" id="license-issued" style="direction:ltr;font-weight:700" onchange="docItemChange('license')">
+      </div>
+      <div class="form-group" style="flex:1;min-width:140px;margin-bottom:10px">
+        <label>تاريخ الاستحقاق (Due)</label>
+        <input type="date" class="form-control" id="license-due" style="direction:ltr;font-weight:700">
+        <div style="font-size:10.5px;color:#64748B;font-weight:700;margin-top:3px">للدائمة يُترك فاضي</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>📷 صورة الوثيقة</label>
+      <input type="file" accept="image/*" capture="environment" id="license-photo" onchange="docPhotoPreview('license')" style="font-size:12px;width:100%">
+      <div id="license-photo-prev" style="margin-top:8px"></div>
+    </div>
+    <button onclick="submitDoc('license')" style="width:100%;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:4px">حفظ الوثيقة</button>
+    <div id="license-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
+  </div>
+  <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">📜 تراخيص محطتى وجدول الاستحقاق</div>
+  <div id="license-list" style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.1)"><div style="text-align:center;padding:18px;color:#64748B;font-weight:700">⏳ جارى التحميل...</div></div>
+  </div><!-- /tab-license -->
 
   <!-- تاب محضر التضامن -->
   <div class="sup-tab-content" id="tab-tadamon">
@@ -975,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V204</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V205</span>
       </div>
     </div>
   </div>
@@ -1151,10 +1258,15 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800">⚡ محاضر التضامن</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">بيان محاضر التضامن (الكهرباء الشهرية) + حالة الإرسال</div>
     </div>
-    <!-- قسم المعايرة (Placeholder — يُبنى لاحقاً) -->
-    <div style="background:linear-gradient(135deg,#475569,#64748B);color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.12);opacity:.95">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-size:17px;font-weight:800">⚙️ المعايرة</div><span style="background:#F59E0B;color:#1a1a1a;font-size:11px;font-weight:800;padding:3px 11px;border-radius:20px;white-space:nowrap">🔜 قريباً</span></div>
-      <div style="font-size:12px;opacity:.9;margin-top:5px;line-height:1.7">معايرة الخزانات (بنكات الغاز · الاسكربر · البلو داون · الهواء) · حساسات تسريب الغاز Gas Detectors · صمامات الأمان PSV · Pressure Gauges</div>
+    <!-- قسم المعايرة -->
+    <div onclick="openMgrSection('calib')" style="background:linear-gradient(135deg,#475569,#64748B);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">⚙️ المعايرة</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">تجميعة استحقاق شهادات المعايرة لكل المحطات (PSV · حساسات الغاز · الخزانات · Pressure Gauges · الديسبنسرات) + تنبيه</div>
+    </div>
+    <!-- قسم التراخيص والموافقات -->
+    <div onclick="openMgrSection('license')" style="background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">📜 التراخيص والموافقات</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">تجميعة استحقاق تراخيص وموافقات كل المحطات (الحماية المدنية · الإنشاء · التشغيل · القابضة · الإعلانات) + تنبيه</div>
     </div>
     <div onclick="openMgrSection('holding')" style="background:linear-gradient(135deg,#6B21A8,#9333EA);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
       <div style="font-size:17px;font-weight:800">📊 بيان القابضة</div>
@@ -1364,6 +1476,22 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div id="convperf-capture-holder" style="position:fixed;left:-9999px;top:0"></div>
   </div>
 
+  <!-- تاب المعايرة (المسؤول) -->
+  <div class="mgr-tab-content" id="mtab-calib">
+  <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
+    <div class="mgr-tab-title">⚙️ المعايرة — تجميعة المنطقة</div>
+    <div style="display:flex;justify-content:flex-end;margin:6px 0"><button onclick="loadDocMgr('calib')" style="background:#64748B;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button></div>
+    <div id="calib-mgr-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#475569;font-weight:800">⏳ جارى التحميل...</div></div>
+  </div>
+
+  <!-- تاب التراخيص والموافقات (المسؤول) -->
+  <div class="mgr-tab-content" id="mtab-license">
+  <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
+    <div class="mgr-tab-title">📜 التراخيص والموافقات — تجميعة المنطقة</div>
+    <div style="display:flex;justify-content:flex-end;margin:6px 0"><button onclick="loadDocMgr('license')" style="background:#7C3AED;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button></div>
+    <div id="license-mgr-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#5B21B6;font-weight:800">⏳ جارى التحميل...</div></div>
+  </div>
+
   <!-- نافذة إعدادات خطة التحويل والاختبار -->
   <div id="conv-plan-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99999;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
@@ -1547,7 +1675,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 204; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 205; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5134,7 +5262,38 @@ function openMgrSection(tab){
   if(tab==='tadamon' && !window.__tadLoaded){ window.__tadLoaded=true; loadTadamonMgr(); }
   if(tab==='sales'){ if(!window.__salesMgrLoaded){ window.__salesMgrLoaded=true; initSalesPanel('sales-mgr','',''); } loadSalesKpi(); loadSalesMonthly(); }
   if(tab==='convperf'){ loadConvPerf(); }
+  if(tab==='calib'){ loadDocMgr('calib'); }
+  if(tab==='license'){ loadDocMgr('license'); }
   window.scrollTo({top:0,behavior:'smooth'});
+}
+// ══════════ الوثائق (المسؤول): تجميعة استحقاق كل المحطات — معايرة/تراخيص ══════════
+function loadDocMgr(kind){
+  const isLic=kind==='license'; const box=document.getElementById(kind+'-mgr-content'); if(!box) return;
+  box.innerHTML='<div style="text-align:center;padding:26px;color:#475569;font-weight:800">⏳ جارى التحميل...</div>';
+  fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+kind).then(r=>r.json()).then(j=>{
+    const items=(j&&j.items)||[];
+    const late=items.filter(x=>!x.perm&&x.rem!=null&&x.rem<0), soon=items.filter(x=>!x.perm&&x.rem!=null&&x.rem>=0&&x.rem<=60);
+    const totLbl=isLic?'إجمالي الوثائق':'إجمالي الشهادات';
+    let h='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
+      +'<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#B91C1C">'+late.length+'</div><div style="font-size:11px;color:#7F1D1D;font-weight:700">متأخرة</div></div>'
+      +'<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#B45309">'+soon.length+'</div><div style="font-size:11px;color:#7A4A00;font-weight:700">قريبة (≤60 يوم)</div></div>'
+      +'<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#166534">'+items.length+'</div><div style="font-size:11px;color:#166534;font-weight:700">'+totLbl+'</div></div></div>';
+    if(!items.length){ h+='<div style="text-align:center;padding:26px;color:#64748B;font-weight:700">لا توجد '+(isLic?'تراخيص/موافقات':'شهادات')+' مسجّلة من المحطات بعد.</div>'; box.innerHTML=h; return; }
+    const hc=isLic?'#5B21B6':'#334155';
+    h+='<div style="overflow-x:auto;border:1px solid #E7EBF3;border-radius:10px"><table style="width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap"><thead><tr>'
+      +['المحطة',(isLic?'النوع':'البند'),'الرقم','الإصدار','الاستحقاق','الحالة','📷'].map((x,i)=>'<th style="padding:8px 6px;background:'+hc+';color:#fff;font-size:11.5px'+(i<2?';text-align:right':'')+'">'+x+'</th>').join('')+'</tr></thead><tbody>';
+    items.forEach((it,i)=>{ const s=_docStat(it); const bg=i%2?'#F8FAFC':'#fff';
+      h+='<tr style="background:'+bg+'"><td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+(it.name||it.code||'—')+'</td>'
+        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+it.item+(it.desc?(' <span style="color:#64748B;font-weight:400">— '+it.desc+'</span>'):'')+'</td>'
+        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.serial||'—')+'</td>'
+        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.issued||'—')+'</td>'
+        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
+        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center"><span style="background:'+s[2]+';color:'+s[1]+';padding:3px 9px;border-radius:7px;font-weight:800;font-size:11px">'+s[0]+'</span></td>'
+        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+(it.img?'<a href="'+it.img+'" target="_blank" style="font-size:16px;text-decoration:none">🖼️</a>':'—')+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+    box.innerHTML=h;
+  }).catch(e=>{ box.innerHTML='<div style="text-align:center;padding:20px;color:#B91C1C">تعذر التحميل</div>'; });
 }
 function mgrBackToHub(){
   document.getElementById('mgr-sections-area').style.display='none';
@@ -5426,6 +5585,90 @@ function openSupSection(tab){
   if(tab==='fire'){ const p=document.getElementById('fire-safety-panel'); if(p&&p.style.display==='none') toggleFireSafety(); }
   if(tab==='tadamon'){ const p=document.getElementById('tadamon-panel'); if(p&&p.style.display==='none') toggleTadamon(); }
   if(tab==='mycharts' && currentStation && !window.__salesSupLoaded){ window.__salesSupLoaded=true; initSalesPanel('sales-sup', currentStation.code, currentStation.name); loadSupSalesPlan(currentStation.name); }
+  if(tab==='calib'){ loadMyDoc('calib'); }
+  if(tab==='license'){ loadMyDoc('license'); }
+}
+// ══════════ وثائق المحطة (معايرة + تراخيص) — تسجيل + جدول الاستحقاق ══════════
+const DOC_MONTHS={psv:12,gasdet:12,tank:60,gauge:12,dispenser:12, civil:12,build:0,operate:12,holding:0,ads:12};
+const DOC_PERM_DEFAULT={build:1, holding:1}; // دائمة افتراضيًا
+function toggleDocForm(k){ const p=document.getElementById(k+'-form-panel'); if(p) p.style.display=(p.style.display==='none'||!p.style.display)?'block':'none'; }
+function docPermChange(k){ const s=document.getElementById(k+'-perm'); if(s) s.dataset.touched='1'; docItemChange(k); }
+function docItemChange(k){
+  const it=document.getElementById(k+'-item').value;
+  const months=DOC_MONTHS[it]!=null?DOC_MONTHS[it]:12;
+  const issEl=document.getElementById(k+'-issued'); const iss=issEl?issEl.value:'';
+  const dueEl=document.getElementById(k+'-due');
+  const permSel=document.getElementById(k+'-perm');
+  let isPerm=false;
+  if(permSel){ if(!permSel.dataset.touched){ permSel.value=(months===0||DOC_PERM_DEFAULT[it])?'perm':'annual'; } isPerm=permSel.value==='perm'; }
+  else { isPerm=(months===0); }
+  if(dueEl){
+    if(isPerm){ dueEl.value=''; dueEl.disabled=true; dueEl.dataset.auto=''; }
+    else { dueEl.disabled=false; if(iss && (!dueEl.value||dueEl.dataset.auto==='1')){ const d=new Date(iss); d.setMonth(d.getMonth()+(months||12)); dueEl.value=_isoDate(d); dueEl.dataset.auto='1'; } }
+  }
+}
+function docPhotoPreview(k){
+  const inp=document.getElementById(k+'-photo'); const box=document.getElementById(k+'-photo-prev');
+  if(!inp.files||!inp.files[0]){ box.innerHTML=''; return; }
+  _docCompress(inp.files[0],1400,0.72).then(u=>{ inp._compressed=u; box.innerHTML='<img src="'+u+'" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid #CBD5E1">'; }).catch(()=>{ box.innerHTML='<div style="color:#B91C1C;font-size:11px">تعذّر قراءة الصورة</div>'; });
+}
+function _docCompress(file,maxW,quality){
+  return new Promise((res,rej)=>{ const r=new FileReader();
+    r.onload=e=>{ const img=new Image(); img.onload=()=>{ let w=img.width,h=img.height; if(w>maxW){ h=Math.round(h*maxW/w); w=maxW; } const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); res(c.toDataURL('image/jpeg',quality||0.72)); }; img.onerror=rej; img.src=e.target.result; };
+    r.onerror=rej; r.readAsDataURL(file); });
+}
+function submitDoc(k){
+  const st=document.getElementById(k+'-status');
+  if(!currentStation){ st.style.color='#B91C1C'; st.textContent='❌ لا توجد محطة'; return; }
+  const item=document.getElementById(k+'-item').value;
+  const descEl=document.getElementById(k+'-desc'); const desc=descEl?descEl.value.trim():'';
+  const serial=(document.getElementById(k+'-serial').value||'').trim();
+  const issued=document.getElementById(k+'-issued').value;
+  const dueEl=document.getElementById(k+'-due'); const due=dueEl.value;
+  const permSel=document.getElementById(k+'-perm'); const perm=permSel?(permSel.value==='perm'):(DOC_MONTHS[item]===0);
+  if(!issued){ st.style.color='#B91C1C'; st.textContent='❌ أدخل تاريخ الإصدار'; return; }
+  const inp=document.getElementById(k+'-photo'); const image=inp&&inp._compressed?inp._compressed:'';
+  st.style.color='#334155'; st.textContent='⏳ جارى الحفظ'+(image?' ورفع الصورة':'')+'...';
+  const payload={ type:'calib', code:currentStation.code, name:currentStation.name, item:item, desc:desc, serial:serial, issued:issued, due:due, perm:perm, months:DOC_MONTHS[item], image:image };
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json()).then(j=>{
+    if(j&&j.ok){ st.style.color='#166534'; st.textContent='✅ اتحفظت — '+(j.perm?'دائمة (بدون استحقاق)':('الاستحقاق: '+(j.due||due||'—')));
+      if(descEl)descEl.value=''; document.getElementById(k+'-serial').value=''; document.getElementById(k+'-issued').value=''; dueEl.value=''; dueEl.dataset.auto=''; if(inp){inp.value='';inp._compressed='';} document.getElementById(k+'-photo-prev').innerHTML='';
+      setTimeout(()=>{ st.textContent=''; loadMyDoc(k); },1200);
+    } else { st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ: '+((j&&j.error)||''); }
+  }).catch(e=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذر الإرسال — تأكد من الإنترنت'; });
+}
+function loadMyDoc(k){
+  const box=document.getElementById(k+'-list'); if(!box) return; if(!currentStation){ box.innerHTML='<div style="text-align:center;padding:16px;color:#64748B">لا توجد محطة</div>'; return; }
+  box.innerHTML='<div style="text-align:center;padding:18px;color:#64748B;font-weight:700">⏳ جارى التحميل...</div>';
+  fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+k+'&code='+encodeURIComponent(currentStation.code)).then(r=>r.json()).then(j=>{ box.innerHTML=renderDocTable((j&&j.items)||[], true, k); }).catch(e=>{ box.innerHTML='<div style="text-align:center;padding:16px;color:#B91C1C">تعذر التحميل</div>'; });
+}
+function _docStat(it){ if(it.perm||(!it.due)) return ['دائمة','#3730A3','#E0E7FF']; const r=it.rem; if(r==null) return ['—','#64748B','#F1F5F9']; if(r<0) return ['متأخر '+(-r)+' يوم','#fff','#B91C1C']; if(r<=60) return ['باقي '+r+' يوم','#7A4A00','#FEF3C7']; return ['باقي '+r+' يوم','#166534','#DCFCE7']; }
+// جدول الوثائق — أخضر سليم / برتقالي قريب (≤60 يوم) / أحمر متأخر / أزرق دائمة
+function renderDocTable(items, withDelete, kind){
+  const isLic=kind==='license'; const hc=isLic?'#5B21B6':'#334155';
+  if(!items.length) return '<div style="text-align:center;padding:26px;color:#64748B;font-weight:700;line-height:1.9">لا توجد '+(isLic?'تراخيص/موافقات':'شهادات معايرة')+' مسجّلة بعد.<br><span style="font-size:12px;color:#94A3B8;font-weight:400">اضغط زر التسجيل بالأعلى.</span></div>';
+  const late=items.filter(x=>!x.perm&&x.rem!=null&&x.rem<0).length, soon=items.filter(x=>!x.perm&&x.rem!=null&&x.rem>=0&&x.rem<=60).length;
+  const cols=isLic?['النوع','الرقم','الإصدار','الاستحقاق','الحالة','📷','']:['البند','الوصف/المرحلة','Serial No.','الإصدار','الاستحقاق','الحالة','📷',''];
+  let h='<div style="font-size:12px;font-weight:700;color:#334155;margin-bottom:8px">🔴 متأخر: '+late+' · 🟠 قريب (≤60 يوم): '+soon+' · الإجمالي: '+items.length+'</div>';
+  h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap"><thead><tr>'
+    +cols.map((x,i)=>'<th style="padding:7px 6px;background:'+hc+';color:#fff;font-size:11.5px'+(i<(isLic?1:2)?';text-align:right':'')+'">'+x+'</th>').join('')+'</tr></thead><tbody>';
+  items.forEach((it,i)=>{ const s=_docStat(it); const bg=i%2?'#F8FAFC':'#fff';
+    h+='<tr style="background:'+bg+'"><td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+it.item+'</td>';
+    if(!isLic) h+='<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:right">'+(it.desc||'—')+'</td>';
+    h+='<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.serial||'—')+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.issued||'—')+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center"><span style="background:'+s[2]+';color:'+s[1]+';padding:3px 9px;border-radius:7px;font-weight:800;font-size:11px;white-space:nowrap">'+s[0]+'</span></td>'
+      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+(it.img?'<a href="'+it.img+'" target="_blank" style="text-decoration:none;font-size:16px">🖼️</a>':'—')+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+(withDelete?'<button onclick="deleteDocRow(\''+kind+'\',\''+encodeURIComponent(it.itemId)+'\',\''+encodeURIComponent(it.desc||'')+'\',\''+encodeURIComponent(it.serial||'')+'\')" style="background:#FEE2E2;color:#B91C1C;border:none;border-radius:6px;padding:4px 8px;font-weight:800;cursor:pointer;font-size:11px">حذف</button>':'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+function deleteDocRow(kind, itemId, desc, serial){
+  if(!currentStation) return;
+  const st=document.getElementById(kind+'-status'); if(st){ st.style.color='#334155'; st.textContent='⏳ جارى الحذف...'; }
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'calib_delete', code:currentStation.code, item:decodeURIComponent(itemId), desc:decodeURIComponent(desc), serial:decodeURIComponent(serial)})}).then(r=>r.json()).then(j=>{ if(st)st.textContent=''; loadMyDoc(kind); }).catch(e=>{ if(st){st.style.color='#B91C1C';st.textContent='تعذر الحذف';} });
 }
 // المشرف: فتح مقارنة ضواغط محطته بمثيلاتها
 function openSupCompare(){
