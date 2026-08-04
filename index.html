@@ -558,11 +558,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <option value="dispenser">معايرة الديسبنسرات (سنة)</option>
       </select>
     </div>
-    <div class="form-group" style="margin-bottom:10px">
-      <label>الوصف / المرحلة</label>
-      <input type="text" class="form-control" id="calib-desc" placeholder="مثال: المرحلة الأولى 1st stage · حساس رقم 1 · بنك الغاز · ديسبنسر 3" style="font-weight:700">
-    </div>
-    <div class="form-group" style="margin-bottom:10px">
+    <!-- حقول ديناميكية حسب البند (مرحلة/ضاغط/نوع الخزان/رقم الهوز...) -->
+    <div id="calib-dyn"></div>
+    <div class="form-group" id="calib-serial-wrap" style="margin-bottom:10px">
       <label>Serial No.</label>
       <input type="text" class="form-control" id="calib-serial" placeholder="الرقم التسلسلي على الشهادة" style="direction:ltr;font-weight:700">
     </div>
@@ -574,11 +572,11 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div class="form-group" style="flex:1;min-width:140px;margin-bottom:10px">
         <label>تاريخ الاستحقاق (Due)</label>
         <input type="date" class="form-control" id="calib-due" style="direction:ltr;font-weight:700">
-        <div style="font-size:10.5px;color:#64748B;font-weight:700;margin-top:3px">اتركه فاضي ليتحسب تلقائيًا</div>
+        <div id="calib-due-hint" style="font-size:10.5px;color:#64748B;font-weight:700;margin-top:3px">اتركه فاضي ليتحسب تلقائيًا</div>
       </div>
     </div>
-    <div class="form-group" style="margin-bottom:10px">
-      <label>📷 صورة الشهادة</label>
+    <div class="form-group" id="calib-photo-block" style="margin-bottom:10px">
+      <label id="calib-photo-label">📷 صورة الشهادة</label>
       <input type="file" accept="image/*" capture="environment" id="calib-photo" onchange="docPhotoPreview('calib')" style="font-size:12px;width:100%">
       <div id="calib-photo-prev" style="margin-top:8px"></div>
     </div>
@@ -1084,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V208</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V209</span>
       </div>
     </div>
   </div>
@@ -1679,7 +1677,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 208; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 209; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -4985,7 +4983,7 @@ function captureSalesImg(elId, fname, title, subtitle){
   // فاصل أمان أسفل المحتوى قبل التوقيع
   var _sp=document.createElement('div'); _sp.style.cssText='height:10px;clear:both'; bcbody.appendChild(_sp);
   const wpx=frame.offsetWidth;   // العرض الحقيقى بعد فرد المحتوى
-  captureNode(frame,{scale:2,width:wpx,windowWidth:wpx+60})
+  return captureNode(frame,{scale:2,width:wpx,windowWidth:wpx+60})
     .then(function(c){ _saveCanvasPng(c,fname); holder.remove(); })
     .catch(function(e){ holder.remove(); alert('تعذّر إنشاء الصورة'); });
 }
@@ -5602,9 +5600,10 @@ function openSupSection(tab){
 // ══════════ وثائق المحطة (معايرة + تراخيص) — تسجيل + جدول الاستحقاق ══════════
 const DOC_MONTHS={psv:12,gasdet:12,tank:60,gauge:12,dispenser:12, civil:12,build:0,operate:12,holding:0,ads:12};
 const DOC_PERM_DEFAULT={build:1, holding:1}; // دائمة افتراضيًا
-function toggleDocForm(k){ const p=document.getElementById(k+'-form-panel'); if(p) p.style.display=(p.style.display==='none'||!p.style.display)?'block':'none'; }
+function toggleDocForm(k){ const p=document.getElementById(k+'-form-panel'); if(p){ const show=(p.style.display==='none'||!p.style.display); p.style.display=show?'block':'none'; if(show){ if(k==='calib'){ try{ calibConfigure(); }catch(e){} } else { try{ docItemChange(k); }catch(e){} } } } }
 function docPermChange(k){ const s=document.getElementById(k+'-perm'); if(s) s.dataset.touched='1'; docItemChange(k); }
 function docItemChange(k){
+  if(k==='calib'){ return calibConfigure(); }
   const it=document.getElementById(k+'-item').value;
   const months=DOC_MONTHS[it]!=null?DOC_MONTHS[it]:12;
   const issEl=document.getElementById(k+'-issued'); const iss=issEl?issEl.value:'';
@@ -5618,10 +5617,64 @@ function docItemChange(k){
     else { dueEl.disabled=false; if(iss && (!dueEl.value||dueEl.dataset.auto==='1')){ const d=new Date(iss); d.setMonth(d.getMonth()+(months||12)); dueEl.value=_isoDate(d); dueEl.dataset.auto='1'; } }
   }
 }
+// ══════════ المعايرة: حقول ديناميكية حسب البند ══════════
+const PSV_STAGES=['Inlet','Scrubber','Blowdown','1st','2nd','3rd','4th','5th','Discharge','Direct Line','Low Bank','Merium Bank','High Bank'];
+function _fg(label, inner){ return '<div class="form-group" style="margin-bottom:10px"><label>'+label+'</label>'+inner+'</div>'; }
+function _compLabel(c){ return ((c.name||'')+' '+(c.model||'')).trim(); }
+function _compOptions(sel){ const comps=(currentStation&&currentStation.comps)||[]; return comps.map((c,i)=>{ const v='ضاغط '+(i+1)+' ('+_compLabel(c)+')'; return '<option value="'+v+'"'+(sel===v?' selected':'')+'>ضاغط '+(i+1)+' — '+_compLabel(c)+'</option>'; }).join(''); }
+function calibConfigure(preset){
+  preset=preset||{};
+  const item=document.getElementById('calib-item').value;
+  const dyn=document.getElementById('calib-dyn'); if(!dyn) return;
+  const comps=(currentStation&&currentStation.comps)||[];
+  let h='';
+  if(item==='psv'||item==='gauge'){
+    h+=_fg('<span class="req">*</span> المرحلة / الموضع','<select class="form-control" id="calib-stage" style="font-weight:700">'+PSV_STAGES.map(s=>'<option'+(preset.stage===s?' selected':'')+'>'+s+'</option>').join('')+'</select>');
+    if(comps.length>1){ h+=_fg('<span class="req">*</span> الضاغط','<select class="form-control" id="calib-comp" style="font-weight:700">'+_compOptions(preset.comp)+'</select>'); }
+    else if(comps.length===1){ const v='ضاغط 1 ('+_compLabel(comps[0])+')'; h+='<input type="hidden" id="calib-comp" value="'+v+'"><div style="font-size:11.5px;color:#475569;font-weight:700;margin-bottom:8px">🔧 الضاغط: '+_compLabel(comps[0])+'</div>'; }
+  } else if(item==='gasdet'){
+    h+=_fg('<span class="req">*</span> الحساس','<select class="form-control" id="calib-stage" style="font-weight:700"><option'+(preset.stage==='رقم 1'?' selected':'')+'>رقم 1</option><option'+(preset.stage==='رقم 2'?' selected':'')+'>رقم 2</option></select>');
+  } else if(item==='tank'){
+    const tt=preset.tanktype||((document.getElementById('calib-tanktype')||{}).value)||'cyl';
+    h+=_fg('<span class="req">*</span> نوع الخزان','<select class="form-control" id="calib-tanktype" onchange="calibConfigure()" style="font-weight:700"><option value="cyl"'+(tt==='cyl'?' selected':'')+'>اسطوانية (٥ سنوات)</option><option value="sph"'+(tt==='sph'?' selected':'')+'>كروية (مدة غير محددة)</option></select>');
+    if(tt==='sph'){ h+=_fg('رقم الخزان الكروي','<input type="text" class="form-control" id="calib-tanknum" value="'+(preset.tanknum||'')+'" placeholder="رقم الخزان" style="direction:ltr;font-weight:700">'); }
+  } else if(item==='dispenser'){
+    h+=_fg('<span class="req">*</span> رقم الهوز','<input type="number" inputmode="numeric" class="form-control" id="calib-hose" value="'+(preset.hose||'')+'" placeholder="مثال: 3" style="direction:ltr;font-weight:700">');
+  }
+  dyn.innerHTML=h;
+  // Serial: يظهر لـ PSV/Gauge/GasDetector فقط
+  const sw=document.getElementById('calib-serial-wrap'); if(sw) sw.style.display=(item==='tank'||item==='dispenser')?'none':'block';
+  // الصور: الديسبنسر بدون صورة · الخزان الاسطواني أكثر من صورة · الباقي صورة واحدة
+  const pb=document.getElementById('calib-photo-block'), ph=document.getElementById('calib-photo'), plb=document.getElementById('calib-photo-label');
+  const tt2=(document.getElementById('calib-tanktype')||{}).value;
+  const isCyl = item==='tank' && (tt2||'cyl')==='cyl';
+  const isSph = item==='tank' && tt2==='sph';
+  if(item==='dispenser'){ if(pb)pb.style.display='none'; if(ph){ph.value='';ph._compressed='';ph._compressedArr=null;} const pv=document.getElementById('calib-photo-prev'); if(pv)pv.innerHTML=''; }
+  else { if(pb)pb.style.display='block'; if(ph){ if(isCyl){ ph.setAttribute('multiple','multiple'); if(plb)plb.textContent='📷 صور الشهادة (تقدر تختار أكثر من صورة)'; } else { ph.removeAttribute('multiple'); if(plb)plb.textContent='📷 صورة الشهادة'; } } }
+  // التواريخ: الخزان الكروي مدة غير محددة (يدوي) · الباقي تلقائي
+  const dueEl=document.getElementById('calib-due'), hint=document.getElementById('calib-due-hint');
+  const months = item==='tank' ? (isSph?0:60) : (DOC_MONTHS[item]||12);
+  const iss=document.getElementById('calib-issued').value;
+  if(isSph){ if(hint)hint.textContent='مدة غير محددة — أدخل تاريخ الاستحقاق بنفسك'; if(dueEl){ dueEl.disabled=false; dueEl.dataset.auto=''; } }
+  else { if(hint)hint.textContent='يتحسب تلقائيًا ('+(months%12===0?(months/12)+' سنة':months+' شهر')+') — تقدر تعدّله'; if(dueEl){ dueEl.disabled=false; if(iss && (!dueEl.value||dueEl.dataset.auto==='1')){ const d=new Date(iss); d.setMonth(d.getMonth()+months); dueEl.value=_isoDate(d); dueEl.dataset.auto='1'; } } }
+}
+function _calibCompose(){
+  const item=document.getElementById('calib-item').value;
+  const g=id=>{const e=document.getElementById(id);return e?String(e.value).trim():'';};
+  if(item==='psv'||item==='gauge'){ let d=g('calib-stage'); const c=g('calib-comp'); return d+(c?(' — '+c):''); }
+  if(item==='gasdet') return g('calib-stage');
+  if(item==='tank'){ const tt=g('calib-tanktype'); if(tt==='sph'){ const n=g('calib-tanknum'); return 'كروية'+(n?(' — خزان رقم '+n):''); } return 'اسطوانية'; }
+  if(item==='dispenser'){ const hn=g('calib-hose'); return hn?('هوز رقم '+hn):''; }
+  return '';
+}
 function docPhotoPreview(k){
   const inp=document.getElementById(k+'-photo'); const box=document.getElementById(k+'-photo-prev');
-  if(!inp.files||!inp.files[0]){ box.innerHTML=''; return; }
-  _docCompress(inp.files[0],1400,0.72).then(u=>{ inp._compressed=u; box.innerHTML='<img src="'+u+'" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid #CBD5E1">'; }).catch(()=>{ box.innerHTML='<div style="color:#B91C1C;font-size:11px">تعذّر قراءة الصورة</div>'; });
+  if(!inp.files||!inp.files.length){ box.innerHTML=''; inp._compressed=''; inp._compressedArr=null; return; }
+  const files=Array.prototype.slice.call(inp.files);
+  Promise.all(files.map(f=>_docCompress(f,1400,0.72))).then(arr=>{
+    inp._compressedArr=arr; inp._compressed=arr[0]||'';
+    box.innerHTML=arr.map(u=>'<img src="'+u+'" style="max-width:'+(arr.length>1?'48%':'100%')+';max-height:150px;border-radius:8px;border:1px solid #CBD5E1;margin:3px">').join('')+(arr.length>1?('<div style="font-size:11px;color:#166534;font-weight:700;margin-top:4px">'+arr.length+' صور</div>'):'');
+  }).catch(()=>{ box.innerHTML='<div style="color:#B91C1C;font-size:11px">تعذّر قراءة الصور</div>'; });
 }
 function _docCompress(file,maxW,quality){
   return new Promise((res,rej)=>{ const r=new FileReader();
@@ -5632,21 +5685,24 @@ function submitDoc(k){
   const st=document.getElementById(k+'-status');
   if(!currentStation){ st.style.color='#B91C1C'; st.textContent='❌ لا توجد محطة'; return; }
   const item=document.getElementById(k+'-item').value;
-  const descEl=document.getElementById(k+'-desc'); const desc=descEl?descEl.value.trim():'';
-  const serial=(document.getElementById(k+'-serial').value||'').trim();
+  const desc = (k==='calib') ? _calibCompose() : ((document.getElementById(k+'-desc')||{}).value||'').trim();
+  const serialEl=document.getElementById(k+'-serial'); const serial=(serialEl?serialEl.value:'').trim();
   const issued=document.getElementById(k+'-issued').value;
   const dueEl=document.getElementById(k+'-due'); const due=dueEl.value;
   const permSel=document.getElementById(k+'-perm'); const perm=permSel?(permSel.value==='perm'):(DOC_MONTHS[item]===0);
   if(!issued){ st.style.color='#B91C1C'; st.textContent='❌ أدخل تاريخ الإصدار'; return; }
-  const inp=document.getElementById(k+'-photo'); const image=inp&&inp._compressed?inp._compressed:'';
-  st.style.color='#334155'; st.textContent='⏳ جارى الحفظ'+(image?' ورفع الصورة':'')+'...';
+  if(k==='calib' && !desc){ st.style.color='#B91C1C'; st.textContent='❌ اختر تفاصيل البند (المرحلة/النوع/الرقم)'; return; }
+  const inp=document.getElementById(k+'-photo'); const arr=(inp&&inp._compressedArr)||[]; const image=inp&&inp._compressed?inp._compressed:'';
+  st.style.color='#334155'; st.textContent='⏳ جارى الحفظ'+((image||arr.length)?' ورفع الصور':'')+'...';
   const orig=(window.__docEdit&&window.__docEdit[k])||null;
-  const payload={ type:'calib', code:currentStation.code, name:currentStation.name, item:item, desc:desc, serial:serial, issued:issued, due:due, perm:perm, months:DOC_MONTHS[item], image:image };
+  const payload={ type:'calib', code:currentStation.code, name:currentStation.name, item:item, desc:desc, serial:serial, issued:issued, due:due, perm:perm, months:DOC_MONTHS[item] };
+  if(arr.length>1) payload.images=arr; else if(image) payload.image=image;
   if(orig){ payload.orig_item=orig.item; payload.orig_desc=orig.desc; payload.orig_serial=orig.serial; }
   fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json()).then(j=>{
     if(j&&j.ok){ st.style.color='#166534'; st.textContent='✅ اتحفظت — '+(j.perm?'دائمة (بدون استحقاق)':('الاستحقاق: '+(j.due||due||'—')));
       if(window.__docEdit)window.__docEdit[k]=null;
-      if(descEl)descEl.value=''; document.getElementById(k+'-serial').value=''; document.getElementById(k+'-issued').value=''; dueEl.value=''; dueEl.dataset.auto=''; if(inp){inp.value='';inp._compressed='';} document.getElementById(k+'-photo-prev').innerHTML='';
+      if(serialEl)serialEl.value=''; document.getElementById(k+'-issued').value=''; dueEl.value=''; dueEl.dataset.auto=''; if(inp){inp.value='';inp._compressed='';inp._compressedArr=null;} document.getElementById(k+'-photo-prev').innerHTML='';
+      if(k==='calib'){ try{ calibConfigure(); }catch(e){} }
       setTimeout(()=>{ st.textContent=''; loadMyDoc(k); },1200);
     } else { st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ: '+((j&&j.error)||''); }
   }).catch(e=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذر الإرسال — تأكد من الإنترنت'; });
@@ -5662,11 +5718,19 @@ function editDoc(k, idx){
   const it=(window.__docItems[k]||[])[idx]; if(!it) return;
   const panel=document.getElementById(k+'-form-panel'); if(panel) panel.style.display='block';
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
-  set(k+'-item', it.itemId); set(k+'-desc', it.desc||''); set(k+'-serial', it.serial||''); set(k+'-issued', it.issued||''); set(k+'-due', it.due||'');
+  set(k+'-item', it.itemId); set(k+'-serial', it.serial||''); set(k+'-issued', it.issued||''); set(k+'-due', it.due||'');
   const dueEl=document.getElementById(k+'-due'); if(dueEl){ dueEl.dataset.auto=''; }
   const permSel=document.getElementById(k+'-perm'); if(permSel){ permSel.value=(it.perm||!it.due)?'perm':'annual'; permSel.dataset.touched='1'; }
-  docItemChange(k);
-  set(k+'-due', it.due||''); // نرجّعه بعد docItemChange عشان ما يتحسبش من جديد
+  if(k==='calib'){
+    // نفكّك الوصف لحقول المعايرة الديناميكية
+    const d=it.desc||''; let pr={};
+    if(it.itemId==='psv'||it.itemId==='gauge'){ const parts=d.split(' — '); pr.stage=parts[0]; pr.comp=parts.slice(1).join(' — '); }
+    else if(it.itemId==='gasdet'){ pr.stage=d; }
+    else if(it.itemId==='tank'){ if(d.indexOf('كروية')>=0){ pr.tanktype='sph'; const m=d.match(/رقم\s*(.+)$/); pr.tanknum=m?m[1].trim():''; } else pr.tanktype='cyl'; }
+    else if(it.itemId==='dispenser'){ const m=d.match(/(\d+)/); pr.hose=m?m[1]:''; }
+    calibConfigure(pr);
+  } else { docItemChange(k); }
+  set(k+'-due', it.due||''); // نرجّعه بعد الإعداد عشان ما يتحسبش من جديد
   // نخزّن المفتاح الأصلي عشان الحفظ يحدّث نفس الصف حتى لو غيّرت السيريال
   window.__docEdit=window.__docEdit||{}; window.__docEdit[k]={item:it.itemId, desc:it.desc||'', serial:it.serial||''};
   // نعرض الصورة الحالية (لو موجودة) — رفع صورة جديدة هيستبدلها
@@ -5718,18 +5782,21 @@ function refreshDocBadges(isMgr){
     }).catch(()=>{});
   });
 }
-// أمر شغل / تقرير بالمستحقات (متأخر + قريب ≤60 يوم) — قابل للتحميل والإرسال
-function downloadDocOrder(kind, isMgr){
-  const src=isMgr?(window.__docMgrItems||{})[kind]:(window.__docItems||{})[kind];
-  const items=(src||[]).filter(x=>!x.perm && x.rem!=null && x.rem<=60).sort((a,b)=>a.rem-b.rem);
-  if(!items.length){ alert('مفيش مستحقات (متأخرة أو قريبة ≤60 يوم) دلوقتي'); return; }
-  const isLic=kind==='license';
-  const title=isLic?'أمر شغل — تراخيص وموافقات مستحقة':'أمر شغل — معايرات مستحقة';
-  const sub=isMgr?'كل المحطات':((currentStation&&currentStation.name)||'');
+function _sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+// رسالة بشكل البرنامج (بدل alert الفاضي)
+function _docToast(msg){
+  let t=document.getElementById('doc-toast'); if(!t){ t=document.createElement('div'); t.id='doc-toast'; document.body.appendChild(t); }
+  t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:linear-gradient(135deg,#0F2A47,#2E6BA8);color:#fff;padding:12px 20px;border-radius:12px;font-family:Cairo;font-weight:800;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:999999;max-width:90vw;text-align:center';
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(window.__docToastT); window.__docToastT=setTimeout(()=>{ t.style.display='none'; },3200);
+}
+// بناء صورة أمر شغل واحدة (جدول) — تُرجّع Promise
+function _docOrderImage(rows, kind, isMgr, sub, title){
+  const isLic=kind==='license'; const hc=isLic?'#5B21B6':'#334155';
+  const dept=isLic?'الإدارة العامة للعلاقات الحكومية والتراخيص':'إدارة الصيانة';
   let holder=document.getElementById('doc-order-holder'); if(!holder){ holder=document.createElement('div'); holder.id='doc-order-holder'; holder.style.cssText='position:fixed;left:-99999px;top:0'; document.body.appendChild(holder); }
-  const hc=isLic?'#5B21B6':'#334155';
   const stat=it=>{ const r=it.rem; return r<0?['متأخر '+(-r)+' يوم','#B91C1C']:['باقي '+r+' يوم','#B45309']; };
-  const rows=items.map((it,i)=>{ const s=stat(it); const bg=i%2?'#FAFBFF':'#fff';
+  const body=rows.map((it,i)=>{ const s=stat(it); const bg=i%2?'#FAFBFF':'#fff';
     return '<tr style="background:'+bg+'">'+(isMgr?('<td style="padding:7px 10px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+(it.name||it.code||'')+'</td>'):'')
       +'<td style="padding:7px 10px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+it.item+(it.desc?(' <span style="color:#64748B;font-weight:400">— '+it.desc+'</span>'):'')+'</td>'
       +'<td style="padding:7px 10px;border:1px solid #E7EBF3;direction:ltr">'+(it.serial||'—')+'</td>'
@@ -5737,13 +5804,39 @@ function downloadDocOrder(kind, isMgr){
       +'<td style="padding:7px 10px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
       +'<td style="padding:7px 10px;border:1px solid #E7EBF3;text-align:center;font-weight:800;color:'+s[1]+'">'+s[0]+'</td></tr>';
   }).join('');
-  const dept=isLic?'الإدارة العامة للعلاقات الحكومية والتراخيص':'إدارة الصيانة';
   const th=t=>'<th style="padding:9px 10px;background:'+hc+';color:#fff;font-size:12.5px">'+t+'</th>';
   holder.innerHTML='<div id="doc-order-body">'
     +'<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13.5px;font-weight:800;color:#92400E;text-align:center">📮 موجّه إلى: '+dept+'</div>'
     +'<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">'
-    +'<thead><tr>'+(isMgr?th('المحطة'):'')+th(isLic?'النوع':'البند')+th('الرقم')+th('الإصدار')+th('الاستحقاق')+th('الحالة')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
-  captureSalesImg('doc-order-body', (isLic?'أمر_شغل_تراخيص':'أمر_شغل_معايرات')+'.png', title, sub);
+    +'<thead><tr>'+(isMgr?th('المحطة'):'')+th(isLic?'النوع':'البند')+th('الرقم')+th('الإصدار')+th('الاستحقاق')+th('الحالة')+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+  const fname=title.replace(/[^؀-ۿ a-zA-Z0-9]/g,'').trim().replace(/\s+/g,'_')+'.png';
+  return captureSalesImg('doc-order-body', fname, title, sub);
+}
+// أمر شغل بالمستحقات (متأخر + قريب ≤60 يوم). المسؤول: صورة منفصلة لكل بند (+ تقسيم لصفحات لو كبيرة)
+function downloadDocOrder(kind, isMgr){
+  const src=isMgr?(window.__docMgrItems||{})[kind]:(window.__docItems||{})[kind];
+  const items=(src||[]).filter(x=>!x.perm && x.rem!=null && x.rem<=60).sort((a,b)=>a.rem-b.rem);
+  const isLic=kind==='license';
+  if(!items.length){ _docToast('👍 مفيش مستحقات (متأخرة أو قريبة ≤٦٠ يوم) في '+(isLic?'التراخيص':'المعايرات')+' دلوقتي'); return; }
+  if(!isMgr){ // المشرف: أمر واحد لمحطته
+    _docOrderImage(items, kind, false, (currentStation&&currentStation.name)||'', (isLic?'أمر شغل — تراخيص مستحقة':'أمر شغل — معايرات مستحقة'));
+    return;
+  }
+  // المسؤول: نقسّم لكل بند لوحده (لكل المحطات) + صفحات لو كتير
+  const groups={}, order=[];
+  items.forEach(it=>{ if(!groups[it.itemId]){ groups[it.itemId]=[]; order.push(it.itemId); } groups[it.itemId].push(it); });
+  const PAGE=22;
+  _docToast('⏳ جارى تجهيز أوامر الشغل... هتنزل صورة لكل بند');
+  (async()=>{
+    for(const id of order){ const arr=groups[id]; const nm=(arr[0]&&arr[0].item)||''; const pages=Math.ceil(arr.length/PAGE);
+      for(let p=0;p<pages;p++){ const slice=arr.slice(p*PAGE,(p+1)*PAGE);
+        const title='أمر شغل — '+nm+' مستحقة'+(pages>1?(' — صورة '+(p+1)+' من '+pages):'');
+        try{ await _docOrderImage(slice, kind, true, 'كل المحطات', title); }catch(e){}
+        await _sleep(800);
+      }
+    }
+    _docToast('✅ تم تجهيز أوامر الشغل — راجع مجلد التنزيلات');
+  })();
 }
 // المشرف: فتح مقارنة ضواغط محطته بمثيلاتها
 function openSupCompare(){
