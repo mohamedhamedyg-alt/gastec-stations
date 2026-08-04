@@ -477,11 +477,13 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:17px;font-weight:800">⚡ محضر التضامن</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">تسجيل قراءة عداد الكهرباء عند زيارة المندوب</div>
     </div>
-    <div onclick="openSupSection('calib')" style="background:linear-gradient(135deg,#475569,#64748B);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+    <div onclick="openSupSection('calib')" style="position:relative;background:linear-gradient(135deg,#475569,#64748B);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <span id="sup-badge-calib" style="display:none"></span>
       <div style="font-size:17px;font-weight:800">⚙️ المعايرة وشهاداتها</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">شهادات المعايرة (PSV · حساسات الغاز · الخزانات · Pressure Gauges · الديسبنسرات) وجدول الاستحقاق</div>
     </div>
-    <div onclick="openSupSection('license')" style="background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+    <div onclick="openSupSection('license')" style="position:relative;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <span id="sup-badge-license" style="display:none"></span>
       <div style="font-size:17px;font-weight:800">📜 التراخيص والموافقات</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">الحماية المدنية · رخصة الإنشاء · رخصة التشغيل · موافقة القابضة · رخصة الإعلانات + جدول الاستحقاق</div>
     </div>
@@ -583,7 +585,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <button onclick="submitDoc('calib')" style="width:100%;background:linear-gradient(135deg,#475569,#64748B);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:4px">حفظ الشهادة</button>
     <div id="calib-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
   </div>
-  <div style="background:linear-gradient(135deg,#334155,#475569);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">📋 شهادات محطتى وجدول الاستحقاق</div>
+  <div style="background:linear-gradient(135deg,#334155,#475569);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>📋 شهادات محطتى وجدول الاستحقاق</span><button onclick="downloadDocOrder('calib',false)" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:6px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 أمر شغل المستحقات</button></div>
   <div id="calib-list" style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.1)"><div style="text-align:center;padding:18px;color:#64748B;font-weight:700">⏳ جارى التحميل...</div></div>
   </div><!-- /tab-calib -->
 
@@ -635,7 +637,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <button onclick="submitDoc('license')" style="width:100%;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:4px">حفظ الوثيقة</button>
     <div id="license-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
   </div>
-  <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px">📜 تراخيص محطتى وجدول الاستحقاق</div>
+  <div style="background:linear-gradient(135deg,#5B21B6,#7C3AED);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>📜 تراخيص محطتى وجدول الاستحقاق</span><button onclick="downloadDocOrder('license',false)" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:6px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📥 أمر شغل المستحقات</button></div>
   <div id="license-list" style="background:#fff;border-radius:0 0 var(--radius) var(--radius);padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.1)"><div style="text-align:center;padding:18px;color:#64748B;font-weight:700">⏳ جارى التحميل...</div></div>
   </div><!-- /tab-license -->
 
@@ -1082,7 +1084,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V206</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V207</span>
       </div>
     </div>
   </div>
@@ -1259,12 +1261,14 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:12px;opacity:.85;margin-top:4px">بيان محاضر التضامن (الكهرباء الشهرية) + حالة الإرسال</div>
     </div>
     <!-- قسم المعايرة -->
-    <div onclick="openMgrSection('calib')" style="background:linear-gradient(135deg,#475569,#64748B);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+    <div onclick="openMgrSection('calib')" style="position:relative;background:linear-gradient(135deg,#475569,#64748B);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <span id="mgr-badge-calib" style="display:none"></span>
       <div style="font-size:17px;font-weight:800">⚙️ المعايرة</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">تجميعة استحقاق شهادات المعايرة لكل المحطات (PSV · حساسات الغاز · الخزانات · Pressure Gauges · الديسبنسرات) + تنبيه</div>
     </div>
     <!-- قسم التراخيص والموافقات -->
-    <div onclick="openMgrSection('license')" style="background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+    <div onclick="openMgrSection('license')" style="position:relative;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <span id="mgr-badge-license" style="display:none"></span>
       <div style="font-size:17px;font-weight:800">📜 التراخيص والموافقات</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">تجميعة استحقاق تراخيص وموافقات كل المحطات (الحماية المدنية · الإنشاء · التشغيل · القابضة · الإعلانات) + تنبيه</div>
     </div>
@@ -1480,7 +1484,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <div class="mgr-tab-content" id="mtab-calib">
   <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
     <div class="mgr-tab-title">⚙️ المعايرة — تجميعة المنطقة</div>
-    <div style="display:flex;justify-content:flex-end;margin:6px 0"><button onclick="loadDocMgr('calib')" style="background:#64748B;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin:6px 0;flex-wrap:wrap"><button onclick="downloadDocOrder('calib',true)" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 أمر شغل المستحقات</button><button onclick="loadDocMgr('calib')" style="background:#64748B;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button></div>
     <div id="calib-mgr-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#475569;font-weight:800">⏳ جارى التحميل...</div></div>
   </div>
 
@@ -1488,7 +1492,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
   <div class="mgr-tab-content" id="mtab-license">
   <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
     <div class="mgr-tab-title">📜 التراخيص والموافقات — تجميعة المنطقة</div>
-    <div style="display:flex;justify-content:flex-end;margin:6px 0"><button onclick="loadDocMgr('license')" style="background:#7C3AED;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin:6px 0;flex-wrap:wrap"><button onclick="downloadDocOrder('license',true)" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">📥 أمر شغل المستحقات</button><button onclick="loadDocMgr('license')" style="background:#7C3AED;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:13px">🔄 تحديث</button></div>
     <div id="license-mgr-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#5B21B6;font-weight:800">⏳ جارى التحميل...</div></div>
   </div>
 
@@ -1675,7 +1679,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 206; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 207; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -1986,6 +1990,7 @@ function loadForm(){
   document.getElementById('login-screen').style.display='none';
   (function(){var _ah=document.getElementById('app-header'); if(_ah)_ah.style.display='';})();
   document.getElementById('form-screen').style.display='block';
+  try{ refreshDocBadges(false); }catch(e){}
   document.getElementById('si-name').textContent=st.name;
   document.getElementById('si-region').textContent=st.region;
   document.getElementById('si-c1').textContent=st.comps[0]?st.comps[0].name+' — '+st.comps[0].model:'—';
@@ -5205,6 +5210,7 @@ function showMgr(){
   const hub=document.getElementById('mgr-hub'); if(hub) hub.style.display='block';
   const area=document.getElementById('mgr-sections-area'); if(area) area.style.display='none';
   loadMgrDay();
+  try{ refreshDocBadges(true); }catch(e){}
 }
 // ══════════ تحميل ملف إكسيل (يدعم الموبايل + فتح مباشر) ══════════
 function isMobileDevice(){ return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
@@ -5271,7 +5277,7 @@ function loadDocMgr(kind){
   const isLic=kind==='license'; const box=document.getElementById(kind+'-mgr-content'); if(!box) return;
   box.innerHTML='<div style="text-align:center;padding:26px;color:#475569;font-weight:800">⏳ جارى التحميل...</div>';
   fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+kind).then(r=>r.json()).then(j=>{
-    const items=(j&&j.items)||[];
+    const items=(j&&j.items)||[]; window.__docMgrItems[kind]=items;
     const late=items.filter(x=>!x.perm&&x.rem!=null&&x.rem<0), soon=items.filter(x=>!x.perm&&x.rem!=null&&x.rem>=0&&x.rem<=60);
     const totLbl=isLic?'إجمالي الوثائق':'إجمالي الشهادات';
     let h='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
@@ -5298,6 +5304,7 @@ function loadDocMgr(kind){
 function mgrBackToHub(){
   document.getElementById('mgr-sections-area').style.display='none';
   document.getElementById('mgr-hub').style.display='block';
+  try{ refreshDocBadges(true); }catch(e){}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // عرض مقارنة الضواغط على الصفحة
@@ -5693,6 +5700,47 @@ function deleteDocRow(kind, itemId, desc, serial){
   const st=document.getElementById(kind+'-status'); if(st){ st.style.color='#334155'; st.textContent='⏳ جارى الحذف...'; }
   fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'calib_delete', code:currentStation.code, item:decodeURIComponent(itemId), desc:decodeURIComponent(desc), serial:decodeURIComponent(serial)})}).then(r=>r.json()).then(j=>{ if(st)st.textContent=''; loadMyDoc(kind); }).catch(e=>{ if(st){st.style.color='#B91C1C';st.textContent='تعذر الحذف';} });
 }
+// ══════════ تنبيهات الوثائق (بادج على الكروت) + أمر شغل بالمستحقات ══════════
+window.__docMgrItems={};
+function _dueCount(items){ return (items||[]).filter(x=>!x.perm && x.rem!=null && x.rem<=60).length; }
+function _docBadge(el, n){ if(!el) return; if(n>0){ el.textContent='⚠️ '+n+' مستحق'; el.style.cssText='display:inline-block;position:absolute;top:10px;left:12px;background:#DC2626;color:#fff;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.25)'; } else { el.style.display='none'; } }
+function refreshDocBadges(isMgr){
+  const pfx=isMgr?'mgr':'sup'; const code=isMgr?'':((currentStation&&currentStation.code)||'');
+  if(!isMgr && !code) return;
+  ['calib','license'].forEach(k=>{
+    fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+k+(code?('&code='+encodeURIComponent(code)):'')).then(r=>r.json()).then(j=>{
+      const items=(j&&j.items)||[]; if(isMgr) window.__docMgrItems[k]=items; else (window.__docItems=window.__docItems||{})[k]=items;
+      _docBadge(document.getElementById(pfx+'-badge-'+k), _dueCount(items));
+    }).catch(()=>{});
+  });
+}
+// أمر شغل / تقرير بالمستحقات (متأخر + قريب ≤60 يوم) — قابل للتحميل والإرسال
+function downloadDocOrder(kind, isMgr){
+  const src=isMgr?(window.__docMgrItems||{})[kind]:(window.__docItems||{})[kind];
+  const items=(src||[]).filter(x=>!x.perm && x.rem!=null && x.rem<=60).sort((a,b)=>a.rem-b.rem);
+  if(!items.length){ alert('مفيش مستحقات (متأخرة أو قريبة ≤60 يوم) دلوقتي'); return; }
+  const isLic=kind==='license';
+  const title=isLic?'أمر شغل — تراخيص وموافقات مستحقة':'أمر شغل — معايرات مستحقة';
+  const sub=isMgr?'كل المحطات':((currentStation&&currentStation.name)||'');
+  let holder=document.getElementById('doc-order-holder'); if(!holder){ holder=document.createElement('div'); holder.id='doc-order-holder'; holder.style.cssText='position:fixed;left:-99999px;top:0'; document.body.appendChild(holder); }
+  const hc=isLic?'#5B21B6':'#334155';
+  const stat=it=>{ const r=it.rem; return r<0?['متأخر '+(-r)+' يوم','#B91C1C']:['باقي '+r+' يوم','#B45309']; };
+  const rows=items.map((it,i)=>{ const s=stat(it); const bg=i%2?'#FAFBFF':'#fff';
+    return '<tr style="background:'+bg+'">'+(isMgr?('<td style="padding:7px 10px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+(it.name||it.code||'')+'</td>'):'')
+      +'<td style="padding:7px 10px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+it.item+(it.desc?(' <span style="color:#64748B;font-weight:400">— '+it.desc+'</span>'):'')+'</td>'
+      +'<td style="padding:7px 10px;border:1px solid #E7EBF3;direction:ltr">'+(it.serial||'—')+'</td>'
+      +'<td style="padding:7px 10px;border:1px solid #E7EBF3;direction:ltr">'+(it.issued||'—')+'</td>'
+      +'<td style="padding:7px 10px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
+      +'<td style="padding:7px 10px;border:1px solid #E7EBF3;text-align:center;font-weight:800;color:'+s[1]+'">'+s[0]+'</td></tr>';
+  }).join('');
+  const dept=isLic?'الإدارة العامة للعلاقات الحكومية والتراخيص':'إدارة الصيانة';
+  const th=t=>'<th style="padding:9px 10px;background:'+hc+';color:#fff;font-size:12.5px">'+t+'</th>';
+  holder.innerHTML='<div id="doc-order-body">'
+    +'<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13.5px;font-weight:800;color:#92400E;text-align:center">📮 موجّه إلى: '+dept+'</div>'
+    +'<table style="border-collapse:collapse;font-size:13px;white-space:nowrap">'
+    +'<thead><tr>'+(isMgr?th('المحطة'):'')+th(isLic?'النوع':'البند')+th('الرقم')+th('الإصدار')+th('الاستحقاق')+th('الحالة')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+  captureSalesImg('doc-order-body', (isLic?'أمر_شغل_تراخيص':'أمر_شغل_معايرات')+'.png', title, sub);
+}
 // المشرف: فتح مقارنة ضواغط محطته بمثيلاتها
 function openSupCompare(){
   const p=document.getElementById('sup-compare-panel'); if(!p) return;
@@ -5706,6 +5754,7 @@ function backToHub(){
   const area=document.getElementById('sup-tabs-area');
   if(area) area.style.display='none';
   if(hub) hub.style.display='block';
+  try{ refreshDocBadges(false); }catch(e){}
   // نخفى أى شاشة نجاح
   const ov=document.getElementById('section-success');
   if(ov) ov.style.display='none';
