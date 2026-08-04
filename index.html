@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V205</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V206</span>
       </div>
     </div>
   </div>
@@ -1675,7 +1675,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 205; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 206; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5629,18 +5629,41 @@ function submitDoc(k){
   if(!issued){ st.style.color='#B91C1C'; st.textContent='❌ أدخل تاريخ الإصدار'; return; }
   const inp=document.getElementById(k+'-photo'); const image=inp&&inp._compressed?inp._compressed:'';
   st.style.color='#334155'; st.textContent='⏳ جارى الحفظ'+(image?' ورفع الصورة':'')+'...';
+  const orig=(window.__docEdit&&window.__docEdit[k])||null;
   const payload={ type:'calib', code:currentStation.code, name:currentStation.name, item:item, desc:desc, serial:serial, issued:issued, due:due, perm:perm, months:DOC_MONTHS[item], image:image };
+  if(orig){ payload.orig_item=orig.item; payload.orig_desc=orig.desc; payload.orig_serial=orig.serial; }
   fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json()).then(j=>{
     if(j&&j.ok){ st.style.color='#166534'; st.textContent='✅ اتحفظت — '+(j.perm?'دائمة (بدون استحقاق)':('الاستحقاق: '+(j.due||due||'—')));
+      if(window.__docEdit)window.__docEdit[k]=null;
       if(descEl)descEl.value=''; document.getElementById(k+'-serial').value=''; document.getElementById(k+'-issued').value=''; dueEl.value=''; dueEl.dataset.auto=''; if(inp){inp.value='';inp._compressed='';} document.getElementById(k+'-photo-prev').innerHTML='';
       setTimeout(()=>{ st.textContent=''; loadMyDoc(k); },1200);
     } else { st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ: '+((j&&j.error)||''); }
   }).catch(e=>{ st.style.color='#B91C1C'; st.textContent='❌ تعذر الإرسال — تأكد من الإنترنت'; });
 }
+window.__docItems={};
 function loadMyDoc(k){
   const box=document.getElementById(k+'-list'); if(!box) return; if(!currentStation){ box.innerHTML='<div style="text-align:center;padding:16px;color:#64748B">لا توجد محطة</div>'; return; }
   box.innerHTML='<div style="text-align:center;padding:18px;color:#64748B;font-weight:700">⏳ جارى التحميل...</div>';
-  fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+k+'&code='+encodeURIComponent(currentStation.code)).then(r=>r.json()).then(j=>{ box.innerHTML=renderDocTable((j&&j.items)||[], true, k); }).catch(e=>{ box.innerHTML='<div style="text-align:center;padding:16px;color:#B91C1C">تعذر التحميل</div>'; });
+  fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+k+'&code='+encodeURIComponent(currentStation.code)).then(r=>r.json()).then(j=>{ const items=(j&&j.items)||[]; window.__docItems[k]=items; box.innerHTML=renderDocTable(items, true, k); }).catch(e=>{ box.innerHTML='<div style="text-align:center;padding:16px;color:#B91C1C">تعذر التحميل</div>'; });
+}
+// تعديل بند مسجّل: يرجّع بياناته في النموذج (لرفع صورة ناقصة أو تعديل السيريال/التواريخ)
+function editDoc(k, idx){
+  const it=(window.__docItems[k]||[])[idx]; if(!it) return;
+  const panel=document.getElementById(k+'-form-panel'); if(panel) panel.style.display='block';
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  set(k+'-item', it.itemId); set(k+'-desc', it.desc||''); set(k+'-serial', it.serial||''); set(k+'-issued', it.issued||''); set(k+'-due', it.due||'');
+  const dueEl=document.getElementById(k+'-due'); if(dueEl){ dueEl.dataset.auto=''; }
+  const permSel=document.getElementById(k+'-perm'); if(permSel){ permSel.value=(it.perm||!it.due)?'perm':'annual'; permSel.dataset.touched='1'; }
+  docItemChange(k);
+  set(k+'-due', it.due||''); // نرجّعه بعد docItemChange عشان ما يتحسبش من جديد
+  // نخزّن المفتاح الأصلي عشان الحفظ يحدّث نفس الصف حتى لو غيّرت السيريال
+  window.__docEdit=window.__docEdit||{}; window.__docEdit[k]={item:it.itemId, desc:it.desc||'', serial:it.serial||''};
+  // نعرض الصورة الحالية (لو موجودة) — رفع صورة جديدة هيستبدلها
+  const prev=document.getElementById(k+'-photo-prev');
+  if(prev){ prev.innerHTML = it.img ? ('<div style="font-size:11px;color:#166534;font-weight:700;margin-bottom:4px">📷 فيه صورة محفوظة — <a href="'+it.img+'" target="_blank">افتحها</a>. ارفع صورة جديدة لو عايز تستبدلها.</div>') : '<div style="font-size:11px;color:#B45309;font-weight:700">مفيش صورة — ارفع واحدة دلوقتي.</div>'; }
+  const inp=document.getElementById(k+'-photo'); if(inp){ inp.value=''; inp._compressed=''; }
+  const st=document.getElementById(k+'-status'); if(st){ st.style.color='#334155'; st.textContent='✏️ وضع التعديل — عدّل واضغط حفظ.'; }
+  if(panel) panel.scrollIntoView({behavior:'smooth', block:'center'});
 }
 function _docStat(it){ if(it.perm||(!it.due)) return ['دائمة','#3730A3','#E0E7FF']; const r=it.rem; if(r==null) return ['—','#64748B','#F1F5F9']; if(r<0) return ['متأخر '+(-r)+' يوم','#fff','#B91C1C']; if(r<=60) return ['باقي '+r+' يوم','#7A4A00','#FEF3C7']; return ['باقي '+r+' يوم','#166534','#DCFCE7']; }
 // جدول الوثائق — أخضر سليم / برتقالي قريب (≤60 يوم) / أحمر متأخر / أزرق دائمة
@@ -5660,7 +5683,7 @@ function renderDocTable(items, withDelete, kind){
       +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
       +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center"><span style="background:'+s[2]+';color:'+s[1]+';padding:3px 9px;border-radius:7px;font-weight:800;font-size:11px;white-space:nowrap">'+s[0]+'</span></td>'
       +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+(it.img?'<a href="'+it.img+'" target="_blank" style="text-decoration:none;font-size:16px">🖼️</a>':'—')+'</td>'
-      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+(withDelete?'<button onclick="deleteDocRow(\''+kind+'\',\''+encodeURIComponent(it.itemId)+'\',\''+encodeURIComponent(it.desc||'')+'\',\''+encodeURIComponent(it.serial||'')+'\')" style="background:#FEE2E2;color:#B91C1C;border:none;border-radius:6px;padding:4px 8px;font-weight:800;cursor:pointer;font-size:11px">حذف</button>':'')+'</td></tr>';
+      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center;white-space:nowrap">'+(withDelete?('<button onclick="editDoc(\''+kind+'\','+i+')" style="background:#DBEAFE;color:#1E40AF;border:none;border-radius:6px;padding:4px 8px;font-weight:800;cursor:pointer;font-size:11px;margin-left:4px">✏️ تعديل</button><button onclick="deleteDocRow(\''+kind+'\',\''+encodeURIComponent(it.itemId)+'\',\''+encodeURIComponent(it.desc||'')+'\',\''+encodeURIComponent(it.serial||'')+'\')" style="background:#FEE2E2;color:#B91C1C;border:none;border-radius:6px;padding:4px 8px;font-weight:800;cursor:pointer;font-size:11px">حذف</button>'):'')+'</td></tr>';
   });
   h+='</tbody></table></div>';
   return h;
