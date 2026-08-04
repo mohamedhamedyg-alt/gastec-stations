@@ -576,9 +576,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       </div>
     </div>
     <div class="form-group" id="calib-photo-block" style="margin-bottom:10px">
-      <label id="calib-photo-label">📷 صورة الشهادة</label>
-      <input type="file" accept="image/*" capture="environment" id="calib-photo" onchange="docPhotoPreview('calib')" style="font-size:12px;width:100%">
-      <div id="calib-photo-prev" style="margin-top:8px"></div>
+      <label id="calib-photo-label">📷 صور الشهادة (تقدر تضيف أكثر من صورة)</label>
+      <input type="file" accept="image/*" capture="environment" multiple id="calib-imgfile" onchange="docUpAdd('calib')" style="display:none">
+      <div id="calib-imgs"></div>
     </div>
     <button onclick="submitDoc('calib')" style="width:100%;background:linear-gradient(135deg,#475569,#64748B);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:4px">حفظ الشهادة</button>
     <div id="calib-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
@@ -628,9 +628,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       </div>
     </div>
     <div class="form-group" style="margin-bottom:10px">
-      <label>📷 صورة الوثيقة</label>
-      <input type="file" accept="image/*" capture="environment" id="license-photo" onchange="docPhotoPreview('license')" style="font-size:12px;width:100%">
-      <div id="license-photo-prev" style="margin-top:8px"></div>
+      <label>📷 صور الوثيقة (تقدر تضيف أكثر من صورة)</label>
+      <input type="file" accept="image/*" capture="environment" multiple id="license-imgfile" onchange="docUpAdd('license')" style="display:none">
+      <div id="license-imgs"></div>
     </div>
     <button onclick="submitDoc('license')" style="width:100%;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:4px">حفظ الوثيقة</button>
     <div id="license-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V209</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V210</span>
       </div>
     </div>
   </div>
@@ -1677,7 +1677,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 209; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 210; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5297,7 +5297,7 @@ function loadDocMgr(kind){
         +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.issued||'—')+'</td>'
         +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
         +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center"><span style="background:'+s[2]+';color:'+s[1]+';padding:3px 9px;border-radius:7px;font-weight:800;font-size:11px">'+s[0]+'</span></td>'
-        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+(it.img?'<a href="'+it.img+'" target="_blank" style="font-size:16px;text-decoration:none">🖼️</a>':'—')+'</td></tr>';
+        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+_imgCell(it.img)+'</td></tr>';
     });
     h+='</tbody></table></div>';
     box.innerHTML=h;
@@ -5600,7 +5600,7 @@ function openSupSection(tab){
 // ══════════ وثائق المحطة (معايرة + تراخيص) — تسجيل + جدول الاستحقاق ══════════
 const DOC_MONTHS={psv:12,gasdet:12,tank:60,gauge:12,dispenser:12, civil:12,build:0,operate:12,holding:0,ads:12};
 const DOC_PERM_DEFAULT={build:1, holding:1}; // دائمة افتراضيًا
-function toggleDocForm(k){ const p=document.getElementById(k+'-form-panel'); if(p){ const show=(p.style.display==='none'||!p.style.display); p.style.display=show?'block':'none'; if(show){ if(k==='calib'){ try{ calibConfigure(); }catch(e){} } else { try{ docItemChange(k); }catch(e){} } } } }
+function toggleDocForm(k){ const p=document.getElementById(k+'-form-panel'); if(p){ const show=(p.style.display==='none'||!p.style.display); p.style.display=show?'block':'none'; if(show){ if(window.__docEdit)window.__docEdit[k]=null; window.__docUp[k]=[]; try{ docUpRender(k); }catch(e){} if(k==='calib'){ try{ calibConfigure(); }catch(e){} } else { try{ docItemChange(k); }catch(e){} } } } }
 function docPermChange(k){ const s=document.getElementById(k+'-perm'); if(s) s.dataset.touched='1'; docItemChange(k); }
 function docItemChange(k){
   if(k==='calib'){ return calibConfigure(); }
@@ -5644,13 +5644,12 @@ function calibConfigure(preset){
   dyn.innerHTML=h;
   // Serial: يظهر لـ PSV/Gauge/GasDetector فقط
   const sw=document.getElementById('calib-serial-wrap'); if(sw) sw.style.display=(item==='tank'||item==='dispenser')?'none':'block';
-  // الصور: الديسبنسر بدون صورة · الخزان الاسطواني أكثر من صورة · الباقي صورة واحدة
-  const pb=document.getElementById('calib-photo-block'), ph=document.getElementById('calib-photo'), plb=document.getElementById('calib-photo-label');
+  // الصور: الديسبنسر بدون صورة · الباقي رافع متعدد (➕/حذف)
+  const pb=document.getElementById('calib-photo-block');
   const tt2=(document.getElementById('calib-tanktype')||{}).value;
-  const isCyl = item==='tank' && (tt2||'cyl')==='cyl';
   const isSph = item==='tank' && tt2==='sph';
-  if(item==='dispenser'){ if(pb)pb.style.display='none'; if(ph){ph.value='';ph._compressed='';ph._compressedArr=null;} const pv=document.getElementById('calib-photo-prev'); if(pv)pv.innerHTML=''; }
-  else { if(pb)pb.style.display='block'; if(ph){ if(isCyl){ ph.setAttribute('multiple','multiple'); if(plb)plb.textContent='📷 صور الشهادة (تقدر تختار أكثر من صورة)'; } else { ph.removeAttribute('multiple'); if(plb)plb.textContent='📷 صورة الشهادة'; } } }
+  if(item==='dispenser'){ if(pb)pb.style.display='none'; }
+  else { if(pb)pb.style.display='block'; docUpRender('calib'); }
   // التواريخ: الخزان الكروي مدة غير محددة (يدوي) · الباقي تلقائي
   const dueEl=document.getElementById('calib-due'), hint=document.getElementById('calib-due-hint');
   const months = item==='tank' ? (isSph?0:60) : (DOC_MONTHS[item]||12);
@@ -5667,14 +5666,46 @@ function _calibCompose(){
   if(item==='dispenser'){ const hn=g('calib-hose'); return hn?('هوز رقم '+hn):''; }
   return '';
 }
-function docPhotoPreview(k){
-  const inp=document.getElementById(k+'-photo'); const box=document.getElementById(k+'-photo-prev');
-  if(!inp.files||!inp.files.length){ box.innerHTML=''; inp._compressed=''; inp._compressedArr=null; return; }
+// ══════════ رافع الصور المتعدد (➕ / حذف / جنب بعض) ══════════
+window.__docUp={calib:[], license:[]};
+function _driveThumb(url, sz){ const m=String(url).match(/[-\w]{25,}/); return m?('https://drive.google.com/thumbnail?id='+m[0]+'&sz=w'+(sz||220)):url; }
+function docUpTrigger(k){ const f=document.getElementById(k+'-imgfile'); if(f) f.click(); }
+function docUpAdd(k){
+  const inp=document.getElementById(k+'-imgfile'); if(!inp||!inp.files||!inp.files.length) return;
   const files=Array.prototype.slice.call(inp.files);
-  Promise.all(files.map(f=>_docCompress(f,1400,0.72))).then(arr=>{
-    inp._compressedArr=arr; inp._compressed=arr[0]||'';
-    box.innerHTML=arr.map(u=>'<img src="'+u+'" style="max-width:'+(arr.length>1?'48%':'100%')+';max-height:150px;border-radius:8px;border:1px solid #CBD5E1;margin:3px">').join('')+(arr.length>1?('<div style="font-size:11px;color:#166534;font-weight:700;margin-top:4px">'+arr.length+' صور</div>'):'');
-  }).catch(()=>{ box.innerHTML='<div style="color:#B91C1C;font-size:11px">تعذّر قراءة الصور</div>'; });
+  Promise.all(files.map(f=>_docCompress(f,1400,0.72))).then(arr=>{ window.__docUp[k]=window.__docUp[k]||[]; arr.forEach(d=>window.__docUp[k].push({data:d})); inp.value=''; docUpRender(k); }).catch(()=>{});
+}
+function docUpDel(k,i){ (window.__docUp[k]||[]).splice(i,1); docUpRender(k); }
+function docUpRender(k){
+  const box=document.getElementById(k+'-imgs'); if(!box) return;
+  const arr=window.__docUp[k]||[];
+  let h='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  arr.forEach((im,i)=>{ const src=im.data||_driveThumb(im.url,220); const full=im.data||im.url;
+    h+='<div style="position:relative;width:88px;height:88px;border:1px solid #CBD5E1;border-radius:8px;overflow:hidden;background:#f8fafc">'
+      +'<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImgLightbox(\''+full.replace(/'/g,"")+'\')" onerror="this.style.opacity=.3">'
+      +'<button type="button" onclick="docUpDel(\''+k+'\','+i+')" title="حذف" style="position:absolute;top:2px;left:2px;background:#DC2626;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-weight:800;cursor:pointer;font-size:11px;line-height:1;padding:0">✕</button>'
+      +'<div style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:1px 6px;font-weight:800">'+(i+1)+'</div></div>';
+  });
+  h+='<button type="button" onclick="docUpTrigger(\''+k+'\')" style="width:88px;height:88px;border:2px dashed #94A3B8;border-radius:8px;background:#F8FAFC;color:#475569;font-weight:800;cursor:pointer;font-size:12px;line-height:1.5">➕<br>صورة</button></div>';
+  box.innerHTML=h;
+}
+// عارض الصور (Lightbox) — يشتغل للمشرف والمسؤول
+function openImgLightbox(str){
+  const urls=Array.isArray(str)?str:String(str).split('|||').filter(Boolean);
+  if(!urls.length) return;
+  let ov=document.getElementById('img-lightbox'); if(!ov){ ov=document.createElement('div'); ov.id='img-lightbox'; ov.onclick=function(e){ if(e.target===ov) ov.style.display='none'; }; document.body.appendChild(ov); }
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000000;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:18px;font-family:Cairo';
+  let h='<button onclick="document.getElementById(\'img-lightbox\').style.display=\'none\'" style="position:fixed;top:12px;left:12px;background:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:18px;font-weight:800;cursor:pointer;z-index:2">✕</button>';
+  h+='<div style="color:#fff;font-weight:800;margin:4px 0 12px;font-size:14px">📷 '+urls.length+' صورة</div>';
+  urls.forEach((u,i)=>{ const big=(u.indexOf('data:')===0)?u:_driveThumb(u,1200);
+    h+='<div style="margin-bottom:14px;text-align:center;max-width:96vw"><img src="'+big+'" style="max-width:96vw;max-height:78vh;border-radius:10px;background:#fff" onerror="this.style.display=\'none\'"><div style="margin-top:3px"><a href="'+u+'" target="_blank" style="color:#93C5FD;font-weight:800;font-size:12.5px">🔗 فتح الصورة '+(i+1)+' في درايف</a></div></div>'; });
+  ov.innerHTML=h; ov.style.display='flex';
+}
+// خلية الصور في الجداول → زر يفتح العارض
+function _imgCell(imgStr){
+  if(!imgStr) return '—';
+  const urls=String(imgStr).split(' | ').filter(Boolean); if(!urls.length) return '—';
+  return '<button onclick="openImgLightbox(\''+urls.join('|||').replace(/'/g,"")+'\')" style="background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE;border-radius:7px;padding:3px 8px;font-weight:800;cursor:pointer;font-size:11px;white-space:nowrap">🖼️ '+urls.length+'</button>';
 }
 function _docCompress(file,maxW,quality){
   return new Promise((res,rej)=>{ const r=new FileReader();
@@ -5692,16 +5723,18 @@ function submitDoc(k){
   const permSel=document.getElementById(k+'-perm'); const perm=permSel?(permSel.value==='perm'):(DOC_MONTHS[item]===0);
   if(!issued){ st.style.color='#B91C1C'; st.textContent='❌ أدخل تاريخ الإصدار'; return; }
   if(k==='calib' && !desc){ st.style.color='#B91C1C'; st.textContent='❌ اختر تفاصيل البند (المرحلة/النوع/الرقم)'; return; }
-  const inp=document.getElementById(k+'-photo'); const arr=(inp&&inp._compressedArr)||[]; const image=inp&&inp._compressed?inp._compressed:'';
-  st.style.color='#334155'; st.textContent='⏳ جارى الحفظ'+((image||arr.length)?' ورفع الصور':'')+'...';
+  const up=window.__docUp[k]||[];
+  const keepUrls=up.filter(x=>x.url).map(x=>x.url);   // صور محفوظة قديمة نبقيها
+  const images=up.filter(x=>x.data).map(x=>x.data);    // صور جديدة نرفعها
+  st.style.color='#334155'; st.textContent='⏳ جارى الحفظ'+(images.length?' ورفع الصور':'')+'...';
   const orig=(window.__docEdit&&window.__docEdit[k])||null;
-  const payload={ type:'calib', code:currentStation.code, name:currentStation.name, item:item, desc:desc, serial:serial, issued:issued, due:due, perm:perm, months:DOC_MONTHS[item] };
-  if(arr.length>1) payload.images=arr; else if(image) payload.image=image;
+  const payload={ type:'calib', code:currentStation.code, name:currentStation.name, item:item, desc:desc, serial:serial, issued:issued, due:due, perm:perm, months:DOC_MONTHS[item], keepUrls:keepUrls };
+  if(images.length) payload.images=images;
   if(orig){ payload.orig_item=orig.item; payload.orig_desc=orig.desc; payload.orig_serial=orig.serial; }
   fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)}).then(r=>r.json()).then(j=>{
     if(j&&j.ok){ st.style.color='#166534'; st.textContent='✅ اتحفظت — '+(j.perm?'دائمة (بدون استحقاق)':('الاستحقاق: '+(j.due||due||'—')));
       if(window.__docEdit)window.__docEdit[k]=null;
-      if(serialEl)serialEl.value=''; document.getElementById(k+'-issued').value=''; dueEl.value=''; dueEl.dataset.auto=''; if(inp){inp.value='';inp._compressed='';inp._compressedArr=null;} document.getElementById(k+'-photo-prev').innerHTML='';
+      if(serialEl)serialEl.value=''; document.getElementById(k+'-issued').value=''; dueEl.value=''; dueEl.dataset.auto=''; window.__docUp[k]=[]; try{ docUpRender(k); }catch(e){}
       if(k==='calib'){ try{ calibConfigure(); }catch(e){} }
       setTimeout(()=>{ st.textContent=''; loadMyDoc(k); },1200);
     } else { st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ: '+((j&&j.error)||''); }
@@ -5733,10 +5766,9 @@ function editDoc(k, idx){
   set(k+'-due', it.due||''); // نرجّعه بعد الإعداد عشان ما يتحسبش من جديد
   // نخزّن المفتاح الأصلي عشان الحفظ يحدّث نفس الصف حتى لو غيّرت السيريال
   window.__docEdit=window.__docEdit||{}; window.__docEdit[k]={item:it.itemId, desc:it.desc||'', serial:it.serial||''};
-  // نعرض الصورة الحالية (لو موجودة) — رفع صورة جديدة هيستبدلها
-  const prev=document.getElementById(k+'-photo-prev');
-  if(prev){ prev.innerHTML = it.img ? ('<div style="font-size:11px;color:#166534;font-weight:700;margin-bottom:4px">📷 فيه صورة محفوظة — <a href="'+it.img+'" target="_blank">افتحها</a>. ارفع صورة جديدة لو عايز تستبدلها.</div>') : '<div style="font-size:11px;color:#B45309;font-weight:700">مفيش صورة — ارفع واحدة دلوقتي.</div>'; }
-  const inp=document.getElementById(k+'-photo'); if(inp){ inp.value=''; inp._compressed=''; }
+  // نحمّل الصور المحفوظة في الرافع بترتيبها — تقدر تحذف أو تضيف عليها
+  window.__docUp[k]=(it.img?String(it.img).split(' | '):[]).filter(Boolean).map(u=>({url:u}));
+  try{ docUpRender(k); }catch(e){}
   const st=document.getElementById(k+'-status'); if(st){ st.style.color='#334155'; st.textContent='✏️ وضع التعديل — عدّل واضغط حفظ.'; }
   if(panel) panel.scrollIntoView({behavior:'smooth', block:'center'});
 }
@@ -5757,7 +5789,7 @@ function renderDocTable(items, withDelete, kind){
       +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.issued||'—')+'</td>'
       +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
       +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center"><span style="background:'+s[2]+';color:'+s[1]+';padding:3px 9px;border-radius:7px;font-weight:800;font-size:11px;white-space:nowrap">'+s[0]+'</span></td>'
-      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+(it.img?'<a href="'+it.img+'" target="_blank" style="text-decoration:none;font-size:16px">🖼️</a>':'—')+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+_imgCell(it.img)+'</td>'
       +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center;white-space:nowrap">'+(withDelete?('<button onclick="editDoc(\''+kind+'\','+i+')" style="background:#DBEAFE;color:#1E40AF;border:none;border-radius:6px;padding:4px 8px;font-weight:800;cursor:pointer;font-size:11px;margin-left:4px">✏️ تعديل</button><button onclick="deleteDocRow(\''+kind+'\',\''+encodeURIComponent(it.itemId)+'\',\''+encodeURIComponent(it.desc||'')+'\',\''+encodeURIComponent(it.serial||'')+'\')" style="background:#FEE2E2;color:#B91C1C;border:none;border-radius:6px;padding:4px 8px;font-weight:800;cursor:pointer;font-size:11px">حذف</button>'):'')+'</td></tr>';
   });
   h+='</tbody></table></div>';
