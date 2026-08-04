@@ -174,11 +174,6 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-legend span{display:flex;align-items:center;gap:5px}
 .mc-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
 .mc-hint{font-size:10px;color:#94A3B8;text-align:center;margin-top:7px;font-weight:600}
-.mc-toggle{width:100%;background:#F1F5F9;color:#334155;border:1px solid #E2E8F0;border-radius:9px;padding:7px;font-family:Cairo;font-weight:800;font-size:12px;cursor:pointer;margin-top:8px}
-.mc-toggle:hover{background:#E7EDF3}
-.mc-compactbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-.mc-cbtn{background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE;border-radius:9px;padding:7px 12px;font-family:Cairo;font-weight:800;font-size:12px;cursor:pointer}
-.mc-cbtn:hover{background:#E0E7FF}
 .mc-vchart{display:flex;gap:5px;align-items:flex-end;justify-content:space-between;padding:4px 0 0}
 .mc-vcol{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0}
 .mc-vnum{font-size:11px;font-weight:900;direction:ltr;margin-bottom:3px;white-space:nowrap}
@@ -1087,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V214</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V216</span>
       </div>
     </div>
   </div>
@@ -1682,7 +1677,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 214; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 216; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5330,29 +5325,92 @@ function loadDocMgr(kind){
     fetch(APPS_SCRIPT_URL+'?action=docSubmission&kind='+kind).then(r=>r.json()).catch(()=>({sent:[],notSent:[]}))
   ]).then(([j,ss])=>{
     const items=(j&&j.items)||[]; window.__docMgrItems[kind]=items;
-    const subHtml = (typeof renderSubmissionStatus==='function') ? ('<div style="margin-bottom:14px">'+renderSubmissionStatus(ss, isLic?'#5B21B6':'#334155')+'</div>') : '';
-    const late=items.filter(x=>!x.perm&&x.rem!=null&&x.rem<0), soon=items.filter(x=>!x.perm&&x.rem!=null&&x.rem>=0&&x.rem<=60);
-    const totLbl=isLic?'إجمالي الوثائق':'إجمالي الشهادات';
-    let h=subHtml+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
-      +'<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#B91C1C">'+late.length+'</div><div style="font-size:11px;color:#7F1D1D;font-weight:700">متأخرة</div></div>'
-      +'<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#B45309">'+soon.length+'</div><div style="font-size:11px;color:#7A4A00;font-weight:700">قريبة (≤60 يوم)</div></div>'
-      +'<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#166534">'+items.length+'</div><div style="font-size:11px;color:#166534;font-weight:700">'+totLbl+'</div></div></div>';
-    if(!items.length){ h+='<div style="text-align:center;padding:26px;color:#64748B;font-weight:700">لا توجد '+(isLic?'تراخيص/موافقات':'شهادات')+' مسجّلة من المحطات بعد.</div>'; box.innerHTML=h; return; }
-    const hc=isLic?'#5B21B6':'#334155';
-    h+='<div style="overflow-x:auto;border:1px solid #E7EBF3;border-radius:10px"><table style="width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap"><thead><tr>'
-      +['المحطة',(isLic?'النوع':'البند'),'الرقم','الإصدار','الاستحقاق','الحالة','📷'].map((x,i)=>'<th style="padding:8px 6px;background:'+hc+';color:#fff;font-size:11.5px'+(i<2?';text-align:right':'')+'">'+x+'</th>').join('')+'</tr></thead><tbody>';
-    items.forEach((it,i)=>{ const s=_docStat(it); const bg=i%2?'#F8FAFC':'#fff';
-      h+='<tr style="background:'+bg+'"><td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+(it.name||it.code||'—')+'</td>'
-        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+it.item+(it.desc?(' <span style="color:#64748B;font-weight:400">— '+it.desc+'</span>'):'')+'</td>'
-        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.serial||'—')+'</td>'
-        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr">'+(it.issued||'—')+'</td>'
-        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;direction:ltr;font-weight:800">'+(it.due||'—')+'</td>'
-        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center"><span style="background:'+s[2]+';color:'+s[1]+';padding:3px 9px;border-radius:7px;font-weight:800;font-size:11px">'+s[0]+'</span></td>'
-        +'<td style="padding:6px 8px;border:1px solid #E7EBF3;text-align:center">'+_imgCell(it.img)+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
-    box.innerHTML=h;
+    window.__docMgr=window.__docMgr||{}; window.__docMgr[kind]={items:items, ss:ss, isLic:isLic, f:{q:'',item:'',stn:'',stat:''}};
+    box.innerHTML=_docMgrShell(kind);
+    renderDocMgrTable(kind);
   }).catch(e=>{ box.innerHTML='<div style="text-align:center;padding:20px;color:#B91C1C">تعذر التحميل</div>'; });
+}
+// الهيكل: حالة الإرسال + كروت مختصرة (قابلة للضغط كفلتر) + شريط فلاتر + جدول بترويسة وعمود محطة مثبتين
+function _docMgrShell(kind){
+  const D=window.__docMgr[kind]; const items=D.items, isLic=D.isLic, ss=D.ss;
+  const subHtml=(typeof renderSubmissionStatus==='function')?('<div style="margin-bottom:12px">'+renderSubmissionStatus(ss, isLic?'#5B21B6':'#334155')+'</div>'):'';
+  const late=items.filter(x=>!x.perm&&x.rem!=null&&x.rem<0).length, soon=items.filter(x=>!x.perm&&x.rem!=null&&x.rem>=0&&x.rem<=60).length;
+  const totLbl=isLic?'إجمالي الوثائق':'إجمالي الشهادات';
+  const card=(n,lbl,c,bg,br,stat)=>'<div onclick="docMgrSetFilter(\''+kind+'\',\'stat\',\''+stat+'\')" style="cursor:pointer;background:'+bg+';border:1px solid '+br+';border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:'+c+'">'+n+'</div><div style="font-size:11px;color:'+c+';font-weight:700">'+lbl+'</div></div>';
+  let h=subHtml+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
+    +card(late,'متأخرة','#B91C1C','#FEF2F2','#FCA5A5','late')
+    +card(soon,'قريبة (≤60 يوم)','#B45309','#FFFBEB','#FCD34D','soon')
+    +card(items.length,totLbl,'#166534','#F0FDF4','#86EFAC','')+'</div>';
+  if(!items.length){ return h+'<div style="text-align:center;padding:26px;color:#64748B;font-weight:700">لا توجد '+(isLic?'تراخيص/موافقات':'شهادات')+' مسجّلة من المحطات بعد.</div>'; }
+  // خيارات الفلاتر (بنود + محطات موجودة فعلاً)
+  const uniq=(arr)=>arr.filter((v,i)=>v&&arr.indexOf(v)===i).sort((a,b)=>String(a).localeCompare(String(b),'ar'));
+  const itemOpts=uniq(items.map(x=>x.item)), stnOpts=uniq(items.map(x=>x.name||x.code));
+  const sel=(id,ph,opts)=>'<select id="docf-'+id+'-'+kind+'" onchange="docMgrSetFilter(\''+kind+'\',\''+id+'\',this.value)" style="border:1px solid #CBD5E1;border-radius:9px;padding:8px 10px;font-family:Cairo;font-weight:700;font-size:12.5px;background:#fff;color:#334155;min-width:120px"><option value="">'+ph+'</option>'+opts.map(o=>'<option value="'+_esc(o)+'">'+o+'</option>').join('')+'</select>';
+  const statSel='<select id="docf-stat-'+kind+'" onchange="docMgrSetFilter(\''+kind+'\',\'stat\',this.value)" style="border:1px solid #CBD5E1;border-radius:9px;padding:8px 10px;font-family:Cairo;font-weight:700;font-size:12.5px;background:#fff;color:#334155;min-width:120px"><option value="">كل الحالات</option><option value="late">🔴 متأخرة</option><option value="soon">🟠 قريبة (≤60 يوم)</option><option value="ok">🟢 سليمة</option><option value="perm">🔵 دائمة</option></select>';
+  h+='<div style="background:#F8FAFC;border:1px solid #E7EBF3;border-radius:12px;padding:10px;margin-bottom:10px">'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+    +'<input id="docf-q-'+kind+'" oninput="docMgrSetFilter(\''+kind+'\',\'q\',this.value)" placeholder="🔎 بحث (محطة / رقم / بنك / مرحلة...)" style="flex:1;min-width:160px;border:1px solid #CBD5E1;border-radius:9px;padding:8px 11px;font-family:Cairo;font-weight:700;font-size:12.5px">'
+    +sel('item',(isLic?'كل الأنواع':'كل البنود'),itemOpts)
+    +sel('stn','كل المحطات',stnOpts)
+    +statSel
+    +'<button onclick="docMgrClearFilters(\''+kind+'\')" style="background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE;border-radius:9px;padding:8px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12.5px">مسح الفلاتر</button>'
+    +'</div>'
+    +'<div id="docf-count-'+kind+'" style="font-size:11.5px;color:#64748B;font-weight:700;margin-top:7px"></div></div>'
+    +'<div id="doc-mgr-table-'+kind+'"></div>';
+  return h;
+}
+function docMgrSetFilter(kind, key, val){
+  const D=window.__docMgr&&window.__docMgr[kind]; if(!D) return;
+  D.f[key]=val;
+  // نزامن قيمة الكنترول (مهم لما الضغط يجى من كارت مختصر)
+  if(key==='stat'){ const el=document.getElementById('docf-stat-'+kind); if(el&&el.value!==val) el.value=val; }
+  renderDocMgrTable(kind);
+}
+function docMgrClearFilters(kind){
+  const D=window.__docMgr&&window.__docMgr[kind]; if(!D) return;
+  D.f={q:'',item:'',stn:'',stat:''};
+  ['q','item','stn','stat'].forEach(k=>{ const el=document.getElementById('docf-'+k+'-'+kind); if(el) el.value=''; });
+  renderDocMgrTable(kind);
+}
+function renderDocMgrTable(kind){
+  const D=window.__docMgr&&window.__docMgr[kind]; if(!D) return;
+  const box=document.getElementById('doc-mgr-table-'+kind); if(!box) return;
+  const isLic=D.isLic, hc=isLic?'#5B21B6':'#334155', f=D.f;
+  const q=(f.q||'').trim().toLowerCase();
+  let rows=D.items.filter(it=>{
+    if(f.item && it.item!==f.item) return false;
+    if(f.stn && (it.name||it.code)!==f.stn) return false;
+    if(f.stat){ const perm=it.perm||!it.due, r=it.rem;
+      if(f.stat==='perm' && !perm) return false;
+      if(f.stat==='late' && !(!perm&&r!=null&&r<0)) return false;
+      if(f.stat==='soon' && !(!perm&&r!=null&&r>=0&&r<=60)) return false;
+      if(f.stat==='ok' && !(!perm&&r!=null&&r>60)) return false;
+    }
+    if(q){ const hay=((it.name||'')+' '+(it.item||'')+' '+(it.desc||'')+' '+(it.serial||'')+' '+(it.issued||'')+' '+(it.due||'')).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+    return true;
+  });
+  const cnt=document.getElementById('docf-count-'+kind); if(cnt) cnt.textContent='📋 معروض: '+rows.length+' من '+D.items.length;
+  if(!rows.length){ box.innerHTML='<div style="text-align:center;padding:24px;color:#64748B;font-weight:700;border:1px solid #E7EBF3;border-radius:10px">لا توجد نتائج مطابقة للفلاتر.</div>'; return; }
+  const thBase='padding:8px 7px;background:'+hc+';color:#fff;font-size:11.5px;position:sticky;top:0;z-index:3;white-space:nowrap';
+  // العمود الأول (المحطة) مثبّت أفقيًا + الترويسة مثبّتة رأسيًا
+  let h='<div style="overflow:auto;max-height:66vh;border:1px solid #E7EBF3;border-radius:10px"><table style="width:100%;border-collapse:separate;border-spacing:0;font-size:12px">'
+    +'<thead><tr>'
+    +'<th style="'+thBase+';right:0;z-index:4;text-align:right;min-width:120px">المحطة</th>'
+    +'<th style="'+thBase+';text-align:right;min-width:150px">'+(isLic?'النوع':'البند / المرحلة')+'</th>'
+    +'<th style="'+thBase+'">الرقم</th><th style="'+thBase+'">الإصدار</th><th style="'+thBase+'">الاستحقاق</th><th style="'+thBase+'">الحالة</th><th style="'+thBase+'">📷</th>'
+    +'</tr></thead><tbody>';
+  rows.forEach((it,i)=>{ const s=_docStat(it); const bg=i%2?'#F8FAFC':'#fff'; const cb='border-bottom:1px solid #E7EBF3;border-left:1px solid #EEF2F6';
+    h+='<tr>'
+      +'<td style="padding:7px 9px;'+cb+';text-align:right;font-weight:800;background:'+bg+';position:sticky;right:0;z-index:1;min-width:120px">'+(it.name||it.code||'—')+'</td>'
+      +'<td style="padding:7px 9px;'+cb+';text-align:right;background:'+bg+';min-width:150px;white-space:normal;line-height:1.5">'+it.item+(it.desc?('<div style="color:#64748B;font-weight:600;font-size:11px">'+it.desc+'</div>'):'')+'</td>'
+      +'<td style="padding:7px 9px;'+cb+';direction:ltr;text-align:center;background:'+bg+';white-space:nowrap">'+(it.serial||'—')+'</td>'
+      +'<td style="padding:7px 9px;'+cb+';direction:ltr;text-align:center;background:'+bg+';white-space:nowrap">'+(it.issued||'—')+'</td>'
+      +'<td style="padding:7px 9px;'+cb+';direction:ltr;text-align:center;font-weight:800;background:'+bg+';white-space:nowrap">'+(it.due||'—')+'</td>'
+      +'<td style="padding:7px 9px;'+cb+';text-align:center;background:'+bg+'"><span style="background:'+s[2]+';color:'+s[1]+';padding:3px 9px;border-radius:7px;font-weight:800;font-size:11px;white-space:nowrap">'+s[0]+'</span></td>'
+      +'<td style="padding:7px 9px;'+cb+';text-align:center;background:'+bg+'">'+_imgCell(it.img)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  box.innerHTML=h;
 }
 function mgrBackToHub(){
   document.getElementById('mgr-sections-area').style.display='none';
@@ -7239,23 +7297,12 @@ function _mcCurve(title,dotColor,data,opts){
     h+='<div'+attrs+'><span>'+d.name+'</span><span style="color:'+vcol+'">'+opts.fmt(d.v)+'</span></div>';});
     return h+'</div>';}
   const lists='<div class="mc-l2">'+c2(opts.topTitle,topList,opts.topColor)+'<div style="width:1px;background:#E2E8F0"></div>'+c2(opts.lowTitle,lowList,opts.lowColor,opts.extra)+'</div>';
-  // عرض مضغوط: المنحنى يظهر فى كادر واحد، وترتيب المحطات (أعلى/أقل) مطوى بيتفتح بالضغط
-  window.__mcSeq=(window.__mcSeq||0)+1; const lid='mclist-'+window.__mcSeq;
-  return '<div class="mc-card"><div class="mc-title"><span class="dot" style="background:'+dotColor+'"></span>'+title+'</div>'+s
-    +'<div class="mc-hint">👆 اضغط أى نقطة على المنحنى لعرض اسم المحطة وقيمتها</div>'
-    +'<button type="button" class="mc-toggle cap-skip" data-mclist="'+lid+'" onclick="toggleMcList(\''+lid+'\',this)">📋 عرض ترتيب المحطات (أعلى / أقل)</button>'
-    +'<div id="'+lid+'" class="mc-lists" style="display:none">'+lists+'</div></div>';
+  return '<div class="mc-card"><div class="mc-title"><span class="dot" style="background:'+dotColor+'"></span>'+title+'</div>'+s+'<div class="mc-hint">👆 اضغط أى نقطة لعرض اسم المحطة وقيمتها</div>'+lists+'</div>';
 }
-function toggleMcList(id,btn){ const el=document.getElementById(id); if(!el) return; const show=(el.style.display==='none'||!el.style.display); el.style.display=show?'block':'none'; if(btn) btn.textContent=show?'🔼 إخفاء ترتيب المحطات':'📋 عرض ترتيب المحطات (أعلى / أقل)'; }
-// طى/فتح كل قوائم الترتيب مرة واحدة
-function toggleAllMcLists(open){ document.querySelectorAll('#mgr-charts .mc-lists').forEach(el=>{ el.style.display=open?'block':'none'; }); document.querySelectorAll('#mgr-charts .mc-toggle').forEach(b=>{ b.textContent=open?'🔼 إخفاء ترتيب المحطات':'📋 عرض ترتيب المحطات (أعلى / أقل)'; }); }
 function buildMgrCharts(j){
   const host=document.getElementById('mgr-charts'); if(!host) return;
   const S=(j.stations||[]);
-  // شريط العرض المضغوط: المنحنيات فى كوادر واحدة، وأزرار لفتح/طى كل القوائم مرة واحدة
-  let H='<div class="mc-compactbar"><span style="font-size:12px;font-weight:800;color:#334155">📊 عرض مضغوط — كل منحنى فى كادر واحد</span>'
-    +'<button type="button" class="mc-cbtn cap-skip" onclick="toggleAllMcLists(true)">🔽 افتح كل الترتيبات</button>'
-    +'<button type="button" class="mc-cbtn cap-skip" onclick="toggleAllMcLists(false)">🔼 اطوِ الكل</button></div>';
+  let H='';
   // ── منحنيات الـ42 محطة ──
   // المحافظة من اسم المحطة (بورفؤاد تتبع بورسعيد) — لترتيب محطات الصفر فى المبيعات
   const _govOf=nm=>{const n=String(nm||'');
