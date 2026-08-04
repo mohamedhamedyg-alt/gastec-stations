@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V217</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V218</span>
       </div>
     </div>
   </div>
@@ -1677,7 +1677,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 217; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 218; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5341,7 +5341,7 @@ function _docMgrShell(kind){
   const uniq=(arr)=>arr.filter((v,i)=>v&&arr.indexOf(v)===i).sort((a,b)=>String(a).localeCompare(String(b),'ar'));
   const itemOpts=uniq(items.map(x=>x.item)), stnOpts=uniq(items.map(x=>x.name||x.code));
   const sel=(id,ph,opts)=>'<select id="docf-'+id+'-'+kind+'" onchange="docMgrSetFilter(\''+kind+'\',\''+id+'\',this.value)" style="border:1px solid #CBD5E1;border-radius:9px;padding:8px 10px;font-family:Cairo;font-weight:700;font-size:12.5px;background:#fff;color:#334155;min-width:120px"><option value="">'+ph+'</option>'+opts.map(o=>'<option value="'+_esc(o)+'">'+o+'</option>').join('')+'</select>';
-  const statSel='<select id="docf-stat-'+kind+'" onchange="docMgrSetFilter(\''+kind+'\',\'stat\',this.value)" style="border:1px solid #CBD5E1;border-radius:9px;padding:8px 10px;font-family:Cairo;font-weight:700;font-size:12.5px;background:#fff;color:#334155;min-width:120px"><option value="">كل الحالات</option><option value="late">🔴 متأخرة</option><option value="soon">🟠 قريبة (≤60 يوم)</option><option value="ok">🟢 سليمة</option><option value="perm">🔵 دائمة</option></select>';
+  const statSel='<select id="docf-stat-'+kind+'" onchange="docMgrSetFilter(\''+kind+'\',\'stat\',this.value)" style="border:1px solid #CBD5E1;border-radius:9px;padding:8px 10px;font-family:Cairo;font-weight:700;font-size:12.5px;background:#fff;color:#334155;min-width:120px"><option value="">كل الحالات</option><option value="late">🔴 متأخرة</option><option value="soon">🟠 قريبة (≤60 يوم)</option><option value="ok">🟢 سليمة / غير مستحقة</option></select>';
   h+='<div style="background:#F8FAFC;border:1px solid #E7EBF3;border-radius:12px;padding:10px;margin-bottom:10px">'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
     +'<input id="docf-q-'+kind+'" oninput="docMgrSetFilter(\''+kind+'\',\'q\',this.value)" placeholder="🔎 بحث (محطة / رقم / بنك / مرحلة...)" style="flex:1;min-width:160px;border:1px solid #CBD5E1;border-radius:9px;padding:8px 11px;font-family:Cairo;font-weight:700;font-size:12.5px">'
@@ -5367,19 +5367,23 @@ function docMgrClearFilters(kind){
   ['q','item','stn','stat'].forEach(k=>{ const el=document.getElementById('docf-'+k+'-'+kind); if(el) el.value=''; });
   renderDocMgrTable(kind);
 }
-// كروت المتأخر/القريب/الإجمالى — تتحسب من النطاق (بعد فلتر البند/المحطة/البحث، وقبل فلتر الحالة)
+// كروت الحالة — تقسيم كامل يجمع للإجمالى: متأخرة + قريبة + سليمة = الإجمالى (تتحسب من النطاق بعد فلتر البند/المحطة/البحث)
 function _renderDocMgrCards(kind, scope){
   const D=window.__docMgr[kind]; const box=document.getElementById('doc-mgr-cards-'+kind); if(!box) return;
   const isLic=D.isLic, cur=D.f.stat, itemLbl=D.f.item;
   const late=scope.filter(x=>!x.perm&&x.rem!=null&&x.rem<0).length;
   const soon=scope.filter(x=>!x.perm&&x.rem!=null&&x.rem>=0&&x.rem<=60).length;
-  const totLbl=(isLic?'إجمالي الوثائق':'إجمالي الشهادات')+(itemLbl?(' — '+itemLbl):'');
+  const ok=scope.length-late-soon;   // سليمة (>60 يوم) + دائمة — الباقى كله
+  const totWord=isLic?'الوثائق':'الشهادات';
   const card=(n,lbl,c,bg,br,stat)=>{ const on=(cur===stat&&stat!=='');
     return '<div onclick="docMgrSetFilter(\''+kind+'\',\'stat\',\''+(cur===stat?'':stat)+'\')" style="cursor:pointer;background:'+bg+';border:'+(on?'2px':'1px')+' solid '+br+';border-radius:12px;padding:10px;text-align:center;box-shadow:'+(on?'0 2px 9px rgba(0,0,0,.14)':'none')+';transition:.15s"><div style="font-size:20px;font-weight:800;color:'+c+'">'+n+'</div><div style="font-size:11px;color:'+c+';font-weight:700">'+lbl+'</div></div>'; };
-  box.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
-    +card(late,'متأخرة','#B91C1C','#FEF2F2','#FCA5A5','late')
-    +card(soon,'قريبة (≤60 يوم)','#B45309','#FFFBEB','#FCD34D','soon')
-    +card(scope.length,totLbl,'#166534','#F0FDF4','#86EFAC','')+'</div>';
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">'
+    +'<div style="font-size:13.5px;font-weight:800;color:#334155">📋 إجمالي '+totWord+(itemLbl?(' — '+itemLbl):'')+': <span style="color:#166534">'+scope.length+'</span></div>'
+    +'<div style="font-size:11px;color:#94A3B8;font-weight:700">متأخرة + قريبة + سليمة = الإجمالي</div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
+    +card(late,'🔴 متأخرة','#B91C1C','#FEF2F2','#FCA5A5','late')
+    +card(soon,'🟠 قريبة (≤60 يوم)','#B45309','#FFFBEB','#FCD34D','soon')
+    +card(ok,'🟢 سليمة','#166534','#F0FDF4','#86EFAC','ok')+'</div>';
 }
 function renderDocMgrTable(kind){
   const D=window.__docMgr&&window.__docMgr[kind]; if(!D) return;
@@ -5397,10 +5401,9 @@ function renderDocMgrTable(kind){
   // الصفوف = النطاق + فلتر الحالة
   let rows=scope.filter(it=>{
     if(!f.stat) return true; const perm=it.perm||!it.due, r=it.rem;
-    if(f.stat==='perm') return perm;
     if(f.stat==='late') return (!perm&&r!=null&&r<0);
     if(f.stat==='soon') return (!perm&&r!=null&&r>=0&&r<=60);
-    if(f.stat==='ok') return (!perm&&r!=null&&r>60);
+    if(f.stat==='ok') return (perm||(r!=null&&r>60));   // سليمة/دائمة = غير مستحقة (نفس الكارت الأخضر)
     return true;
   });
   const cnt=document.getElementById('docf-count-'+kind); if(cnt) cnt.textContent='📋 معروض: '+rows.length+' من '+D.items.length;
