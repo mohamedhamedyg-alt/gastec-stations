@@ -174,6 +174,11 @@ input:checked+.slider:before{transform:translateX(-20px)}
 .mc-legend span{display:flex;align-items:center;gap:5px}
 .mc-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
 .mc-hint{font-size:10px;color:#94A3B8;text-align:center;margin-top:7px;font-weight:600}
+.mc-toggle{width:100%;background:#F1F5F9;color:#334155;border:1px solid #E2E8F0;border-radius:9px;padding:7px;font-family:Cairo;font-weight:800;font-size:12px;cursor:pointer;margin-top:8px}
+.mc-toggle:hover{background:#E7EDF3}
+.mc-compactbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.mc-cbtn{background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE;border-radius:9px;padding:7px 12px;font-family:Cairo;font-weight:800;font-size:12px;cursor:pointer}
+.mc-cbtn:hover{background:#E0E7FF}
 .mc-vchart{display:flex;gap:5px;align-items:flex-end;justify-content:space-between;padding:4px 0 0}
 .mc-vcol{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0}
 .mc-vnum{font-size:11px;font-weight:900;direction:ltr;margin-bottom:3px;white-space:nowrap}
@@ -1082,7 +1087,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V213</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V214</span>
       </div>
     </div>
   </div>
@@ -1677,7 +1682,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 213; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 214; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -7234,12 +7239,23 @@ function _mcCurve(title,dotColor,data,opts){
     h+='<div'+attrs+'><span>'+d.name+'</span><span style="color:'+vcol+'">'+opts.fmt(d.v)+'</span></div>';});
     return h+'</div>';}
   const lists='<div class="mc-l2">'+c2(opts.topTitle,topList,opts.topColor)+'<div style="width:1px;background:#E2E8F0"></div>'+c2(opts.lowTitle,lowList,opts.lowColor,opts.extra)+'</div>';
-  return '<div class="mc-card"><div class="mc-title"><span class="dot" style="background:'+dotColor+'"></span>'+title+'</div>'+s+'<div class="mc-hint">👆 اضغط أى نقطة لعرض اسم المحطة وقيمتها</div>'+lists+'</div>';
+  // عرض مضغوط: المنحنى يظهر فى كادر واحد، وترتيب المحطات (أعلى/أقل) مطوى بيتفتح بالضغط
+  window.__mcSeq=(window.__mcSeq||0)+1; const lid='mclist-'+window.__mcSeq;
+  return '<div class="mc-card"><div class="mc-title"><span class="dot" style="background:'+dotColor+'"></span>'+title+'</div>'+s
+    +'<div class="mc-hint">👆 اضغط أى نقطة على المنحنى لعرض اسم المحطة وقيمتها</div>'
+    +'<button type="button" class="mc-toggle cap-skip" data-mclist="'+lid+'" onclick="toggleMcList(\''+lid+'\',this)">📋 عرض ترتيب المحطات (أعلى / أقل)</button>'
+    +'<div id="'+lid+'" class="mc-lists" style="display:none">'+lists+'</div></div>';
 }
+function toggleMcList(id,btn){ const el=document.getElementById(id); if(!el) return; const show=(el.style.display==='none'||!el.style.display); el.style.display=show?'block':'none'; if(btn) btn.textContent=show?'🔼 إخفاء ترتيب المحطات':'📋 عرض ترتيب المحطات (أعلى / أقل)'; }
+// طى/فتح كل قوائم الترتيب مرة واحدة
+function toggleAllMcLists(open){ document.querySelectorAll('#mgr-charts .mc-lists').forEach(el=>{ el.style.display=open?'block':'none'; }); document.querySelectorAll('#mgr-charts .mc-toggle').forEach(b=>{ b.textContent=open?'🔼 إخفاء ترتيب المحطات':'📋 عرض ترتيب المحطات (أعلى / أقل)'; }); }
 function buildMgrCharts(j){
   const host=document.getElementById('mgr-charts'); if(!host) return;
   const S=(j.stations||[]);
-  let H='';
+  // شريط العرض المضغوط: المنحنيات فى كوادر واحدة، وأزرار لفتح/طى كل القوائم مرة واحدة
+  let H='<div class="mc-compactbar"><span style="font-size:12px;font-weight:800;color:#334155">📊 عرض مضغوط — كل منحنى فى كادر واحد</span>'
+    +'<button type="button" class="mc-cbtn cap-skip" onclick="toggleAllMcLists(true)">🔽 افتح كل الترتيبات</button>'
+    +'<button type="button" class="mc-cbtn cap-skip" onclick="toggleAllMcLists(false)">🔼 اطوِ الكل</button></div>';
   // ── منحنيات الـ42 محطة ──
   // المحافظة من اسم المحطة (بورفؤاد تتبع بورسعيد) — لترتيب محطات الصفر فى المبيعات
   const _govOf=nm=>{const n=String(nm||'');
