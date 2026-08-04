@@ -1084,7 +1084,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V207</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V208</span>
       </div>
     </div>
   </div>
@@ -1679,7 +1679,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 207; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 208; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5276,11 +5276,15 @@ function openMgrSection(tab){
 function loadDocMgr(kind){
   const isLic=kind==='license'; const box=document.getElementById(kind+'-mgr-content'); if(!box) return;
   box.innerHTML='<div style="text-align:center;padding:26px;color:#475569;font-weight:800">⏳ جارى التحميل...</div>';
-  fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+kind).then(r=>r.json()).then(j=>{
+  Promise.all([
+    fetch(APPS_SCRIPT_URL+'?action=calibDue&kind='+kind).then(r=>r.json()),
+    fetch(APPS_SCRIPT_URL+'?action=docSubmission&kind='+kind).then(r=>r.json()).catch(()=>({sent:[],notSent:[]}))
+  ]).then(([j,ss])=>{
     const items=(j&&j.items)||[]; window.__docMgrItems[kind]=items;
+    const subHtml = (typeof renderSubmissionStatus==='function') ? ('<div style="margin-bottom:14px">'+renderSubmissionStatus(ss, isLic?'#5B21B6':'#334155')+'</div>') : '';
     const late=items.filter(x=>!x.perm&&x.rem!=null&&x.rem<0), soon=items.filter(x=>!x.perm&&x.rem!=null&&x.rem>=0&&x.rem<=60);
     const totLbl=isLic?'إجمالي الوثائق':'إجمالي الشهادات';
-    let h='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
+    let h=subHtml+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
       +'<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#B91C1C">'+late.length+'</div><div style="font-size:11px;color:#7F1D1D;font-weight:700">متأخرة</div></div>'
       +'<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#B45309">'+soon.length+'</div><div style="font-size:11px;color:#7A4A00;font-weight:700">قريبة (≤60 يوم)</div></div>'
       +'<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#166534">'+items.length+'</div><div style="font-size:11px;color:#166534;font-weight:700">'+totLbl+'</div></div></div>';
