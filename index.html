@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V210</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V211</span>
       </div>
     </div>
   </div>
@@ -1331,9 +1331,9 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div class="mgr-sum-card"><div class="mgr-sum-label">التاريخ</div><div class="mgr-sum-val" id="mgr-c-date" style="color:var(--blue-dark);font-size:15px">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">مبيعات م³</div><div class="mgr-sum-val" id="mgr-c-sales" style="color:var(--blue-dark)">0</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">أرسلت</div><div class="mgr-sum-val" id="mgr-c-sent" style="color:var(--green)">0</div></div>
-    <div class="mgr-sum-card"><div class="mgr-sum-label">هوزات متوقفة</div><div class="mgr-sum-val" id="mgr-c-hoses" style="color:#C2410C">0</div></div>
+    <div class="mgr-sum-card" id="mgr-card-hoses" style="cursor:pointer;position:relative"><div class="mgr-sum-label">هوزات متوقفة <span style="font-size:11px">ℹ️</span></div><div class="mgr-sum-val" id="mgr-c-hoses" style="color:#C2410C">0</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
-    <div class="mgr-sum-card"><div class="mgr-sum-label">إجمالى مدد التوقف</div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
+    <div class="mgr-sum-card" id="mgr-card-down" style="cursor:pointer;position:relative"><div class="mgr-sum-label">إجمالى مدد التوقف <span style="font-size:11px">ℹ️</span></div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
   </div>
   <div id="mgr-notsent" style="margin-bottom:12px"></div>
   <div id="mgr-charts" style="margin-bottom:12px"></div>
@@ -1677,7 +1677,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 210; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 211; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -7084,6 +7084,46 @@ function renderMgrDay(j){
   });
   tb.innerHTML=html;
   buildMgrCharts(j);
+  try{ _bindSumTips(j); }catch(e){}
+}
+// ══════════ تفصيل الهوزات المتوقفة ومدد التوقف (بوكس عائم بالماوس/اللمس على كروت الملخص) ══════════
+function _sumTipEl(){ let t=document.getElementById('mgr-sumtip'); if(!t){ t=document.createElement('div'); t.id='mgr-sumtip'; t.style.cssText='position:fixed;display:none;z-index:999998;background:#fff;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.24);padding:12px 14px;width:280px;max-width:92vw;max-height:64vh;overflow:auto;font-family:Cairo;direction:rtl;text-align:right'; document.body.appendChild(t); } return t; }
+function _showSumTip(anchor, html){
+  const t=_sumTipEl(); t.innerHTML=html; t.style.display='block';
+  const r=anchor.getBoundingClientRect(); const tw=t.offsetWidth, th=t.offsetHeight;
+  let left=r.left+r.width/2-tw/2; left=Math.max(8, Math.min(left, window.innerWidth-tw-8));
+  let top=r.bottom+8; if(top+th>window.innerHeight-8){ top=r.top-th-8; } if(top<8) top=8;
+  t.style.left=left+'px'; t.style.top=top+'px';
+}
+function _hideSumTip(){ const t=document.getElementById('mgr-sumtip'); if(t) t.style.display='none'; }
+function _sumRow(name, val, valColor){
+  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;border-bottom:1px dashed #FDE68A;font-size:13px"><span style="font-weight:700;color:#334155">'+name+'</span><span style="font-weight:800;color:'+valColor+';white-space:nowrap;direction:rtl;unicode-bidi:isolate">'+val+'</span></div>';
+}
+function _bindSumTips(j){
+  const S=j.stations||[];
+  // ① الهوزات المتوقفة: لكل محطة اسمها وعدد الهوزات الواقفة
+  const hoses=S.map(s=>({name:s.name, n:parseInt(s.hoses)||0})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+  const totH=hoses.reduce((a,b)=>a+b.n,0);
+  let hHtml='<div style="font-weight:800;color:#9A3412;font-size:14px;margin-bottom:8px;border-bottom:2px solid #FED7AA;padding-bottom:6px">🔧 إجمالى الهوزات المتوقفة: '+totH+'</div>';
+  if(!hoses.length) hHtml+='<div style="color:#166534;font-weight:700;font-size:13px;padding:4px 0">✅ لا توجد هوزات متوقفة اليوم</div>';
+  else hoses.forEach(x=>{ hHtml+=_sumRow(x.name, x.n+' هوز', '#B91C1C'); });
+  // ② مدد التوقف: لكل محطة اسمها وعدد ساعات توقفها
+  const down=S.map(s=>({name:s.name, dt:s.downtime||'', min:_dtMin(s.downtime)})).filter(x=>x.min>0).sort((a,b)=>b.min-a.min);
+  let dHtml='<div style="font-weight:800;color:#92400E;font-size:14px;margin-bottom:8px;border-bottom:2px solid #FDE68A;padding-bottom:6px">⏱️ إجمالى مدد التوقف: '+(j.totals.downtime||'—')+'</div>';
+  if(!down.length) dHtml+='<div style="color:#166534;font-weight:700;font-size:13px;padding:4px 0">✅ لا توجد محطات متوقفة اليوم</div>';
+  else down.forEach(x=>{ dHtml+=_sumRow(x.name, x.dt, '#C2410C'); });
+  // ربط الكروت (هوفر بالماوس + ضغطة/لمسة تثبّت على الموبايل)
+  const bind=(card,html,key)=>{ if(!card) return;
+    card.onmouseenter=()=>{ if(window.__sumPin) return; _showSumTip(card,html); };
+    card.onmouseleave=()=>{ if(window.__sumPin) return; _hideSumTip(); };
+    card.onclick=(e)=>{ e.stopPropagation(); if(window.__sumPin===key){ window.__sumPin=null; _hideSumTip(); } else { window.__sumPin=key; _showSumTip(card,html); } };
+  };
+  bind(document.getElementById('mgr-card-hoses'), hHtml, 'h');
+  bind(document.getElementById('mgr-card-down'), dHtml, 'd');
+  if(!window.__sumTipInit){ window.__sumTipInit=true; document.addEventListener('click',(ev)=>{
+    if(ev.target.closest&&(ev.target.closest('#mgr-sumtip')||ev.target.closest('#mgr-card-hoses')||ev.target.closest('#mgr-card-down'))) return;
+    window.__sumPin=null; _hideSumTip();
+  }); window.addEventListener('resize',_hideSumTip); }
 }
 // ══════════ رسومات لوحة المسؤول (من بيانات اليوم الموجودة — بدون داتا جديدة) ══════════
 function _shortModel(code){ const st=STATIONS[String(code)]; return (st&&st.comps&&st.comps[0]&&st.comps[0].model)||''; }
