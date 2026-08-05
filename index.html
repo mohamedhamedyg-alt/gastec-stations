@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V224</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V225</span>
       </div>
     </div>
   </div>
@@ -1263,6 +1263,11 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <span id="mgr-badge-calib" style="display:none"></span>
       <div style="font-size:17px;font-weight:800">⚙️ المعايرة</div>
       <div style="font-size:12px;opacity:.85;margin-top:4px">تجميعة استحقاق شهادات المعايرة لكل المحطات (PSV · حساسات الغاز · الخزانات · Pressure Gauges · الديسبنسرات) + تنبيه</div>
+    </div>
+    <!-- قسم إعداد المعايرة (المسؤول) -->
+    <div onclick="openMgrSection('calibcfg')" style="background:linear-gradient(135deg,#5B21B6,#8B5CF6);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
+      <div style="font-size:17px;font-weight:800">🧭 إعداد المعايرة (PSV · Gauges · الخزانات)</div>
+      <div style="font-size:12px;opacity:.85;margin-top:4px">تحديد أنواع الـPSV والـGauges لكل ضاغط بضغطها القياسى + نوع وعدد الخزانات — عشان تظهر جاهزة للمشرف</div>
     </div>
     <!-- قسم التراخيص والموافقات -->
     <div onclick="openMgrSection('license')" style="position:relative;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)">
@@ -1499,6 +1504,20 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
     <div id="license-mgr-content" style="font-size:13px"><div style="text-align:center;padding:30px;color:#5B21B6;font-weight:800">⏳ جارى التحميل...</div></div>
   </div>
 
+  <!-- تاب إعداد المعايرة (المسؤول) -->
+  <div class="mgr-tab-content" id="mtab-calibcfg">
+    <button class="back-hub-btn" onclick="mgrBackToHub()">رجوع للقائمة</button>
+    <div class="mgr-tab-title">🧭 إعداد المعايرة — أنواع PSV/Gauges لكل ضاغط + الخزانات</div>
+    <div id="calibcfg-content">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+        <label style="font-weight:800;color:#5B21B6;font-size:13px">🏭 المحطة:</label>
+        <select id="calibcfg-station" onchange="calibCfgPick()" class="form-control" style="min-width:240px;font-weight:700"></select>
+      </div>
+      <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:10px 13px;font-size:12px;color:#5B21B6;font-weight:700;margin-bottom:12px;line-height:1.8">لكل ضاغط حدّد أنواع الـPSV والـGauges بضغطها القياسى — المشرف هيلاقيها جاهزة يملأ قيمها بس. الخزانات: النوع والعدد فقط.</div>
+      <div id="calibcfg-body"></div>
+    </div>
+  </div>
+
   <!-- نافذة إعدادات خطة التحويل والاختبار -->
   <div id="conv-plan-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99999;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
@@ -1682,7 +1701,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 224; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 225; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5341,7 +5360,74 @@ function openMgrSection(tab){
   if(tab==='convperf'){ loadConvPerf(); }
   if(tab==='calib'){ loadDocMgr('calib'); }
   if(tab==='license'){ loadDocMgr('license'); }
+  if(tab==='calibcfg'){ loadCalibCfg(); }
   window.scrollTo({top:0,behavior:'smooth'});
+}
+// ══════════ إعداد المعايرة (المسؤول): أنواع PSV/Gauge لكل ضاغط + الخزانات ══════════
+const CALIB_TYPES=['1st Stage','2nd Stage','3rd Stage','4th Stage','5th Stage','Scrubber','Blow Down','Bank Hi.','Bank Med.','Bank Low','Recovery','Gas Signal','Separator','Inlet','Discharge','Direct Line','Poster'];
+window.__calibCfg={};
+function loadCalibCfg(){
+  const sel=document.getElementById('calibcfg-station'); if(!sel) return;
+  if(!sel.dataset.init){ sel.dataset.init='1';
+    const opts=Object.keys(STATIONS).map(c=>({c:c,n:STATIONS[c].name||c})).sort((a,b)=>String(a.n).localeCompare(String(b.n),'ar'));
+    sel.innerHTML='<option value="">— اختر المحطة —</option>'+opts.map(o=>'<option value="'+o.c+'">'+o.n+' ('+o.c+')</option>').join('');
+  }
+}
+function calibCfgPick(){
+  const code=document.getElementById('calibcfg-station').value; const box=document.getElementById('calibcfg-body');
+  if(!code){ box.innerHTML=''; return; }
+  box.innerHTML='<div style="text-align:center;padding:20px;color:#6D28D9;font-weight:800">⏳ جارى التحميل...</div>';
+  fetch(APPS_SCRIPT_URL+'?action=calibConfig&code='+encodeURIComponent(code)).then(r=>r.json()).then(j=>{ window.__calibCfg[code]=(j&&j.rows)||[]; renderCalibCfg(code); }).catch(()=>{ window.__calibCfg[code]=[]; renderCalibCfg(code); });
+}
+function _cfgRowHTML(kind, r){ r=r||{};
+  const to=CALIB_TYPES.map(t=>'<option'+(r.type===t?' selected':'')+'>'+t+'</option>').join('');
+  const uo=['PSI','Bar'].map(u=>'<option'+(r.unit===u?' selected':'')+'>'+u+'</option>').join('');
+  return '<div class="cfg-row" data-kind="'+kind+'" style="display:flex;gap:6px;align-items:center;margin-bottom:5px">'
+    +'<select class="cfg-type form-control" style="flex:1;min-width:110px;font-weight:700;padding:6px">'+to+'</select>'
+    +'<select class="cfg-unit form-control" style="width:74px;font-weight:700;padding:6px">'+uo+'</select>'
+    +'<input class="cfg-std form-control" type="number" step="any" inputmode="decimal" placeholder="الضغط القياسى" value="'+(r.std!=null?r.std:'')+'" style="width:120px;direction:ltr;font-weight:700;padding:6px">'
+    +'<button type="button" onclick="this.parentNode.remove()" style="background:#FEE2E2;color:#B91C1C;border:none;border-radius:7px;width:30px;height:30px;font-weight:900;cursor:pointer;flex-shrink:0">🗑</button></div>';
+}
+function _cfgTankRowHTML(r){ r=r||{};
+  const t=[['cyl','اسطوانية'],['sph','كروية']].map(x=>'<option value="'+x[0]+'"'+(r.type===x[0]?' selected':'')+'>'+x[1]+'</option>').join('');
+  return '<div class="cfg-trow" style="display:flex;gap:6px;align-items:center;margin-bottom:5px">'
+    +'<select class="cfg-ttype form-control" style="flex:1;font-weight:700;padding:6px">'+t+'</select>'
+    +'<input class="cfg-tcount form-control" type="number" min="1" step="1" inputmode="numeric" placeholder="العدد" value="'+(r.count!=null?r.count:'')+'" style="width:120px;direction:ltr;font-weight:700;padding:6px">'
+    +'<button type="button" onclick="this.parentNode.remove()" style="background:#FEE2E2;color:#B91C1C;border:none;border-radius:7px;width:30px;height:30px;font-weight:900;cursor:pointer;flex-shrink:0">🗑</button></div>';
+}
+function _cfgAdd(btn, kind){ const list=btn.previousElementSibling; list.insertAdjacentHTML('beforeend', _cfgRowHTML(kind,{})); }
+function _cfgAddTank(btn){ const list=btn.previousElementSibling; list.insertAdjacentHTML('beforeend', _cfgTankRowHTML({})); }
+function renderCalibCfg(code){
+  const st=STATIONS[code], rows=window.__calibCfg[code]||[]; const box=document.getElementById('calibcfg-body'); if(!box) return;
+  const comps=(st&&st.comps)||[]; let h='';
+  const sec=(title,list,addKind,addLbl)=>'<div style="font-weight:800;color:#334155;font-size:12.5px;margin:8px 0 6px">'+title+'</div><div class="'+addKind+'-list">'+list+'</div><button type="button" onclick="_cfgAdd(this,\''+addKind+'\')" style="background:#ECFEFF;color:#0F766E;border:1px solid #99F6E4;border-radius:8px;padding:6px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px;margin-top:2px">'+addLbl+'</button>';
+  comps.forEach((c,idx)=>{
+    const psv=rows.filter(r=>String(r.comp)===String(idx)&&r.kind==='psv').map(r=>_cfgRowHTML('psv',r)).join('');
+    const gau=rows.filter(r=>String(r.comp)===String(idx)&&r.kind==='gauge').map(r=>_cfgRowHTML('gauge',r)).join('');
+    const model=((c.name?c.name+' ':'')+(c.model||'')).trim()||('ضاغط '+(idx+1));
+    h+='<div class="cfg-comp" data-comp="'+idx+'" style="border:2px solid #99F6E4;border-radius:12px;margin-bottom:12px;overflow:hidden"><div style="background:#0F766E;color:#fff;padding:9px 12px;font-weight:800;font-size:13.5px">🔧 ضاغط '+(idx+1)+' — '+model+'</div><div style="padding:10px 12px">'
+      +sec('🛡️ أنواع صمامات الأمان PSV', psv, 'psv', '➕ إضافة PSV')
+      +'<div style="height:10px"></div>'
+      +sec('🎚️ أنواع Pressure Gauges', gau, 'gauge', '➕ إضافة Gauge')
+      +'</div></div>';
+  });
+  const tanks=rows.filter(r=>r.kind==='tank').map(r=>_cfgTankRowHTML(r)).join('')||_cfgTankRowHTML({});
+  h+='<div style="border:2px solid #FCD34D;border-radius:12px;overflow:hidden;margin-bottom:12px"><div style="background:#B45309;color:#fff;padding:9px 12px;font-weight:800;font-size:13.5px">🛢️ خزانات الغاز (النوع + العدد)</div><div style="padding:10px 12px"><div class="cfg-tank-list">'+tanks+'</div><button type="button" onclick="_cfgAddTank(this)" style="background:#FFFBEB;color:#B45309;border:1px solid #FCD34D;border-radius:8px;padding:6px 12px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px;margin-top:2px">➕ إضافة نوع خزان</button></div></div>';
+  h+='<button type="button" onclick="saveCalibCfg2(\''+code+'\')" style="width:100%;background:linear-gradient(135deg,#6D28D9,#7C3AED);color:#fff;border:none;border-radius:10px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer">💾 حفظ إعداد المحطة</button><div id="calibcfg-status" style="text-align:center;font-size:12.5px;font-weight:800;margin-top:8px;min-height:16px"></div>';
+  box.innerHTML=h;
+}
+function saveCalibCfg2(code){
+  const box=document.getElementById('calibcfg-body'); const rows=[];
+  box.querySelectorAll('.cfg-comp').forEach(cd=>{ const comp=cd.dataset.comp;
+    cd.querySelectorAll('.cfg-row').forEach(r=>{ const kind=r.dataset.kind; const type=r.querySelector('.cfg-type').value; const unit=r.querySelector('.cfg-unit').value; const std=r.querySelector('.cfg-std').value;
+      if(type) rows.push({comp:comp, kind:kind, type:type, unit:unit, std:(std===''?null:parseFloat(std)), count:null}); });
+  });
+  box.querySelectorAll('.cfg-trow').forEach(r=>{ const type=r.querySelector('.cfg-ttype').value; const count=r.querySelector('.cfg-tcount').value; if(count) rows.push({comp:'',kind:'tank',type:type,unit:'',std:null,count:parseInt(count,10)}); });
+  const stt=document.getElementById('calibcfg-status'); if(stt){ stt.style.color='#334155'; stt.textContent='⏳ جارى الحفظ...'; }
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'calibConfig',code:code,name:(STATIONS[code]&&STATIONS[code].name)||'',rows:rows})}).then(r=>r.json()).then(j=>{
+    if(stt){ if(j&&j.ok){ stt.style.color='#166534'; stt.textContent='✅ اتحفظ الإعداد ('+j.saved+' بند)'; } else { stt.style.color='#B91C1C'; stt.textContent='❌ تعذر الحفظ: '+((j&&j.error)||''); } }
+    window.__calibCfg[code]=rows;
+  }).catch(()=>{ if(stt){ stt.style.color='#B91C1C'; stt.textContent='❌ تعذر الإرسال — راجع الاتصال'; } });
 }
 // ══════════ الوثائق (المسؤول): تجميعة استحقاق كل المحطات — معايرة/تراخيص ══════════
 function loadDocMgr(kind){
