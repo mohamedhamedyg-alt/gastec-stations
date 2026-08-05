@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V220</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V221</span>
       </div>
     </div>
   </div>
@@ -1677,7 +1677,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 220; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 221; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -2158,6 +2158,7 @@ function STAGE_CFG(model){
   if(m.indexOf('SHG')>=0) return {stages:4, ab:true, punit:'bar', tunit:'c'};   // Safe SHG 315/355 — 4 مراحل، A/B فى الحرارات (الثالثة والرابعة)
   if(/^\s*ST\s/.test(m)) return {stages:3, ab:false, punit:'bar', tunit:'c'};   // Safe ST 65T26 / ST 75T26 — 3 مراحل
   if(m.indexOf('JGJ')>=0 || m.toLowerCase().indexOf('hyosung')>=0) return {stages:5, ab:false, punit:'bar', tunit:'c'}; // بورسعيد التعمير Hyosung — 5 مراحل ضغوط و5 حرارات بدون A/B
+  if(m.indexOf('S975')>=0) return {stages:4, ab:false, punit:'psi', tunit:'f'};  // بورسعيد الجمهورية — إدخال PSI/°F/inch-per-sec ويتخزّن bar/°C/mm-per-sec
   return {stages:4, ab:false, punit:'bar', tunit:'c'};
 }
 const _ORD=['','1st','2nd','3rd','4th','5th','6th'];
@@ -2212,14 +2213,31 @@ function READINGS_CFG(model){
   else if(m.indexOf('JGJ')>=0||m.toLowerCase().indexOf('hyosung')>=0){ R.temp=[_rf('in','Inlet','In')].concat(stg()); R.oil=[_of('opress','Oil Pressure (bar)','p','Oil P'),_of('otemp','Temperature (°C)','t','Temp')]; R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('speed','Motor Speed (rpm)','n','Speed')]; }
   else if(m==='M302'){ R.temp=stg(); R.other=[_of('amp','Motor Current (A)','n','Amp')]; }
   else if(m==='H304'){ R.other=[_of('ss','No. of Start/Stop (No.)','n','S/S'),_of('amp','Motor Current (A)','n','Amp')]; }
+  else if(m.indexOf('S975')>=0){
+    // بورسعيد الجمهورية — الإدخال بالإمبريال (PSI/°F/inch-per-sec) والتخزين/العرض بالمتري (bar/°C/mm-per-sec)
+    R.pres=[_rf('in','Inlet','In'),_rf('1','1st stage','1'),_rf('2','2nd stage','2'),_rf('3','3rd stage','3'),_rf('4','4th stage','4'),Object.assign(_rf('bd','Blowdown','BD'),{noRatio:true})];
+    R.temp=[_rf('1','1st stage','1'),_rf('2','2nd stage','2'),_rf('3','3rd stage','3'),_rf('4','4th stage','4'),_rf('enclosure','Enclosure','Encl'),_rf('disch','Discharge','Disch')];
+    R.oil=[
+      Object.assign(_of('opress','Oil Pressure (bar)','p','Oil P'),{il:'Oil Pressure (PSI)'}),
+      Object.assign(_of('otemp','Temperature (°C)','t','Temp'),{il:'Temperature (°F)'}),
+      Object.assign(_of('orecov','Oil Recovery Pressure (bar)','p','Recov P'),{il:'Oil Recovery Pressure (PSI)'}),
+      _of('level','Level (%)','n','Level')
+    ];
+    R.other=[
+      Object.assign(_of('vib','Compressor Vibration (mm/sec)','n','Vib'),{il:'Compressor Vibration (inch/sec)',mul:25.4}),
+      _of('l1','L1 (A)','n','L1'),_of('l2','L2 (A)','n','L2'),_of('l3','L3 (A)','n','L3'),
+      _of('ss','No. of Start/Stop (No.)','n','S/S')
+    ];
+  }
 
-  R.ratio=[]; for(let i=1;i<R.pres.length;i++){ R.ratio.push({num:R.pres[i].k, den:R.pres[i-1].k, s:R.pres[i].s+'/'+R.pres[i-1].s}); }
+  R.ratio=[]; for(let i=1;i<R.pres.length;i++){ if(R.pres[i].noRatio) continue; R.ratio.push({num:R.pres[i].k, den:R.pres[i-1].k, s:R.pres[i].s+'/'+R.pres[i-1].s}); }
   return R;
 }
 function stageSectionHTML(idx, model, compLabel){
   const R=READINGS_CFG(model);
   const pu=R.punit==='psi'?'PSI':'bar', tu=R.tunit==='f'?'°F':'°C';
-  const conv=(R.punit==='psi'||R.tunit==='f')?` <span style="font-size:10px;font-weight:700;color:#B45309">(auto→bar/°C)</span>`:'';
+  const _hasVibConv=(R.other||[]).some(f=>f.mul);
+  const conv=(R.punit==='psi'||R.tunit==='f'||_hasVibConv)?` <span style="font-size:10px;font-weight:700;color:#B45309">(الإدخال بالوحدة الظاهرة ويتحوّل تلقائيًا للمتري: bar/°C${_hasVibConv?'/mm·s⁻¹':''})</span>`:'';
   const inp=(id,ph)=>`<input type="number" step="any" inputmode="decimal" id="${id}"${ph?' oninput="calcStageRatios('+idx+')"':''} style="width:100%">`;
   let ph=''; R.pres.forEach(p=>{
     if(p.min!=null){
@@ -2228,11 +2246,11 @@ function stageSectionHTML(idx, model, compLabel){
   });
   let rh=''; R.ratio.forEach((r,i)=>{ rh+=`<div class="cell ratio"><label style="color:#7C3AED">${r.s}</label><div id="sr-${idx}-${i}" style="font-weight:900;color:#6D28D9;font-size:14px">—</div></div>`; });
   let th=''; R.temp.forEach(t=>{ th+=`<div class="cell tcell"><label>${t.l}</label>${inp('st-'+idx+'-'+t.k)}</div>`; });
-  let oh=''; R.oil.forEach(f=>{ oh+=`<div class="cell ocell"><label>${f.l}</label>${inp('so-'+idx+'-'+f.k)}</div>`; });
+  let oh=''; R.oil.forEach(f=>{ oh+=`<div class="cell ocell"><label>${f.il||f.l}</label>${inp('so-'+idx+'-'+f.k)}</div>`; });
   let xh=''; R.other.forEach(f=>{
     if(f.k==='ss'){
-      xh+=`<div class="cell"><label>${f.l}</label><input type="number" step="1" min="0" inputmode="numeric" id="sx-${idx}-${f.k}" oninput="checkSS(${idx})" style="width:100%"><div id="ss-msg-${idx}" style="display:none;font-size:10px;font-weight:800;color:#DC2626;margin-top:3px">⚠ رقم غريب — راجع القيمة</div></div>`;
-    } else { xh+=`<div class="cell"><label>${f.l}</label>${inp('sx-'+idx+'-'+f.k)}</div>`; }
+      xh+=`<div class="cell"><label>${f.il||f.l}</label><input type="number" step="1" min="0" inputmode="numeric" id="sx-${idx}-${f.k}" oninput="checkSS(${idx})" style="width:100%"><div id="ss-msg-${idx}" style="display:none;font-size:10px;font-weight:800;color:#DC2626;margin-top:3px">⚠ رقم غريب — راجع القيمة</div></div>`;
+    } else { xh+=`<div class="cell"><label>${f.il||f.l}</label>${inp('sx-'+idx+'-'+f.k)}</div>`; }
   });
   let waterBlock='';
   if(R.water){ let wh=''; R.water.forEach(f=>{ wh+=`<div class="cell wcell"><label>${f.l}</label>${inp('sw-'+idx+'-'+f.k)}</div>`; });
@@ -2292,7 +2310,7 @@ function collectStageReadings(idx){
   R.temp.forEach(t=>{ const v=rd('st-'+idx+'-'+t.k); if(v!=null)temp[t.k]=toC(v); });
   R.oil.forEach(f=>{ const v=rd('so-'+idx+'-'+f.k); if(v!=null) oil[f.k]=(f.kind==='t')?toC(v):(f.kind==='p'?toBarP(v):r1(v)); });
   if(R.water) R.water.forEach(f=>{ const v=rd('sw-'+idx+'-'+f.k); if(v!=null) water[f.k]=(f.kind==='t')?toC(v):(f.kind==='p'?toBarP(v):r1(v)); });
-  R.other.forEach(f=>{ const v=rd('sx-'+idx+'-'+f.k); if(v!=null) other[f.k]=r1(v); });
+  R.other.forEach(f=>{ const v=rd('sx-'+idx+'-'+f.k); if(v!=null) other[f.k]=r1(f.mul?v*f.mul:v); });
   return {model:model, stages:R.stages, pres:pres, temp:temp, oil:oil, water:water, other:other};
 }
 // ── حساب حيود معدل التدفق للضاغط لحظة الإرسال (نفس منطق بوكس البيان اليومى) — يُخزَّن مع القراءات ──
