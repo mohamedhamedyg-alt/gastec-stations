@@ -1088,7 +1088,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V227</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V229</span>
       </div>
     </div>
   </div>
@@ -1520,6 +1520,17 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <select id="calibcfg-station" onchange="calibCfgPick()" class="form-control" style="min-width:240px;font-weight:700"></select>
       </div>
       <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:10px 13px;font-size:12px;color:#5B21B6;font-weight:700;margin-bottom:12px;line-height:1.8">لكل ضاغط حدّد أنواع الـPSV والـGauges بضغطها القياسى — المشرف هيلاقيها جاهزة يملأ قيمها بس. الخزانات: النوع والعدد فقط.</div>
+      <!-- استيراد من إكسيل -->
+      <div style="background:#ECFDF5;border:1px solid #86EFAC;border-radius:10px;padding:11px 13px;margin-bottom:12px">
+        <div style="font-size:12.5px;font-weight:800;color:#166534;margin-bottom:8px">📊 إدخال أسرع عن طريق إكسيل — املأ القالب مرة واحدة لكل المحطات واستورده</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <a href="قالب_إعداد_المعايرة.xlsx" download style="background:#16A34A;color:#fff;border-radius:9px;padding:8px 13px;font-weight:800;font-size:12.5px;text-decoration:none">⬇️ تحميل قالب الإكسيل</a>
+          <button type="button" onclick="calibCfgImportPick()" style="background:#0F766E;color:#fff;border:none;border-radius:9px;padding:8px 13px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12.5px">📥 استيراد من إكسيل</button>
+          <input type="file" accept=".xlsx,.xls,.csv" id="calibcfg-xlsx" onchange="calibCfgImport()" style="display:none">
+          <span id="calibcfg-imp-status" style="font-size:12px;font-weight:800;color:#166534"></span>
+        </div>
+        <div style="font-size:11px;color:#166534;font-weight:700;margin-top:6px">الاستيراد بيستبدل إعداد المحطات الموجودة في الملف فقط — الباقي زي ما هو. وتقدر تعدّل يدويًا بعده من تحت.</div>
+      </div>
       <div id="calibcfg-body"></div>
     </div>
   </div>
@@ -1707,7 +1718,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 227; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 229; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5435,13 +5446,55 @@ function saveCalibCfg2(code){
     window.__calibCfg[code]=rows;
   }).catch(()=>{ if(stt){ stt.style.color='#B91C1C'; stt.textContent='❌ تعذر الإرسال — راجع الاتصال'; } });
 }
+// ── استيراد إعداد المعايرة من إكسيل ──
+function _loadSheetJS(){ return new Promise((res,rej)=>{ if(window.XLSX) return res(window.XLSX); const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=()=>{ window.XLSX?res(window.XLSX):rej(new Error('xlsx')); }; s.onerror=()=>rej(new Error('load')); document.head.appendChild(s); }); }
+function calibCfgImportPick(){ const inp=document.getElementById('calibcfg-xlsx'); if(inp){ inp.value=''; inp.click(); } }
+function calibCfgImport(){
+  const inp=document.getElementById('calibcfg-xlsx'); if(!inp||!inp.files||!inp.files.length) return;
+  const file=inp.files[0]; const st=document.getElementById('calibcfg-imp-status');
+  if(st){ st.style.color='#334155'; st.textContent='⏳ جارى قراءة الملف...'; }
+  _loadSheetJS().then(XLSX=>{
+    const rd=new FileReader();
+    rd.onload=e=>{ try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const shName=wb.SheetNames.find(n=>String(n).indexOf('إدخال')>=0)||wb.SheetNames[0];
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[shName],{header:1,defval:''});
+      _processCfgImport(rows);
+    }catch(err){ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر قراءة الملف — تأكد إنه نفس القالب'; } } };
+    rd.onerror=()=>{ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر فتح الملف'; } };
+    rd.readAsArrayBuffer(file);
+  }).catch(()=>{ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر تحميل مكتبة الإكسيل — تأكد من الإنترنت'; } });
+}
+function _processCfgImport(rows){
+  const st=document.getElementById('calibcfg-imp-status');
+  const byCode={};
+  for(let i=1;i<rows.length;i++){ const r=rows[i]||[]; const code=String(r[0]||'').trim(); if(!code || !STATIONS[code]) continue;
+    const kindRaw=String(r[3]||'').trim().toLowerCase(); let kind=''; if(kindRaw==='psv')kind='psv'; else if(kindRaw==='gauge')kind='gauge'; else if(kindRaw.indexOf('خزان')>=0||kindRaw==='tank')kind='tank';
+    if(!kind) continue;
+    const type=String(r[4]||'').trim(), unit=String(r[5]||'').trim(), std=r[6], count=r[7];
+    byCode[code]=byCode[code]||[];
+    if(kind==='tank'){ const tt=(type.indexOf('كرو')>=0||String(type).toLowerCase()==='sph')?'sph':'cyl'; byCode[code].push({comp:'',kind:'tank',type:tt,unit:'',std:null,count:(count===''||count==null)?null:parseInt(count,10)}); }
+    else { if(!type) continue; const comp=(parseInt(r[2],10)||1)-1; byCode[code].push({comp:String(comp<0?0:comp),kind:kind,type:type,unit:(unit||'PSI'),std:(std===''||std==null)?null:parseFloat(std),count:null}); }
+  }
+  const codes=Object.keys(byCode);
+  if(!codes.length){ if(st){ st.style.color='#B91C1C'; st.textContent='❌ مفيش صفوف صالحة — راجع أكواد المحطات والنوع'; } return; }
+  const stations=codes.map(c=>({code:c, name:(STATIONS[c]&&STATIONS[c].name)||'', rows:byCode[c]}));
+  const nrows=stations.reduce((a,s)=>a+s.rows.length,0);
+  if(st){ st.style.color='#334155'; st.textContent='⏳ جارى حفظ '+codes.length+' محطة ('+nrows+' بند)...'; }
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'calibConfigBulk', stations:stations})}).then(r=>r.json()).then(j=>{
+    if(st){ if(j&&j.ok){ st.style.color='#166534'; st.textContent='✅ اتحفظ إعداد '+(j.stations||codes.length)+' محطة ('+(j.rows||nrows)+' بند)'; } else { st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ: '+((j&&j.error)||''); } }
+    codes.forEach(c=>{ window.__calibCfg[c]=byCode[c]; });
+    const cur=document.getElementById('calibcfg-station'); if(cur&&cur.value&&byCode[cur.value]) calibCfgPick();
+  }).catch(()=>{ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر الإرسال — راجع الاتصال'; } });
+}
 // ══════════ مسح مدخلات المحطات (زر المسؤول) — معايرة/تراخيص · محطة أو الكل ══════════
 function openWipeDialog(kind){
   const isLic=kind==='license'; const label=isLic?'التراخيص':'المعايرة'; const other=isLic?'المعايرة':'التراخيص';
   const items=(window.__docMgrItems&&window.__docMgrItems[kind])||[];
-  const stns={}; items.forEach(it=>{ const c=String(it.code||''); if(c) stns[c]=it.name||c; });
-  const codes=Object.keys(stns).sort((a,b)=>String(stns[a]).localeCompare(String(stns[b]),'ar'));
-  const opts='<option value="">🌐 كل المحطات ('+items.length+' مدخل)</option>'+codes.map(c=>{ const n=items.filter(x=>String(x.code)===String(c)).length; return '<option value="'+c+'">'+stns[c]+' ('+n+')</option>'; }).join('');
+  const cnt={}; items.forEach(it=>{ const c=String(it.code||''); if(c) cnt[c]=(cnt[c]||0)+1; });
+  // نعرض كل المحطات عشان تقدر تختار أى واحدة بعينها (وجنبها عدد مدخلاتها)
+  const allStns=Object.keys(STATIONS).map(c=>({c:c,n:STATIONS[c].name||c})).sort((a,b)=>String(a.n).localeCompare(String(b.n),'ar'));
+  const opts='<option value="">🌐 كل المحطات ('+items.length+' مدخل)</option>'+allStns.map(s=>'<option value="'+s.c+'">'+s.n+(cnt[s.c]?(' — '+cnt[s.c]+' مدخل'):' — لا يوجد')+'</option>').join('');
   let ov=document.getElementById('wipe-modal'); if(!ov){ ov=document.createElement('div'); ov.id='wipe-modal'; document.body.appendChild(ov); }
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000000;display:flex;align-items:center;justify-content:center;padding:18px;font-family:Cairo';
   ov.innerHTML='<div style="background:#fff;border-radius:16px;max-width:430px;width:100%;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)">'
