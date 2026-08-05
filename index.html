@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V221</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V222</span>
       </div>
     </div>
   </div>
@@ -1327,10 +1327,15 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <button onclick="loadMgrDay()" style="background:#fff;color:var(--blue-dark);border:none;border-radius:8px;padding:9px 22px;font-family:'Cairo';font-weight:800;cursor:pointer;font-size:14px">عرض</button>
     </div>
   </div>
+  <!-- شريط علوى: التاريخ (بولد على جنب) + أرسلت/لم ترسل على جنب -->
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <div style="display:inline-flex;align-items:center;gap:9px;background:#0F2A47;color:#fff;border-radius:12px;padding:8px 16px;font-weight:900;font-size:16px"><span style="font-size:11px;color:#B8D4E8;font-weight:800">📅 التاريخ</span><span id="mgr-c-date" style="direction:ltr;unicode-bidi:isolate">—</span></div>
+    <div id="mgr-c-sentchip"></div>
+  </div>
   <div class="mgr-sum" style="grid-template-columns:repeat(6,1fr)">
-    <div class="mgr-sum-card"><div class="mgr-sum-label">التاريخ</div><div class="mgr-sum-val" id="mgr-c-date" style="color:var(--blue-dark);font-size:15px">—</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">مبيعات م³</div><div class="mgr-sum-val" id="mgr-c-sales" style="color:var(--blue-dark)">0</div></div>
-    <div class="mgr-sum-card"><div class="mgr-sum-label">أرسلت</div><div class="mgr-sum-val" id="mgr-c-sent" style="color:var(--green)">0</div></div>
+    <div class="mgr-sum-card" style="background:linear-gradient(135deg,#ECFDF5,#F0FDFA);border:1px solid #6EE7B7"><div class="mgr-sum-label" style="color:#065F46">🎯 خطة اليوم (م³)</div><div class="mgr-sum-val" id="mgr-c-dayplan" style="color:#0F766E">—</div></div>
+    <div class="mgr-sum-card" style="background:#F0FDF4;border:1px solid #86EFAC"><div class="mgr-sum-label" style="color:#166534">✅ تحقيق خطة اليوم</div><div class="mgr-sum-val" id="mgr-c-dayach" style="color:#166534">—</div></div>
     <div class="mgr-sum-card" id="mgr-card-hoses" style="cursor:pointer;position:relative"><div class="mgr-sum-label">هوزات متوقفة <span style="font-size:11px">ℹ️</span></div><div class="mgr-sum-val" id="mgr-c-hoses" style="color:#C2410C">0</div></div>
     <div class="mgr-sum-card"><div class="mgr-sum-label">KWH/م³ للمنطقة</div><div class="mgr-sum-val" id="mgr-c-kwhm3" style="color:#7B2D8E">—</div></div>
     <div class="mgr-sum-card" id="mgr-card-down" style="cursor:pointer;position:relative"><div class="mgr-sum-label">إجمالى مدد التوقف <span style="font-size:11px">ℹ️</span></div><div class="mgr-sum-val" id="mgr-c-down" style="color:var(--amber);font-size:15px">—</div></div>
@@ -1677,7 +1682,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 221; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 222; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -7254,10 +7259,22 @@ function loadMgrDay(attempt){
 function renderMgrDay(j){
   window.__lastDay=j;
   document.getElementById('mgr-c-date').textContent=j.date||'—';
-  document.getElementById('mgr-c-sales').textContent=(j.totals.sales||0).toLocaleString('en-US',{maximumFractionDigits:0});
-  document.getElementById('mgr-c-sent').textContent=j.sent+'/'+(j.sent+j.pending);
+  const _sales=j.totals.sales||0;
+  document.getElementById('mgr-c-sales').textContent=_sales.toLocaleString('en-US',{maximumFractionDigits:0});
   document.getElementById('mgr-c-kwhm3').textContent=j.totals.kwhm3;
   document.getElementById('mgr-c-down').textContent=j.totals.downtime;
+  // شبِّة أرسلت/لم ترسل على جنب
+  const _sc=document.getElementById('mgr-c-sentchip');
+  if(_sc){ const pend=j.pending||0; const tot=(j.sent||0)+pend;
+    let ch='<span style="display:inline-flex;align-items:center;gap:7px;background:#DCFCE7;color:#166534;border:1px solid #86EFAC;border-radius:12px;padding:8px 14px;font-weight:900;font-size:14px">✅ أرسلت '+(j.sent||0)+'/'+tot+'</span>';
+    if(pend>0) ch+=' <span style="display:inline-flex;align-items:center;gap:7px;background:#FEF2F2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:12px;padding:8px 14px;font-weight:900;font-size:14px">🔴 لم ترسل '+pend+'</span>';
+    _sc.innerHTML=ch;
+  }
+  // كارت خطة اليوم + نسبة تحقيقها (خطة اليوم = مجموع الخطة اليومية لكل المحطات لشهر اليوم)
+  const _dp=j.totals.dayPlan||0;
+  const _dpEl=document.getElementById('mgr-c-dayplan'), _daEl=document.getElementById('mgr-c-dayach');
+  if(_dpEl) _dpEl.textContent=_dp>0?_dp.toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+  if(_daEl){ if(_dp>0){ const pct=Math.round(_sales/_dp*100); const col=pct>=100?'#166534':(pct>=80?'#B45309':'#B91C1C'); _daEl.textContent=pct+'%'; _daEl.style.color=col; const cardBg=pct>=100?'#F0FDF4':(pct>=80?'#FFFBEB':'#FEF2F2'); const cardBr=pct>=100?'#86EFAC':(pct>=80?'#FCD34D':'#FCA5A5'); const _card=_daEl.closest('.mgr-sum-card'); if(_card){ _card.style.background=cardBg; _card.style.borderColor=cardBr; } const _lbl=_daEl.parentNode.querySelector('.mgr-sum-label'); if(_lbl)_lbl.style.color=col; } else { _daEl.textContent='—'; _daEl.style.color='#94A3B8'; } }
   // ── المحطات التى لم ترسل (فوق الجدول) ──
   const _ns=document.getElementById('mgr-notsent');
   if(_ns){
