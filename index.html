@@ -1088,7 +1088,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V229</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V230</span>
       </div>
     </div>
   </div>
@@ -1718,7 +1718,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 229; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 230; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5457,25 +5457,37 @@ function calibCfgImport(){
     const rd=new FileReader();
     rd.onload=e=>{ try{
       const wb=XLSX.read(e.target.result,{type:'array'});
-      const shName=wb.SheetNames.find(n=>String(n).indexOf('إدخال')>=0)||wb.SheetNames[0];
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[shName],{header:1,defval:''});
-      _processCfgImport(rows);
+      const byCode={};
+      // تبويبات PSV و Gauges: المراحل أعمدة — نقرأ الضغط القياسى تحت كل مرحلة
+      [['PSV','psv'],['Gauges','gauge']].forEach(pair=>{
+        const sname=wb.SheetNames.find(n=>String(n).trim().toLowerCase()===pair[0].toLowerCase()); if(!sname) return;
+        const rows=XLSX.utils.sheet_to_json(wb.Sheets[sname],{header:1,defval:''}); if(rows.length<2) return;
+        const hdr=rows[0];
+        for(let i=1;i<rows.length;i++){ const r=rows[i]; const code=String(r[0]||'').trim(); if(!code||!STATIONS[code]) continue;
+          const comp=(parseInt(r[2],10)||1)-1; const unit=String(r[3]||'PSI').trim()||'PSI';
+          for(let c=4;c<hdr.length;c++){ const stage=String(hdr[c]||'').trim(); if(!stage) continue; const val=r[c]; if(val===''||val==null) continue;
+            const num=parseFloat(val); if(isNaN(num)) continue;
+            byCode[code]=byCode[code]||[]; byCode[code].push({comp:String(comp<0?0:comp),kind:pair[1],type:stage,unit:unit,std:num,count:null});
+          }
+        }
+      });
+      // تبويب الخزانات
+      const tname=wb.SheetNames.find(n=>String(n).indexOf('خزان')>=0);
+      if(tname){ const rows=XLSX.utils.sheet_to_json(wb.Sheets[tname],{header:1,defval:''});
+        for(let i=1;i<rows.length;i++){ const r=rows[i]; const code=String(r[0]||'').trim(); if(!code||!STATIONS[code]) continue;
+          const ttype=String(r[2]||'').trim(); const count=r[3]; if(!ttype && (count===''||count==null)) continue;
+          const tt=(ttype.indexOf('كرو')>=0)?'sph':'cyl';
+          byCode[code]=byCode[code]||[]; byCode[code].push({comp:'',kind:'tank',type:tt,unit:'',std:null,count:(count===''||count==null)?null:parseInt(count,10)});
+        }
+      }
+      _saveCfgImport(byCode);
     }catch(err){ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر قراءة الملف — تأكد إنه نفس القالب'; } } };
     rd.onerror=()=>{ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر فتح الملف'; } };
     rd.readAsArrayBuffer(file);
   }).catch(()=>{ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر تحميل مكتبة الإكسيل — تأكد من الإنترنت'; } });
 }
-function _processCfgImport(rows){
+function _saveCfgImport(byCode){
   const st=document.getElementById('calibcfg-imp-status');
-  const byCode={};
-  for(let i=1;i<rows.length;i++){ const r=rows[i]||[]; const code=String(r[0]||'').trim(); if(!code || !STATIONS[code]) continue;
-    const kindRaw=String(r[3]||'').trim().toLowerCase(); let kind=''; if(kindRaw==='psv')kind='psv'; else if(kindRaw==='gauge')kind='gauge'; else if(kindRaw.indexOf('خزان')>=0||kindRaw==='tank')kind='tank';
-    if(!kind) continue;
-    const type=String(r[4]||'').trim(), unit=String(r[5]||'').trim(), std=r[6], count=r[7];
-    byCode[code]=byCode[code]||[];
-    if(kind==='tank'){ const tt=(type.indexOf('كرو')>=0||String(type).toLowerCase()==='sph')?'sph':'cyl'; byCode[code].push({comp:'',kind:'tank',type:tt,unit:'',std:null,count:(count===''||count==null)?null:parseInt(count,10)}); }
-    else { if(!type) continue; const comp=(parseInt(r[2],10)||1)-1; byCode[code].push({comp:String(comp<0?0:comp),kind:kind,type:type,unit:(unit||'PSI'),std:(std===''||std==null)?null:parseFloat(std),count:null}); }
-  }
   const codes=Object.keys(byCode);
   if(!codes.length){ if(st){ st.style.color='#B91C1C'; st.textContent='❌ مفيش صفوف صالحة — راجع أكواد المحطات والنوع'; } return; }
   const stations=codes.map(c=>({code:c, name:(STATIONS[c]&&STATIONS[c].name)||'', rows:byCode[c]}));
