@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V223</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V224</span>
       </div>
     </div>
   </div>
@@ -1682,7 +1682,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 223; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 224; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -7336,12 +7336,19 @@ function renderMgrDay(j){
 }
 // ══════════ تفصيل الهوزات المتوقفة ومدد التوقف (بوكس عائم بالماوس/اللمس على كروت الملخص) ══════════
 function _sumTipEl(){ let t=document.getElementById('mgr-sumtip'); if(!t){ t=document.createElement('div'); t.id='mgr-sumtip'; t.style.cssText='position:fixed;display:none;z-index:999998;background:#fff;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.24);padding:12px 14px;width:280px;max-width:92vw;max-height:64vh;overflow:auto;font-family:Cairo;direction:rtl;text-align:right'; document.body.appendChild(t); } return t; }
-function _showSumTip(anchor, html){
-  const t=_sumTipEl(); t.innerHTML=html; t.style.display='block';
-  const r=anchor.getBoundingClientRect(); const tw=t.offsetWidth, th=t.offsetHeight;
-  let left=r.left+r.width/2-tw/2; left=Math.max(8, Math.min(left, window.innerWidth-tw-8));
-  let top=r.bottom+8; if(top+th>window.innerHeight-8){ top=r.top-th-8; } if(top<8) top=8;
-  t.style.left=left+'px'; t.style.top=top+'px';
+function _showSumTip(anchor, html, interactive){
+  const t=_sumTipEl(); t.innerHTML=html;
+  // أثناء الهوفر: البوكس بيسمح للماوس يعدّى منه (pointer-events:none) عشان ما يغطّيش الكارت ويسبّب رعشة.
+  // عند التثبيت بالضغطة/اللمسة: بيبقى تفاعلى عشان تقدر تعمله سكرول.
+  t.style.pointerEvents = interactive ? 'auto' : 'none';
+  t.style.maxHeight='64vh'; t.style.display='block';
+  const r=anchor.getBoundingClientRect(); const gap=8, vh=window.innerHeight;
+  const below=vh-r.bottom-gap-8, above=r.top-gap-8;
+  const tw=t.offsetWidth; let left=r.left+r.width/2-tw/2; left=Math.max(8, Math.min(left, window.innerWidth-tw-8));
+  // نحدّد ارتفاع البوكس بمساحة الناحية عشان يفضل تحت (أو فوق) الكارت من غير ما يركبه — ده اللى كان بيعمل الرعشة
+  if(below>=above){ t.style.maxHeight=Math.max(120,below)+'px'; t.style.top=(r.bottom+gap)+'px'; }
+  else { t.style.maxHeight=Math.max(120,above)+'px'; const th=Math.min(t.offsetHeight, above); t.style.top=Math.max(8,(r.top-gap-th))+'px'; }
+  t.style.left=left+'px';
 }
 function _hideSumTip(){ const t=document.getElementById('mgr-sumtip'); if(t) t.style.display='none'; }
 function _sumRow(name, val, valColor){
@@ -7362,9 +7369,9 @@ function _bindSumTips(j){
   else down.forEach(x=>{ dHtml+=_sumRow(x.name, x.dt, '#C2410C'); });
   // ربط الكروت (هوفر بالماوس + ضغطة/لمسة تثبّت على الموبايل)
   const bind=(card,html,key)=>{ if(!card) return;
-    card.onmouseenter=()=>{ if(window.__sumPin) return; _showSumTip(card,html); };
+    card.onmouseenter=()=>{ if(window.__sumPin) return; _showSumTip(card,html,false); };
     card.onmouseleave=()=>{ if(window.__sumPin) return; _hideSumTip(); };
-    card.onclick=(e)=>{ e.stopPropagation(); if(window.__sumPin===key){ window.__sumPin=null; _hideSumTip(); } else { window.__sumPin=key; _showSumTip(card,html); } };
+    card.onclick=(e)=>{ e.stopPropagation(); if(window.__sumPin===key){ window.__sumPin=null; _hideSumTip(); } else { window.__sumPin=key; _showSumTip(card,html,true); } };
   };
   bind(document.getElementById('mgr-card-hoses'), hHtml, 'h');
   bind(document.getElementById('mgr-card-down'), dHtml, 'd');
