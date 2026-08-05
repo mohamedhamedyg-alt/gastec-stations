@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V222</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V223</span>
       </div>
     </div>
   </div>
@@ -1682,7 +1682,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 222; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 223; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -7256,6 +7256,20 @@ function loadMgrDay(attempt){
       else{stEl.textContent='❌ تعذر التحميل — السيرفر مشغول، جرّب زرار عرض تانى بعد لحظات';}
     });
 }
+// كارتا «خطة اليوم» و«تحقيق خطة اليوم» — لون التحقيق حسب النسبة
+function _setDayPlanCard(dayPlan, sales){
+  const _dpEl=document.getElementById('mgr-c-dayplan'), _daEl=document.getElementById('mgr-c-dayach');
+  if(_dpEl) _dpEl.textContent=dayPlan>0?Number(dayPlan).toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+  if(!_daEl) return;
+  if(dayPlan>0){ const pct=Math.round((sales||0)/dayPlan*100);
+    const col=pct>=100?'#166534':(pct>=80?'#B45309':'#B91C1C');
+    const cardBg=pct>=100?'#F0FDF4':(pct>=80?'#FFFBEB':'#FEF2F2');
+    const cardBr=pct>=100?'#86EFAC':(pct>=80?'#FCD34D':'#FCA5A5');
+    _daEl.textContent=pct+'%'; _daEl.style.color=col;
+    const _card=_daEl.closest('.mgr-sum-card'); if(_card){ _card.style.background=cardBg; _card.style.borderColor=cardBr; }
+    const _lbl=_daEl.parentNode.querySelector('.mgr-sum-label'); if(_lbl)_lbl.style.color=col;
+  } else { _daEl.textContent='—'; _daEl.style.color='#94A3B8'; }
+}
 function renderMgrDay(j){
   window.__lastDay=j;
   document.getElementById('mgr-c-date').textContent=j.date||'—';
@@ -7271,10 +7285,13 @@ function renderMgrDay(j){
     _sc.innerHTML=ch;
   }
   // كارت خطة اليوم + نسبة تحقيقها (خطة اليوم = مجموع الخطة اليومية لكل المحطات لشهر اليوم)
-  const _dp=j.totals.dayPlan||0;
-  const _dpEl=document.getElementById('mgr-c-dayplan'), _daEl=document.getElementById('mgr-c-dayach');
-  if(_dpEl) _dpEl.textContent=_dp>0?_dp.toLocaleString('en-US',{maximumFractionDigits:0}):'—';
-  if(_daEl){ if(_dp>0){ const pct=Math.round(_sales/_dp*100); const col=pct>=100?'#166534':(pct>=80?'#B45309':'#B91C1C'); _daEl.textContent=pct+'%'; _daEl.style.color=col; const cardBg=pct>=100?'#F0FDF4':(pct>=80?'#FFFBEB':'#FEF2F2'); const cardBr=pct>=100?'#86EFAC':(pct>=80?'#FCD34D':'#FCA5A5'); const _card=_daEl.closest('.mgr-sum-card'); if(_card){ _card.style.background=cardBg; _card.style.borderColor=cardBr; } const _lbl=_daEl.parentNode.querySelector('.mgr-sum-label'); if(_lbl)_lbl.style.color=col; } else { _daEl.textContent='—'; _daEl.style.color='#94A3B8'; } }
+  const _dp=(j.totals&&j.totals.dayPlan)||0;
+  if(_dp>0){ _setDayPlanCard(_dp, _sales); }
+  else {
+    // تقرير اليوم متخزّن كاش قديم بدون خطة → نجيبها من نقطة مستقلة بدون كاش
+    _setDayPlanCard(0, _sales);
+    fetch(APPS_SCRIPT_URL+'?action=dayplan&date='+encodeURIComponent(j.date||'')).then(r=>r.json()).then(p=>{ if(p&&p.dayPlan>0) _setDayPlanCard(p.dayPlan, _sales); }).catch(()=>{});
+  }
   // ── المحطات التى لم ترسل (فوق الجدول) ──
   const _ns=document.getElementById('mgr-notsent');
   if(_ns){
