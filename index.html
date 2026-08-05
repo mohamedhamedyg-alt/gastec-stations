@@ -558,6 +558,8 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
         <option value="dispenser">معايرة الديسبنسرات (سنة)</option>
       </select>
     </div>
+    <!-- إدخال مفرد (حساسات/خزانات/ديسبنسر) -->
+    <div id="calib-single">
     <!-- حقول ديناميكية حسب البند (مرحلة/ضاغط/نوع الخزان/رقم الهوز...) -->
     <div id="calib-dyn"></div>
     <div class="form-group" id="calib-serial-wrap" style="margin-bottom:10px">
@@ -581,6 +583,10 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div id="calib-imgs"></div>
     </div>
     <button onclick="submitDoc('calib')" style="width:100%;background:linear-gradient(135deg,#475569,#64748B);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:4px">حفظ الشهادة</button>
+    </div>
+    <!-- إدخال متعدد جاهز من إعداد المسؤول (PSV / Gauges) -->
+    <div id="calib-batch" style="display:none"></div>
+    <input type="file" accept="image/*" capture="environment" multiple id="calib-batch-imgfile" onchange="calibBatchAddImg()" style="display:none">
     <div id="calib-status" style="text-align:center;font-size:12px;font-weight:700;margin-top:8px"></div>
   </div>
   <div style="background:linear-gradient(135deg,#334155,#475569);color:#fff;padding:11px 14px;border-radius:var(--radius) var(--radius) 0 0;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>📋 شهادات محطتى وجدول الاستحقاق</span><span style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="downloadDocOrder('calib',false)" style="background:#22C55E;color:#fff;border:2px solid #14532D;border-radius:8px;padding:6px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">🖼️ صورة</button><button onclick="downloadDocOrderPDF('calib',false)" style="background:#DC2626;color:#fff;border:2px solid #7F1D1D;border-radius:8px;padding:6px 11px;font-family:Cairo;font-weight:800;cursor:pointer;font-size:12px">📄 PDF</button></span></div>
@@ -1082,7 +1088,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V225</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V226</span>
       </div>
     </div>
   </div>
@@ -1701,7 +1707,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 225; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 226; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5868,6 +5874,10 @@ function calibConfigure(preset){
     preset={ stage:gv('calib-stage'), comp:gv('calib-comp'), tanktype:gv('calib-tanktype'), tanknum:gv('calib-tanknum'), hose:gv('calib-hose') }; }
   preset=preset||{};
   const item=document.getElementById('calib-item').value;
+  // PSV / Gauges → جدول جاهز من إعداد المسؤول (مش إدخال مفرد)
+  const _single=document.getElementById('calib-single'), _batch=document.getElementById('calib-batch');
+  if(item==='psv'||item==='gauge'){ if(_single)_single.style.display='none'; if(_batch)_batch.style.display='block'; loadCalibBatch(item); return; }
+  if(_single)_single.style.display='block'; if(_batch)_batch.style.display='none';
   const dyn=document.getElementById('calib-dyn'); if(!dyn) return;
   const comps=(currentStation&&currentStation.comps)||[];
   let h='';
@@ -5899,6 +5909,84 @@ function calibConfigure(preset){
   const iss=document.getElementById('calib-issued').value;
   if(isSph){ if(hint)hint.textContent='مدة غير محددة — أدخل تاريخ الاستحقاق بنفسك'; if(dueEl){ dueEl.disabled=false; dueEl.dataset.auto=''; } }
   else { if(hint)hint.textContent='يتحسب تلقائيًا ('+(months%12===0?(months/12)+' سنة':months+' شهر')+') — تقدر تعدّله'; if(dueEl){ dueEl.disabled=false; if(iss && (!dueEl.value||dueEl.dataset.auto==='1')){ const d=new Date(iss); d.setMonth(d.getMonth()+months); dueEl.value=_isoDate(d); dueEl.dataset.auto='1'; } } }
+}
+// ══════════ إدخال PSV/Gauges كجدول جاهز من إعداد المسؤول ══════════
+window.__calibBatch={kind:'psv', imgs:{}};
+function _addMonthsISO(iso,m){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return ''; d.setMonth(d.getMonth()+m); return _isoDate(d); }
+function _calibResult(due){ if(!due) return ['—','#64748B']; const d=new Date(due); if(isNaN(d.getTime())) return ['—','#64748B']; const t=new Date(); t.setHours(0,0,0,0); return (d.getTime()>=t.getTime())?['O.K','#166534']:['NOT OK','#B91C1C']; }
+function _compTag(c){ return 'ضاغط '+((parseInt(c,10)||0)+1); }
+function loadCalibBatch(kind){
+  const box=document.getElementById('calib-batch'); if(!box||!currentStation){ return; }
+  box.innerHTML='<div style="text-align:center;padding:18px;color:#475569;font-weight:800">⏳ جارى تحميل الإعداد...</div>';
+  window.__calibBatch={kind:kind, imgs:{}};
+  Promise.all([
+    fetch(APPS_SCRIPT_URL+'?action=calibConfig&code='+encodeURIComponent(currentStation.code)).then(r=>r.json()).catch(()=>({rows:[]})),
+    fetch(APPS_SCRIPT_URL+'?action=calibDue&kind=calib&code='+encodeURIComponent(currentStation.code)).then(r=>r.json()).catch(()=>({items:[]}))
+  ]).then(function(res){
+    const cfgRows=((res[0]&&res[0].rows)||[]).filter(r=>r.kind===kind);
+    const certs=((res[1]&&res[1].items)||[]).filter(x=>x.itemId===kind);
+    renderCalibBatch(kind, cfgRows, certs);
+  }).catch(()=>{ renderCalibBatch(kind, [], []); });
+}
+function renderCalibBatch(kind, cfgRows, certs){
+  const box=document.getElementById('calib-batch'); if(!box) return;
+  const nm=(kind==='psv')?'صمامات الأمان PSV':'الـPressure Gauges';
+  if(!cfgRows.length){ box.innerHTML='<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:16px;text-align:center;color:#92400E;font-weight:800;line-height:1.9">لسه المسؤول ما حدّدش أنواع '+nm+' لمحطتك.<br><span style="font-size:12px;font-weight:700">اطلب من المسؤول يدخّلها من «إعداد المعايرة».</span></div>'; return; }
+  const byComp={}; cfgRows.forEach(r=>{ (byComp[r.comp]=byComp[r.comp]||[]).push(r); });
+  const certMap={}; certs.forEach(c=>{ certMap[c.desc]=c; });
+  window.__calibBatch.imgs={};
+  let h='<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:9px;padding:9px 12px;font-size:12px;color:#1E40AF;font-weight:700;margin-bottom:8px;line-height:1.7">دى '+nm+' اللى المسؤول حدّدها لمحطتك — الضغط القياسى ظاهر للاطلاع، إنت تدخّل ضغط الضبط والسيريال وتاريخ الإصدار والصورة. النتيجة تتحسب تلقائيًا.</div>';
+  h+='<div style="overflow-x:auto;border:1px solid #E7EBF3;border-radius:10px"><table style="width:100%;border-collapse:separate;border-spacing:0;font-size:12px;white-space:nowrap"><thead><tr>'
+    +['المرحلة/النوع','الضغط القياسى','ضغط الضبط','Serial','تاريخ الإصدار','الاستحقاق','النتيجة','📷'].map(x=>'<th style="padding:7px 6px;background:#334155;color:#fff;font-size:11px">'+x+'</th>').join('')+'</tr></thead><tbody>';
+  Object.keys(byComp).forEach(comp=>{
+    h+='<tr><td colspan="8" style="background:#0F766E;color:#fff;font-weight:800;padding:6px 10px;font-size:12px">🔧 '+_compTag(comp)+'</td></tr>';
+    byComp[comp].forEach(r=>{
+      const key=comp+'|'+r.type; const desc=r.type+' — '+_compTag(comp); const cert=certMap[desc]||{};
+      const issued=cert.issued||''; const due=cert.due||_addMonthsISO(issued,12); const res=_calibResult(due);
+      window.__calibBatch.imgs[key]=(cert.img?String(cert.img).split(' | '):[]).filter(Boolean).map(u=>({url:u}));
+      const nImg=window.__calibBatch.imgs[key].length;
+      h+='<tr data-key="'+_esc(key)+'" data-comp="'+_esc(comp)+'" data-type="'+_esc(r.type)+'" data-unit="'+_esc(r.unit||'')+'" data-oserial="'+_esc(cert.serial||'')+'">'
+        +'<td style="padding:5px 8px;border:1px solid #E7EBF3;text-align:right;font-weight:700">'+r.type+'</td>'
+        +'<td style="padding:5px 8px;border:1px solid #E7EBF3;text-align:center;background:#F0FDF4;font-weight:800;color:#166534;direction:ltr">'+(r.std!=null?r.std:'—')+' '+(r.unit||'')+'</td>'
+        +'<td style="padding:4px;border:1px solid #E7EBF3"><input class="cb-set" type="number" step="any" inputmode="decimal" value="'+(cert.setpress!=null?cert.setpress:'')+'" style="width:80px;direction:ltr;text-align:center;border:1px solid #CBD5E1;border-radius:6px;padding:5px;font-weight:700"></td>'
+        +'<td style="padding:4px;border:1px solid #E7EBF3"><input class="cb-serial" value="'+_esc(cert.serial||'')+'" placeholder="Serial" style="width:110px;direction:ltr;text-align:center;border:1px solid #CBD5E1;border-radius:6px;padding:5px;font-weight:700"></td>'
+        +'<td style="padding:4px;border:1px solid #E7EBF3"><input class="cb-issued" type="date" value="'+issued+'" onchange="calibBatchDue(this)" style="width:135px;direction:ltr;border:1px solid #CBD5E1;border-radius:6px;padding:5px;font-weight:700"></td>'
+        +'<td class="cb-due" style="padding:5px 8px;border:1px solid #E7EBF3;text-align:center;direction:ltr;font-weight:800">'+(due||'—')+'</td>'
+        +'<td class="cb-res" style="padding:5px 8px;border:1px solid #E7EBF3;text-align:center;font-weight:800;color:'+res[1]+'">'+res[0]+'</td>'
+        +'<td style="padding:4px;border:1px solid #E7EBF3;text-align:center"><button type="button" onclick="calibBatchPickImg(this)" style="background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE;border-radius:7px;padding:5px 8px;font-weight:800;cursor:pointer;font-size:11px">📷 '+(nImg?nImg:'صورة')+'</button></td>'
+        +'</tr>';
+    });
+  });
+  h+='</tbody></table></div>';
+  h+='<button type="button" onclick="submitCalibBatch()" style="width:100%;background:linear-gradient(135deg,#334155,#475569);color:#fff;border:none;border-radius:8px;padding:12px;font-family:Cairo;font-weight:800;font-size:14px;cursor:pointer;margin-top:10px">💾 حفظ الكل</button>';
+  box.innerHTML=h;
+}
+function calibBatchDue(inp){ const tr=inp.closest('tr'); const due=_addMonthsISO(inp.value,12); tr.querySelector('.cb-due').textContent=due||'—'; const res=_calibResult(due); const rc=tr.querySelector('.cb-res'); rc.textContent=res[0]; rc.style.color=res[1]; }
+function calibBatchPickImg(btn){ const tr=btn.closest('tr'); window.__batchImgRow=tr.getAttribute('data-key'); const inp=document.getElementById('calib-batch-imgfile'); if(inp){ inp.value=''; inp.click(); } }
+function calibBatchAddImg(){ const inp=document.getElementById('calib-batch-imgfile'); const key=window.__batchImgRow; if(!inp||!inp.files||!inp.files.length||!key) return;
+  const files=Array.prototype.slice.call(inp.files);
+  Promise.all(files.map(f=>_docCompress(f,1400,0.72))).then(arr=>{ const a=window.__calibBatch.imgs[key]=window.__calibBatch.imgs[key]||[]; arr.forEach(d=>a.push({data:d})); inp.value=''; _cbUpdImgBtn(key); }).catch(()=>{});
+}
+function _cbUpdImgBtn(key){ const n=(window.__calibBatch.imgs[key]||[]).length; document.querySelectorAll('#calib-batch tr[data-key]').forEach(tr=>{ if(tr.getAttribute('data-key')===key){ const b=tr.querySelector('button'); if(b) b.textContent='📷 '+(n?('عرض '+n):'صورة'); } }); }
+function submitCalibBatch(){
+  const box=document.getElementById('calib-batch'); const kind=window.__calibBatch.kind; const st=document.getElementById('calib-status'); const items=[];
+  box.querySelectorAll('tr[data-key]').forEach(tr=>{
+    const key=tr.getAttribute('data-key'), comp=tr.getAttribute('data-comp'), type=tr.getAttribute('data-type'), unit=tr.getAttribute('data-unit');
+    const set=tr.querySelector('.cb-set').value, serial=tr.querySelector('.cb-serial').value.trim(), issued=tr.querySelector('.cb-issued').value;
+    const imgs=window.__calibBatch.imgs[key]||[];
+    if(set==='' && !serial && !issued && !imgs.length) return;   // صف فاضى نتجاهله
+    const due=_addMonthsISO(issued,12), desc=type+' — '+_compTag(comp);
+    const keepUrls=imgs.filter(x=>x.url).map(x=>x.url), images=imgs.filter(x=>x.data).map(x=>x.data);
+    const it={item:kind, desc:desc, serial:serial, issued:issued, due:due, months:12, setpress:(set===''?null:parseFloat(set)), unit:unit, keepUrls:keepUrls, orig_item:kind, orig_desc:desc, orig_serial:(tr.getAttribute('data-oserial')||'')};
+    if(images.length) it.images=images;
+    items.push(it);
+  });
+  if(!items.length){ if(st){ st.style.color='#B91C1C'; st.textContent='❌ املأ بيانات صمام واحد على الأقل'; } return; }
+  if(st){ st.style.color='#334155'; st.textContent='⏳ جارى حفظ '+items.length+' بند...'; }
+  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'calib_batch', code:currentStation.code, name:currentStation.name, items:items})}).then(r=>r.json()).then(j=>{
+    if(st){ if(j&&j.ok){ st.style.color='#166534'; st.textContent='✅ اتحفظ '+(j.saved||items.length)+' بند'; } else { st.style.color='#B91C1C'; st.textContent='❌ تعذر الحفظ'; } }
+    setTimeout(()=>{ if(st)st.textContent=''; try{ loadMyDoc('calib'); }catch(e){} loadCalibBatch(kind); },1500);
+  }).catch(()=>{ if(st){ st.style.color='#B91C1C'; st.textContent='❌ تعذر الإرسال — راجع الاتصال'; } });
 }
 function _calibCompose(){
   const item=document.getElementById('calib-item').value;
