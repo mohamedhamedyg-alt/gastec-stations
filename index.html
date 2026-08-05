@@ -1082,7 +1082,7 @@ td.mg-fz2{position:sticky;right:48px;background:#F4F8FC;font-weight:700;text-ali
       <div style="font-size:14px;font-weight:700;color:#B8D4E8">منطقة القناة وسيناء</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span id="d-cap-credit" dir="rtl" style="display:inline-block;direction:rtl;unicode-bidi:isolate;background:#fff;color:#0D2B4E;font-size:16px;font-weight:800;padding:8px 22px;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,.2)">تصميم وتنفيذ : مهندس / محمـد أبـو النجـا</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V219</span>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);direction:ltr;unicode-bidi:isolate;display:inline-block">V220</span>
       </div>
     </div>
   </div>
@@ -1677,7 +1677,7 @@ loadTariffSettings();
 // تسخين السيرفر مبكراً (يقلل بطء أول تحميل — cold start)
 try{ fetch(APPS_SCRIPT_URL+'?action=ping').catch(()=>{}); }catch(e){}
 // ══════════ التحديث التلقائى: النسخ القديمة عند المشرفين تُحدَّث نفسها ══════════
-const APP_BUILD = 219; // ← يرتفع مع كل إصدار جديد من الواجهة
+const APP_BUILD = 220; // ← يرتفع مع كل إصدار جديد من الواجهة
 function pushAppVer(){ // المسؤول (على أحدث نسخة دائماً) يرفع رقم الإصدار على السيرفر تلقائياً
   try{ fetch(APPS_SCRIPT_URL+'?action=setappver&v='+APP_BUILD).catch(()=>{}); }catch(e){}
 }
@@ -5753,6 +5753,10 @@ function _fg(label, inner){ return '<div class="form-group" style="margin-bottom
 function _compLabel(c){ return ((c.name||'')+' '+(c.model||'')).trim(); }
 function _compOptions(sel){ const comps=(currentStation&&currentStation.comps)||[]; return comps.map((c,i)=>{ const v='ضاغط '+(i+1)+' ('+_compLabel(c)+')'; return '<option value="'+v+'"'+(sel===v?' selected':'')+'>ضاغط '+(i+1)+' — '+_compLabel(c)+'</option>'; }).join(''); }
 function calibConfigure(preset){
+  // مهم: لو اتنادت من غير preset (مثلاً عند تغيير تاريخ الإصدار) نحافظ على القيم المختارة حاليًا
+  // عشان ما ترجعش المرحلة لـ Inlet والضاغط للأول — ده كان سبب حفظ كل الشهادات على Inlet.
+  if(preset===undefined){ const gv=id=>{const e=document.getElementById(id);return e?e.value:'';};
+    preset={ stage:gv('calib-stage'), comp:gv('calib-comp'), tanktype:gv('calib-tanktype'), tanknum:gv('calib-tanknum'), hose:gv('calib-hose') }; }
   preset=preset||{};
   const item=document.getElementById('calib-item').value;
   const dyn=document.getElementById('calib-dyn'); if(!dyn) return;
@@ -5927,8 +5931,16 @@ function renderDocTable(items, withDelete, kind){
 }
 function deleteDocRow(kind, itemId, desc, serial){
   if(!currentStation) return;
-  const st=document.getElementById(kind+'-status'); if(st){ st.style.color='#334155'; st.textContent='⏳ جارى الحذف...'; }
-  fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'calib_delete', code:currentStation.code, item:decodeURIComponent(itemId), desc:decodeURIComponent(desc), serial:decodeURIComponent(serial)})}).then(r=>r.json()).then(j=>{ if(st)st.textContent=''; loadMyDoc(kind); }).catch(e=>{ if(st){st.style.color='#B91C1C';st.textContent='تعذر الحذف';} });
+  const dItem=decodeURIComponent(itemId), dDesc=decodeURIComponent(desc), dSerial=decodeURIComponent(serial);
+  const label=(dDesc||'')+(dSerial?(' — Serial: '+dSerial):'');
+  Promise.resolve(niceConfirm('حذف الشهادة؟','هتحذف: <b>'+(label||'—')+'</b><br><span style="font-size:12px;color:#94A3B8">مش هينفع ترجعها.</span>','نعم احذف','رجوع')).then(function(ok){
+    if(!ok) return;
+    const st=document.getElementById(kind+'-status'); if(st){ st.style.color='#334155'; st.textContent='⏳ جارى الحذف...'; }
+    fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({type:'calib_delete', code:currentStation.code, item:dItem, desc:dDesc, serial:dSerial})}).then(r=>r.json()).then(function(j){
+      if(st){ if(j&&j.ok){ st.style.color='#166534'; st.textContent='✅ اتحذفت'+((j.removed>1)?(' ('+j.removed+' صفوف)'):''); } else { st.style.color='#B91C1C'; st.textContent='❌ تعذر الحذف: '+((j&&j.error)||''); } setTimeout(function(){ if(st)st.textContent=''; },1800); }
+      loadMyDoc(kind);
+    }).catch(function(e){ if(st){st.style.color='#B91C1C';st.textContent='تعذر الحذف — راجع الاتصال';} });
+  });
 }
 // ══════════ تنبيهات الوثائق (بادج على الكروت) + أمر شغل بالمستحقات ══════════
 window.__docMgrItems={};
